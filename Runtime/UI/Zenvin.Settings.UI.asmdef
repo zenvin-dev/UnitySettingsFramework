@@ -1,7 +1,9 @@
 {
-    "name": "Zenvin.Settings",
+    "name": "Zenvin.Settings.UI",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:2407e9dba5422d242bcb0a0c026a4b2f"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

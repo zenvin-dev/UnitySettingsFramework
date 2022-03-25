@@ -2,7 +2,8 @@
     "name": "Zenvin.Settings.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:2407e9dba5422d242bcb0a0c026a4b2f"
+        "GUID:ac552a92ec43d4447b72a745b1ec5db0",
+        "GUID:b19a3560d2f7536459ead567ec685fb0"
     ],
     "includePlatforms": [
         "Editor"
