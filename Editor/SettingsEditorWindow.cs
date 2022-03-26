@@ -1,6 +1,5 @@
 using Object = UnityEngine.Object;
 
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -17,6 +16,12 @@ namespace Zenvin.Settings.Framework {
 		private static readonly Color hierarchyColorB = new Color (0.1f, 0.1f, 0.1f, 0f);
 		private static readonly Color hierarchyColorSelected = new Color (0f, 0.5f, 1.0f, 0.4f);
 		private static readonly Color hierarchyColordragged = new Color (1f, 0.5f, 1f, 0.4f);
+
+		private static GUIStyle foldoutStyleInternal;
+		private static GUIStyle foldoutStyleExternal;
+		private static GUIStyle labelStyleInternal;
+		private static GUIStyle labelStyleExternal;
+
 
 		[SerializeField, HideInInspector] private List<SettingsGroup> hierarchyState;
 
@@ -71,11 +76,21 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		// GUI methods
+		// Initialization
 
 		private void OnEnable () {
 			ExpandToSelection (false);
 		}
+
+		private void SetupStyles () {
+			foldoutStyleInternal = EditorStyles.foldout;
+			foldoutStyleExternal = new GUIStyle (EditorStyles.foldout) { fontStyle = FontStyle.Italic };
+			labelStyleInternal = EditorStyles.label;
+			labelStyleExternal = new GUIStyle (EditorStyles.label) { fontStyle = FontStyle.Italic };
+		}
+
+
+		// GUI methods
 
 		private void OnGUI () {
 			if (asset == null) {
@@ -87,16 +102,28 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			Rect rect = new Rect (hierarchyWidth, 0f, 2f, position.height);
+			if (foldoutStyleInternal == null || foldoutStyleExternal == null || labelStyleInternal == null || labelStyleExternal == null) {
+				SetupStyles ();
+			}
+
+			Rect topBarRect = new Rect (
+				margin, margin, position.width - margin * 2f, EditorGUIUtility.singleLineHeight + 1
+			);
+			Rect hierarchyRect = new Rect (
+				margin, margin + topBarRect.height + margin, hierarchyWidth - margin * 2f, position.height - margin * 2f - topBarRect.height
+			);
+			Rect editorRect = new Rect (
+				hierarchyWidth + 2f + margin * 2f, margin + topBarRect.height + margin, position.width - hierarchyWidth - 2f - margin * 2f, position.height - margin * 3f - topBarRect.height
+			);
+
+			Rect rect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
 			if (MakeHorizontalDragRect (ref rect)) {
 				hierarchyWidth = rect.x;
 				hierarchyWidth = Mathf.Clamp (hierarchyWidth, 200f, position.width - 300f);
 				Repaint ();
 			}
 
-			Rect hierarchyRect = new Rect (margin, margin, hierarchyWidth - margin * 2f, position.height - margin * 1f);
-			Rect editorRect = new Rect (hierarchyWidth + 2f + margin, margin, position.width - hierarchyWidth - 2f - margin * 2f, position.height - margin * 2f);
-
+			DrawTopBar (topBarRect);
 			DrawHierarchy (hierarchyRect);
 			DrawEditor (editorRect);
 
@@ -126,10 +153,27 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private void DrawTopBar (Rect rect) {
+			Rect bar = new Rect (rect);
+			bar.height -= 1f;
+
+			Rect line = new Rect (rect);
+			line.height = 1f;
+			line.y += bar.height;
+
+			EditorGUI.DrawRect (line, new Color(0.1f, 0.1f, 0.1f));
+
+			GUILayout.BeginArea (bar);
+
+			DrawSearchBar (hierarchyWidth);
+
+			GUILayout.EndArea ();
+		}
+
 		private void DrawHierarchy (Rect rect) {
 			GUILayout.BeginArea (rect);
 
-			DrawSearchBar ();
+			//DrawSearchBar ();
 
 			hierarchyScroll = EditorGUILayout.BeginScrollView (hierarchyScroll, false, false);
 
@@ -177,17 +221,16 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawDefaultEditor (SettingsGroup group) {
-			Rect r = EditorGUILayout.GetControlRect ();
-			r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
-			EditorGUI.SelectableLabel (r, group.GUID, EditorStyles.textField);
 
-			GUILayout.Space (10);
+			if (group != asset) {
+				//Rect r = EditorGUILayout.GetControlRect ();
+				//r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
+				//EditorGUI.SelectableLabel (r, group.GUID, EditorStyles.textField);
 
-			//group.Name = EditorGUILayout.TextField ("Name", group.Name);
-			//group.name = group.Name;
-			//group.NameLocalizationKey = EditorGUILayout.TextField ("Loc. Key", group.NameLocalizationKey);
-			//group.Icon = EditorGUILayout.ObjectField ("Icon", group.Icon, typeof (Sprite), false) as Sprite;
+				DrawGuidField (editor.serializedObject, true);
+			}
 
+			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupName)), new GUIContent ("Name"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupNameLocKey)), new GUIContent ("Loc. Key"));
@@ -197,14 +240,13 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawDefaultEditor (SettingBase setting) {
-			Rect r = EditorGUILayout.GetControlRect ();
-			r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
-			EditorGUI.SelectableLabel (r, setting.GUID, EditorStyles.textField);
+			//Rect r = EditorGUILayout.GetControlRect ();
+			//r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
+			//EditorGUI.SelectableLabel (r, setting.GUID, EditorStyles.textField);
 
-			GUILayout.Space (10);
+			DrawGuidField (editor.serializedObject, false);
 
-			//setting.Name = EditorGUILayout.TextField ("Name", setting.Name);
-			//setting.NameLocalizationKey = EditorGUILayout.TextField ("Loc. Key", setting.NameLocalizationKey);
+			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingName"), new GUIContent ("Name"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingNameLocKey"), new GUIContent ("Loc. Key"));
@@ -213,10 +255,14 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		private void DrawSearchBar () {
+		private void DrawSearchBar (float? width = null) {
 
 			string search = searchString;
-			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField);
+			if (width.HasValue) {
+				searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.MaxWidth (width.Value));
+			} else {
+				searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField);
+			}
 
 			if (string.IsNullOrEmpty (searchString)) {
 				searchResults = null;
@@ -234,6 +280,30 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 		}
+
+		private void DrawGuidField (SerializedObject obj, bool group) {
+			if (obj == null) {
+				return;
+			}
+			SerializedProperty guidProp = obj.FindProperty ("guid");
+			if (guidProp == null) {
+				return;
+			}
+
+			string val = guidProp.stringValue;
+			string newVal = EditorGUILayout.DelayedTextField ("GUID", val);
+			if (newVal == val) {
+				return;
+			}
+
+			if (!asset.Editor_IsValidGUID (newVal, group)) {
+				newVal = val;
+			}
+
+			guidProp.stringValue = newVal;
+			obj.ApplyModifiedPropertiesWithoutUndo ();
+		}
+
 
 		private void DrawSettingsGroup (SettingsGroup group, int groupIndex, ref int index, int indent = 0) {
 			if (group == null) {
@@ -268,7 +338,7 @@ namespace Zenvin.Settings.Framework {
 			Rect foldRect = new Rect (rect.x + indentValue, rect.y, rect.width - indentValue, rect.height);
 
 			if ((group.ChildGroupCount + group.SettingCount) > 0) {
-				expanded = EditorGUI.Foldout (foldRect, expanded, group.Name, false);
+				expanded = EditorGUI.Foldout (foldRect, expanded, group.Name, false, group.External ? foldoutStyleExternal : foldoutStyleInternal);
 				expansionState[group] = expanded;
 			} else {
 				foldRect.x += indentSize;
@@ -293,10 +363,12 @@ namespace Zenvin.Settings.Framework {
 						ShowGroupMenu (group);
 						break;
 					case EventType.MouseDrag:
-						Select (null);
-						if (dragged == null && group != asset) {
-							e.Use ();
-							dragged = group;
+						if (e.button == 0) {
+							Select (null);
+							if (dragged == null && group != asset) {
+								e.Use ();
+								dragged = group;
+							}
 						}
 						break;
 				}
@@ -397,7 +469,7 @@ namespace Zenvin.Settings.Framework {
 
 			float indentValue = (indent + 1) * indentSize + 10f;
 			Rect foldRect = new Rect (rect.x + indentValue, rect.y, rect.width - indentValue, rect.height);
-			EditorGUI.LabelField (foldRect, $"{setting.Name} ({setting.ValueType.Name})");
+			EditorGUI.LabelField (foldRect, $"{setting.Name} ({setting.ValueType.Name})", setting.External ? labelStyleExternal : labelStyleInternal);
 
 			Event e = Event.current;
 			if (foldRect.Contains (e.mousePosition)) {
@@ -438,48 +510,65 @@ namespace Zenvin.Settings.Framework {
 		private void ShowGroupMenu (SettingsGroup group) {
 			GenericMenu gm = new GenericMenu ();
 
-			LoadViableTypes ();
-			if (viableTypes.Length == 0) {
-				gm.AddDisabledItem (new GUIContent ("Add Setting"));
-			} else {
-				foreach (Type t in viableTypes) {
-					Type generic = null;
-					Type[] generics = t.BaseType.GetGenericArguments ();
-					if (generics.Length > 0) {
-						generic = generics[0];
+			if (!Application.isPlaying) {
+				LoadViableTypes ();
+				if (viableTypes.Length == 0) {
+					gm.AddDisabledItem (new GUIContent ("Add Setting"));
+				} else {
+					foreach (Type t in viableTypes) {
+						Type generic = null;
+						Type[] generics = t.BaseType.GetGenericArguments ();
+						if (generics.Length > 0) {
+							generic = generics[0];
+						}
+						string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
+						string gn = generic?.Name?.Split ('`')[0];
+						gm.AddItem (
+							new GUIContent ($"Add Setting/{ns}/{t.Name} {(string.IsNullOrEmpty (gn) ? "" : $"({gn})")}"),
+							false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
+						);
 					}
-					string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
-					string gn = generic?.Name?.Split ('`')[0];
-					gm.AddItem (
-						new GUIContent ($"Add Setting/{ns}/{t.Name} {(string.IsNullOrEmpty (gn) ? "" : $"({gn})")}"),
-						false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
-					);
 				}
-			}
 
 
-			gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
+				gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
 
-			if (group != asset) {
+				if (group != asset) {
+					gm.AddSeparator ("");
+					gm.AddItem (new GUIContent ("Delete Group"), false, DeleteGroup, group);
+				}
+
 				gm.AddSeparator ("");
-				gm.AddItem (new GUIContent ("Delete Group"), false, DeleteGroup, group);
 			}
 
-			gm.AddSeparator ("");
-			gm.AddItem (new GUIContent ("Collapse All"), false, () => {
+			gm.AddItem (new GUIContent ("Collapse/All"), false, () => {
 				Select (asset);
 				expansionState.Clear ();
+				expansionState[asset] = true;
 			});
+			gm.AddItem (new GUIContent ("Collapse/To This"), false, () => { ExpandToSelection (true); });
 
 			gm.ShowAsContext ();
 		}
 
 		private void ShowSettingMenu (SettingBase setting) {
+				
+
 			GenericMenu gm = new GenericMenu ();
 
-			gm.AddItem (new GUIContent ("Duplicate Setting"), false, DuplicateSetting, setting);
-			gm.AddSeparator ("");
-			gm.AddItem (new GUIContent ("Delete Setting"), false, DeleteSetting, setting);
+			if (!Application.isPlaying) {
+				gm.AddItem (new GUIContent ("Duplicate Setting"), false, DuplicateSetting, setting);
+				gm.AddSeparator ("");
+				gm.AddItem (new GUIContent ("Delete Setting"), false, DeleteSetting, setting);
+				gm.AddSeparator ("");
+			}
+
+			gm.AddItem (new GUIContent ("Collapse/All"), false, () => {
+				Select (asset);
+				expansionState.Clear ();
+				expansionState[asset] = true;
+			});
+			gm.AddItem (new GUIContent ("Collapse/To This"), false, () => { ExpandToSelection (true); });
 
 			gm.ShowAsContext ();
 		}
@@ -493,21 +582,16 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			SettingBase setting = CreateInstance (d.SettingType) as SettingBase;
-			if (setting == null) {
-				return;
-			}
-
-			setting.name = "New Setting";
-			setting.Name = "New Setting";
-			setting.GUID = Guid.NewGuid ().ToString ();
-			setting.asset = asset;
-
-			AssetDatabase.AddObjectToAsset (setting, asset);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.Refresh ();
+			SettingBase setting = AssetUtility.CreateAsPartOf<SettingBase> (asset, d.SettingType, s => {
+				s.name = "New Setting";
+				s.Name = "New Setting";
+				s.GUID = Guid.NewGuid ().ToString ();
+				s.asset = asset;
+			});
 
 			d.Group.AddSetting (setting);
+			Select (setting);
+			ExpandToSelection (false);
 		}
 
 		private void CreateGroupAsChildOfGroup (object group) {
@@ -515,16 +599,15 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			SettingsGroup newGroup = CreateInstance<SettingsGroup> ();
-			newGroup.name = "New Group";
-			newGroup.groupName = "New Group";
-			newGroup.GUID = Guid.NewGuid ().ToString ();
-
-			AssetDatabase.AddObjectToAsset (newGroup, asset);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.Refresh ();
+			SettingsGroup newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
+				g.name = "New Group";
+				g.groupName = "New Group";
+				g.GUID = Guid.NewGuid ().ToString ();
+			});
 
 			g.AddChildGroup (newGroup);
+			Select (newGroup);
+			ExpandToSelection (false);
 		}
 
 		private void DuplicateSetting (object setting) {
@@ -591,7 +674,14 @@ namespace Zenvin.Settings.Framework {
 			r.x -= size * 0.5f;
 			r.width = Mathf.Abs (size);
 
+			r.width += Mathf.Abs (e.delta.x);
+			if (e.delta.x < 0f) {
+				r.x += e.delta.x;
+			}
+
 			if (r.Contains (e.mousePosition)) {
+				EditorGUIUtility.AddCursorRect (new Rect (e.mousePosition, Vector2.one * 32f), MouseCursor.ResizeHorizontal);
+
 				if (e.type == EventType.MouseDrag) {
 					rect.x += e.delta.x;
 					e.Use ();
@@ -627,7 +717,12 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 
+			types.Sort (Compare);
 			viableTypes = types.ToArray ();
+		}
+
+		private int Compare (Type a, Type b) {
+			return a.FullName.CompareTo (b.FullName);
 		}
 
 		private Color GetHierarchyColor (ScriptableObject obj, int index) {

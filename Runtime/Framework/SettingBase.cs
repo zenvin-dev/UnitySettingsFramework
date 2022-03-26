@@ -4,9 +4,7 @@ using UnityEngine;
 using System;
 
 namespace Zenvin.Settings.Framework {
-	public abstract class SettingBase : ScriptableObject {
-
-		[SerializeField, HideInInspector] private string guid = null;
+	public abstract class SettingBase : IdentifiableScriptableObject {
 
 		[SerializeField, HideInInspector] private string settingName;
 		[SerializeField, HideInInspector] private string settingNameLocKey;
@@ -14,15 +12,6 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
 		[SerializeField, HideInInspector] internal SettingsGroup group;
 
-
-		public string GUID {
-			get => guid;
-			internal set {
-				if (guid == null) {
-					guid = value;
-				}
-			}
-		}
 
 		public string Name {
 			get => settingName;
