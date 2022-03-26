@@ -55,17 +55,21 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			var settingList = external ? group.ExternalSettings : group.Settings;
-			foreach (var s in settingList) {
-				if (!external) {
-					dict[s.GUID] = s;
-				} else if (!dict.ContainsKey (s.GUID)) {
-					dict[s.GUID] = s;
+			if (settingList != null) {
+				foreach (var s in settingList) {
+					bool canAdd = !external || !dict.ContainsKey (s.GUID);
+					if (canAdd) {
+						dict[s.GUID] = s;
+						s.Initialize ();
+					}
 				}
 			}
 
 			var groupList = external ? group.ExternalGroups : group.Groups;
-			foreach (var g in groupList) {
-				RegisterSettingsRecursively (g, dict, external);
+			if (groupList != null) {
+				foreach (var g in groupList) {
+					RegisterSettingsRecursively (g, dict, external);
+				}
 			}
 		}
 

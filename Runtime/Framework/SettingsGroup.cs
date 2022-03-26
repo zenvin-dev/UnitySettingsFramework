@@ -148,8 +148,18 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void GetGroupsRecursively (SettingsGroup group, List<SettingsGroup> groupList) {
-			groupList.AddRange (group.groups);
-			groupList.AddRange (group.externalGroups);
+			if (group == null) {
+				return;
+			}
+
+			Debug.Log ($"Group count '{group.Name}': {group.InternalChildGroupCount}");
+
+			if (group.groups != null) {
+				groupList.AddRange (group.groups);
+			}
+			if (group.externalGroups != null) {
+				groupList.AddRange (group.externalGroups);
+			}
 
 			foreach (SettingsGroup g in group.groups) {
 				GetGroupsRecursively (g, groupList);
@@ -212,8 +222,16 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void GetSettingsRecursively (SettingsGroup group, List<SettingBase> settingsList) {
-			settingsList.AddRange (group.settings);
-			settingsList.AddRange (group.externalSettings);
+			if (group == null) {
+				return;
+			}
+
+			if (group.settings != null) {
+				settingsList.AddRange (group.settings);
+			}
+			if (group.externalSettings != null) {
+				settingsList.AddRange (group.externalSettings);
+			}
 
 			foreach (SettingsGroup g in group.groups) {
 				GetSettingsRecursively (g, settingsList);

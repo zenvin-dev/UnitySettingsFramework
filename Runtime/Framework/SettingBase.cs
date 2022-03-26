@@ -37,6 +37,8 @@ namespace Zenvin.Settings.Framework {
 
 		private protected virtual void OnSetup () { }
 
+		internal virtual void Initialize () { }
+
 		/// <summary>
 		/// Applies the cached value to the setting.<br></br>
 		/// Will return <c>false</c> if the values were equal already.
@@ -121,7 +123,11 @@ namespace Zenvin.Settings.Framework {
 		/// <param name="value"> The next value of the setting. </param>
 		protected virtual void ProcessValue (ref T value) { }
 
-		
+		internal override void Initialize () {
+			currentValue = defaultValue;
+			cachedValue = defaultValue;
+		}
+
 		private protected sealed override bool OnApply () {
 			if (!IsDirty) {
 				return false;

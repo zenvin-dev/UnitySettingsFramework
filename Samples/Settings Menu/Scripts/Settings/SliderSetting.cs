@@ -1,6 +1,7 @@
+using Zenvin.Settings.Framework;
 using UnityEngine;
 
-namespace Zenvin.Settings.Framework {
+namespace Zenvin.Settings.Samples {
 	public class SliderSetting : FloatSetting {
 
 		[SerializeField] private float minValue = 0f;

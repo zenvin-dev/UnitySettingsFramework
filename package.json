@@ -11,5 +11,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/xZenvin/UnitySettingsFramework"
-  }
+  },
+  "license": "LICENSE.md",
+  "samples": [
+    {
+      "displayName": "Settings Menu",
+      "description": "A complete demonstration of how a settings menu could be set up with this package.",
+      "path": "Samples/Main Menu"
+    }
+  ]
 }
