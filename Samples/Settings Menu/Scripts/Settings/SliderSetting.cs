@@ -1,5 +1,6 @@
 using Zenvin.Settings.Framework;
 using UnityEngine;
+using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderSetting : FloatSetting {

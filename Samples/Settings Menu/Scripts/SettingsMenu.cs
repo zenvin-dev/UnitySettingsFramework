@@ -77,5 +77,20 @@ namespace Zenvin.Settings.Samples {
 			}
 		}
 
+
+		// Button methods
+
+		public void ApplyDirtySettings () {
+			asset.ApplyDirtySettings ();
+		}
+
+		public void RevertDirtySettings () {
+			asset.RevertDirtySettings ();
+		}
+
+		public void ResetAllSettings () {
+			asset.ResetAllSettings (true);
+		}
+
 	}
 }

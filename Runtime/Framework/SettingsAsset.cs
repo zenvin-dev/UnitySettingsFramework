@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Zenvin.Settings.Utility;
 using UnityEngine;
 using System.IO;
 using System;
@@ -16,14 +17,10 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private readonly HashSet<SettingBase> dirtySettings = new HashSet<SettingBase> ();
 		[NonSerialized] private bool initialized;
 
-		[SerializeField] private bool prefixInternalGuids = true;
-		[SerializeField] private char internalGuidPrefix = '$';
-		[Space]
-		[SerializeField] private bool prefixExternalGuids = false;
-		[SerializeField] private char externalGuidPrefix = ' ';
-
 
 		public bool Initialized => initialized;
+		public int RegisteredSettingsCount => settingsDict.Count;
+		public int DirtySettingsCount => dirtySettings.Count;
 
 
 		// Initialization
@@ -152,15 +149,70 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		public void ResetAllSettings (bool apply) {
+			foreach (var s in settingsDict.Values) {
+				s.ResetValue (apply);
+			}
+		}
+
 
 		// Saving & Loading
 
-		public void SaveAllSettings (StreamWriter writer) {
+		/// <summary>
+		/// Saves all settings to a stream.<br></br>
+		/// Returns the number of settings saved, or -1 if there was an error.
+		/// </summary>
+		/// <param name="stream"> The <see cref="Stream"/> the method will write to. </param>
+		public int SaveAllSettings (Stream stream) {
+			if (stream == null) {
+				return -1;
+			}
 
+			using (BinaryWriter writer = new BinaryWriter (stream)) {
+				List<SettingData> data = new List<SettingData> (settingsDict.Count);
+
+				foreach (SettingBase set in settingsDict.Values) {
+					if (set != null && set.TrySerialize (out SettingData sd)) {
+						data.Add (sd);
+					}
+				}
+
+				writer.Write (data.Count);
+				for (int i = 0; i < data.Count; i++) {
+					writer.Write (data[i].GUID);
+					writer.WriteArray (data[i].Data);
+				}
+
+				return data.Count;
+			}
 		}
 
-		public void LoadAllSettings (StreamReader reader) {
+		/// <summary>
+		/// Loads all settings from a stream.<br></br>
+		/// Returns the number of settings loaded, or -1 if there was an error.
+		/// </summary>
+		/// <param name="reader"> The <see cref="Stream"/> the method will read from. </param>	
+		public int LoadAllSettings (Stream stream) {
+			if (!Initialized || stream == null || stream.Length - stream.Position == 0) {
+				return -1;
+			}
 
+			using (BinaryReader reader = new BinaryReader (stream)) {
+				int loaded = 0;
+
+				int count = reader.ReadInt32 ();
+				for (int i = 0; i < count; i++) {
+					string guid = reader.ReadString ();
+					byte[] data = reader.ReadArray ();
+
+					if (settingsDict.TryGetValue (guid, out SettingBase setting)) {
+						setting.Deserialize (data);
+						loaded++;
+					}
+				}
+
+				return loaded;
+			}
 		}
 
 

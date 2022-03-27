@@ -2,6 +2,7 @@ using Zenvin.Settings.UI;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
+using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderControl : SettingControl<SliderSetting, float> {

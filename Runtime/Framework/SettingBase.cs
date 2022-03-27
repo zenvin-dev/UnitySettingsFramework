@@ -27,7 +27,10 @@ namespace Zenvin.Settings.Framework {
 
 
 		protected internal abstract object DefaultValueRaw { get; }
+		protected internal abstract object CurrentValueRaw { get; }
+		protected internal abstract object CachedValueRaw { get; }
 		protected internal abstract Type ValueType { get; }
+		public abstract bool IsDirty { get; private protected set; }
 
 
 		internal void Setup (SettingsAsset asset) {
@@ -56,8 +59,20 @@ namespace Zenvin.Settings.Framework {
 
 		private protected abstract bool OnRevert ();
 
+		/// <summary>
+		/// Resets the setting to its default value.
+		/// </summary>
+		/// <param name="apply"> Whether to instantly apply the value. Otherwise the setting will be dirtied. </param>
+		public bool ResetValue (bool apply) => OnReset (apply);
 
-		internal SettingData Serialize () => new SettingData () { GUID = GUID, Data = SerializeInternal () };
+		private protected abstract bool OnReset (bool apply);
+
+
+		internal bool TrySerialize (out SettingData data) {
+			byte[] valueData = SerializeInternal ();
+			data = valueData == null ? null : new SettingData () { GUID = GUID, Data = valueData };
+			return data != null;
+		}
 
 		private protected abstract byte[] SerializeInternal ();
 
@@ -74,9 +89,9 @@ namespace Zenvin.Settings.Framework {
 
 		public event OnApplyValue OnApplyValueHandler;
 
-		private T cachedValue;
-		private T currentValue;
-		private bool isDirty;
+		[NonSerialized] private T cachedValue;
+		[NonSerialized] private T currentValue;
+		[NonSerialized] private bool isDirty;
 
 		[SerializeField] private T defaultValue;
 
@@ -89,9 +104,9 @@ namespace Zenvin.Settings.Framework {
 		public T CachedValue => cachedValue;
 
 		/// <summary> Whether the value of the setting has been changed but not applied yet. </summary>
-		public bool IsDirty {
+		public sealed override bool IsDirty {
 			get => isDirty;
-			private set {
+			private protected set {
 				if (isDirty == value) {
 					return;
 				}
@@ -101,6 +116,8 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		protected internal sealed override object DefaultValueRaw => defaultValue;
+		protected internal sealed override object CurrentValueRaw => currentValue;
+		protected internal sealed override object CachedValueRaw => cachedValue;
 		protected internal sealed override Type ValueType => typeof (T);
 
 
@@ -126,6 +143,7 @@ namespace Zenvin.Settings.Framework {
 		internal override void Initialize () {
 			currentValue = defaultValue;
 			cachedValue = defaultValue;
+			isDirty = false;
 		}
 
 		private protected sealed override bool OnApply () {
@@ -154,12 +172,23 @@ namespace Zenvin.Settings.Framework {
 			return true;
 		}
 
+		private protected sealed override bool OnReset (bool apply) {
+			SetValue (defaultValue);
+			if (apply) {
+				ApplyValue ();
+			}
+			return true;
+		}
 
 		private protected sealed override byte[] SerializeInternal () {
 			return OnSerialize ();
 		}
 
-		protected internal abstract byte[] OnSerialize ();
+		/// <summary>
+		/// Called when the setting should be saved.<br></br>
+		/// Should return <see cref="CurrentValue"/> as <c>byte[]</c>.
+		/// </summary>
+		protected abstract byte[] OnSerialize ();
 
 		private protected sealed override void DeserializeInternal (byte[] data) {
 			T value = OnDeserialize (data);

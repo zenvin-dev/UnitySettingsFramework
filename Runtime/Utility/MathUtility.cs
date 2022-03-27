@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Zenvin.Settings {
+namespace Zenvin.Settings.Utility {
 	public static class MathUtility {
 
 		public static float Difference (float a, float b) {

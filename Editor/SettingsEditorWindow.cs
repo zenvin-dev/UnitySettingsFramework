@@ -9,6 +9,20 @@ using System;
 namespace Zenvin.Settings.Framework {
 	internal class SettingsEditorWindow : EditorWindow, ISerializationCallbackReceiver {
 
+		[Flags]
+		internal enum HierarchyFilter : int {
+			/// <summary> Settings created during edit time. </summary>
+			Normal = 0b0001,
+			/// <summary> Settings loaded during runtime. </summary>
+			External = 0b0010,
+			/// <summary> Dirty settings. </summary>
+			Dirty = 0b0100,
+			/// <summary> Non-dirty settings. </summary>
+			Clean = 0b1000,
+
+			All = ~0b0
+		}
+
 		private const float indentSize = 15f;
 		private const float margin = 1f;
 
@@ -32,6 +46,7 @@ namespace Zenvin.Settings.Framework {
 
 		[NonSerialized] private string searchString = string.Empty;
 		private List<SettingBase> searchResults = null;
+		private HierarchyFilter searchFilter = HierarchyFilter.All;
 
 		[NonSerialized] private ScriptableObject dragged = null;
 		[NonSerialized] private Rect? dragPreview;
@@ -42,6 +57,8 @@ namespace Zenvin.Settings.Framework {
 		private Editor editor = null;
 
 		private Type[] viableTypes = null;
+
+		private HierarchyFilter CurrentFilter => Application.isPlaying ? searchFilter : HierarchyFilter.All;
 
 
 		// Menus
@@ -161,7 +178,7 @@ namespace Zenvin.Settings.Framework {
 			line.height = 1f;
 			line.y += bar.height;
 
-			EditorGUI.DrawRect (line, new Color(0.1f, 0.1f, 0.1f));
+			EditorGUI.DrawRect (line, new Color (0.1f, 0.1f, 0.1f));
 
 			GUILayout.BeginArea (bar);
 
@@ -191,11 +208,12 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawEditor (Rect rect) {
-			if (editor == null || editor.target == null) {
+			if (editor == null || editor.target == null || editor.serializedObject == null) {
 				return;
 			}
 
 			GUILayout.BeginArea (rect);
+			EditorGUI.BeginDisabledGroup (Application.isPlaying);
 
 			switch (editor.target) {
 				case SettingsGroup g:
@@ -211,22 +229,31 @@ namespace Zenvin.Settings.Framework {
 			GUILayout.Space (10);
 
 			editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
+			if (Application.isPlaying) {
 
-			editor.DrawDefaultInspector ();
-			editor.serializedObject.ApplyModifiedProperties ();
-			EditorUtility.SetDirty (editor.target);
+				if (editor.target is SettingBase s) {
+					EditorGUILayout.LabelField ("Default Value", s.DefaultValueRaw.ToString (), EditorStyles.textField);
+					EditorGUILayout.LabelField ("Current Value", s.CurrentValueRaw.ToString (), EditorStyles.textField);
+					EditorGUILayout.LabelField ("Cached Value", s.CachedValueRaw.ToString (), EditorStyles.textField);
+					EditorGUILayout.LabelField ("Is Dirty", s.IsDirty.ToString (), EditorStyles.textField);
+				}
 
+			} else {
+
+				editor.DrawDefaultInspector ();
+				editor.serializedObject.ApplyModifiedProperties ();
+				EditorUtility.SetDirty (editor.target);
+
+			}
 			EditorGUILayout.EndScrollView ();
+
+			EditorGUI.EndDisabledGroup ();
 			GUILayout.EndArea ();
 		}
 
 		private void DrawDefaultEditor (SettingsGroup group) {
 
 			if (group != asset) {
-				//Rect r = EditorGUILayout.GetControlRect ();
-				//r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
-				//EditorGUI.SelectableLabel (r, group.GUID, EditorStyles.textField);
-
 				DrawGuidField (editor.serializedObject, true);
 			}
 
@@ -236,14 +263,18 @@ namespace Zenvin.Settings.Framework {
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupNameLocKey)), new GUIContent ("Loc. Key"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupIcon)), new GUIContent ("Icon"));
 
-			editor.serializedObject.ApplyModifiedProperties ();
+			if (group == asset) {
+				GUILayout.Space (10);
+				EditorGUILayout.LabelField ("Registered Settings", asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
+				EditorGUILayout.LabelField ("Dirty Settings", asset.DirtySettingsCount.ToString (), EditorStyles.textField);
+			}
+
+			if (!Application.isPlaying) {
+				editor.serializedObject.ApplyModifiedProperties ();
+			}
 		}
 
 		private void DrawDefaultEditor (SettingBase setting) {
-			//Rect r = EditorGUILayout.GetControlRect ();
-			//r = EditorGUI.PrefixLabel (r, new GUIContent ("GUID (read-only)"));
-			//EditorGUI.SelectableLabel (r, setting.GUID, EditorStyles.textField);
-
 			DrawGuidField (editor.serializedObject, false);
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
@@ -251,18 +282,30 @@ namespace Zenvin.Settings.Framework {
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingName"), new GUIContent ("Name"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingNameLocKey"), new GUIContent ("Loc. Key"));
 
-			editor.serializedObject.ApplyModifiedProperties ();
+			if (!Application.isPlaying) {
+				editor.serializedObject.ApplyModifiedProperties ();
+			}
 		}
 
 
 		private void DrawSearchBar (float? width = null) {
 
 			string search = searchString;
+
 			if (width.HasValue) {
-				searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.MaxWidth (width.Value));
+				GUILayout.BeginHorizontal (GUILayout.MaxWidth (width.Value));
+				//searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.MaxWidth (width.Value));
 			} else {
-				searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField);
+				GUILayout.BeginHorizontal ();
+				//searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField);
 			}
+
+			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth (true));
+
+			if (Application.isPlaying) {
+				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter);
+			}
+			GUILayout.EndHorizontal ();
 
 			if (string.IsNullOrEmpty (searchString)) {
 				searchResults = null;
@@ -448,6 +491,17 @@ namespace Zenvin.Settings.Framework {
 					continue;
 				}
 
+				//var filter = CurrentFilter;
+				//if ((int)filter != -1) {
+				//	if ((filter & HierarchyFilter.Clean) != HierarchyFilter.Clean || !setting.IsDirty &&
+				//		(filter & HierarchyFilter.Dirty) != HierarchyFilter.Dirty || setting.IsDirty &&
+				//		(filter & HierarchyFilter.Normal) != HierarchyFilter.Normal || !setting.External &&
+				//		(filter & HierarchyFilter.External) != HierarchyFilter.External || setting.External) {
+
+				//		continue;
+				//	}
+				//}
+
 				index++;
 
 				DrawSetting (setting, indent, index);
@@ -552,7 +606,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void ShowSettingMenu (SettingBase setting) {
-				
+
 
 			GenericMenu gm = new GenericMenu ();
 
@@ -774,7 +828,9 @@ namespace Zenvin.Settings.Framework {
 		void ISerializationCallbackReceiver.OnAfterDeserialize () {
 			if (hierarchyState != null) {
 				foreach (var o in hierarchyState) {
-					expansionState[o] = true;
+					if (o != null) {
+						expansionState[o] = true;
+					}
 				}
 			}
 		}

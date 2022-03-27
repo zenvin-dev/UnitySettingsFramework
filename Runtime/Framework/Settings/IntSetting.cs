@@ -7,7 +7,7 @@ namespace Zenvin.Settings.Framework {
 			return BitConverter.ToInt32 (data, 0);
 		}
 
-		protected internal override byte[] OnSerialize () {
+		protected override byte[] OnSerialize () {
 			return BitConverter.GetBytes (CurrentValue);
 		}
 
