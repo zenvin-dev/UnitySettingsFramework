@@ -1,5 +1,4 @@
 using Zenvin.Settings.Framework;
-using UnityEngine;
 
 namespace Zenvin.Settings.Loading {
 	public class BoolSettingFactory : ISettingFactory {
@@ -7,8 +6,8 @@ namespace Zenvin.Settings.Loading {
 			return "bool";
 		}
 
-		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, JsonKeyValuePair[] values) {
-			return ScriptableObject.CreateInstance<BoolSetting> ();
+		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, StringValuePair[] values) {
+			return BoolSetting.CreateInstanceWithValues<BoolSetting> (bool.Parse (defaultValue), values);
 		}
 	}
 
@@ -17,8 +16,8 @@ namespace Zenvin.Settings.Loading {
 			return "int";
 		}
 
-		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, JsonKeyValuePair[] values) {
-			return ScriptableObject.CreateInstance<IntSetting> ();
+		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, StringValuePair[] values) {
+			return IntSetting.CreateInstanceWithValues<IntSetting> (int.TryParse (defaultValue, out int val) ? val : 0, values);
 		}
 	}
 
@@ -27,8 +26,8 @@ namespace Zenvin.Settings.Loading {
 			return "float";
 		}
 
-		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, JsonKeyValuePair[] values) {
-			return ScriptableObject.CreateInstance<FloatSetting> ();
+		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, StringValuePair[] values) {
+			return FloatSetting.CreateInstanceWithValues<FloatSetting> (float.TryParse (defaultValue, out float val) ? val : 0f, values);
 		}
 	}
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine;
+
 using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Samples {
@@ -30,6 +31,8 @@ namespace Zenvin.Settings.Samples {
 			RectTransform content = Instantiate (tabContentPrefab);
 			content.SetParent (tabContentParent);
 			content.localScale = Vector3.one;
+
+			LayoutRebuilder.MarkLayoutForRebuild (content);
 
 			tabs.Add (new TabData () { Button = button, ContentParent = content, Group = group });
 

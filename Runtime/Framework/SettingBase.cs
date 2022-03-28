@@ -1,9 +1,10 @@
-using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using System;
 
 namespace Zenvin.Settings.Framework {
+	/// <summary>
+	/// Base class for all Settings objects.
+	/// </summary>
 	public abstract class SettingBase : IdentifiableScriptableObject {
 
 		[SerializeField, HideInInspector] private string settingName;
@@ -33,14 +34,8 @@ namespace Zenvin.Settings.Framework {
 		public abstract bool IsDirty { get; private protected set; }
 
 
-		internal void Setup (SettingsAsset asset) {
-			this.asset = asset;
-			OnSetup ();
-		}
-
-		private protected virtual void OnSetup () { }
-
 		internal virtual void Initialize () { }
+
 
 		/// <summary>
 		/// Applies the cached value to the setting.<br></br>
@@ -83,11 +78,17 @@ namespace Zenvin.Settings.Framework {
 
 	}
 
-	public abstract class SettingBase<T> : SettingBase where T : struct {
+	/// <summary>
+	/// Base class for all typed Settings objects. Inherit to create Settings with custom structs.
+	/// </summary>
+	public abstract class SettingBase<T> : SettingBase /*where T : struct*/ {
 
-		public delegate void OnApplyValue (T previous, T current);
+		public delegate void OnApplyValue ();
+		public delegate void OnValueChanged ();
 
-		public event OnApplyValue OnApplyValueHandler;
+		public event OnApplyValue OnValueApplied;
+		public event OnValueChanged OnValueReset;
+		public event OnValueChanged OnValueReverted;
 
 		[NonSerialized] private T cachedValue;
 		[NonSerialized] private T currentValue;
@@ -122,6 +123,23 @@ namespace Zenvin.Settings.Framework {
 
 
 		/// <summary>
+		/// Creates a new instance of a given <see cref="SettingBase{T}"/> and assigns it a default value.
+		/// </summary>
+		public static U CreateInstanceWithValues<U> (T defaultValue, StringValuePair[] values = null) where U : SettingBase<T> {
+			U setting = CreateInstance<U> ();
+
+			setting.OnCreateWithValues (values);
+
+			setting.ProcessValue (ref defaultValue);
+			setting.defaultValue = defaultValue;
+			setting.currentValue = defaultValue;
+			setting.cachedValue = defaultValue;
+
+			return setting;
+		}
+
+
+		/// <summary>
 		/// Sets the setting's next value. Will be applied when <see cref="ApplyValue"/> is called.
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
@@ -135,40 +153,64 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
+		/// Called during <see cref="CreateInstanceWithValues{U}(T, StringKeyValuePair[])"/>, <b>before</b> the default value is set.
+		/// </summary>
+		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
+
+		/// <summary>
 		/// Called during <see cref="SetValue(T)"/> to process the change before it is cached.
 		/// </summary>
 		/// <param name="value"> The next value of the setting. </param>
 		protected virtual void ProcessValue (ref T value) { }
 
+		/// <summary>
+		/// Called during <see cref="ApplyValue"/>, before the <see cref="OnValueApplied"/> is invoked.
+		/// </summary>
+		protected virtual void OnAfterApplyValue () { }
+
+		/// <summary>
+		/// Called when the setting should be saved.<br></br>
+		/// Should return <see cref="CurrentValue"/> as <c>byte[]</c>.
+		/// </summary>
+		protected abstract byte[] OnSerialize ();
+
+		/// <summary>
+		/// Called when the setting should is loaded.<br></br>
+		/// Should convert the given <c>byte[]</c> to <see cref="T"/>, so it can be applied to the setting.
+		/// </summary>
+		/// <param name="data"> The loaded data. </param>
+		protected abstract T OnDeserialize (byte[] data);
+
+
 		internal override void Initialize () {
-			currentValue = defaultValue;
-			cachedValue = defaultValue;
+			T value = defaultValue;
+			ProcessValue (ref value);
+
+			currentValue = value;
+			cachedValue = value;
 			isDirty = false;
 		}
+
 
 		private protected sealed override bool OnApply () {
 			if (!IsDirty) {
 				return false;
 			}
-			T curr = currentValue;
 			currentValue = cachedValue;
 			OnAfterApplyValue ();
-			OnApplyValueHandler?.Invoke (curr, currentValue);
+			OnValueApplied?.Invoke ();
 			IsDirty = false;
 			return true;
 		}
-
-		/// <summary>
-		/// Called during <see cref="ApplyValue"/>, before the <see cref="OnApplyValueHandler"/> is invoked.
-		/// </summary>
-		protected virtual void OnAfterApplyValue () { }
 
 		private protected sealed override bool OnRevert () {
 			if (!IsDirty) {
 				return false;
 			}
+			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
+			OnValueReverted?.Invoke ();
 			return true;
 		}
 
@@ -177,6 +219,7 @@ namespace Zenvin.Settings.Framework {
 			if (apply) {
 				ApplyValue ();
 			}
+			OnValueReset?.Invoke ();
 			return true;
 		}
 
@@ -184,19 +227,11 @@ namespace Zenvin.Settings.Framework {
 			return OnSerialize ();
 		}
 
-		/// <summary>
-		/// Called when the setting should be saved.<br></br>
-		/// Should return <see cref="CurrentValue"/> as <c>byte[]</c>.
-		/// </summary>
-		protected abstract byte[] OnSerialize ();
-
 		private protected sealed override void DeserializeInternal (byte[] data) {
 			T value = OnDeserialize (data);
 			SetValue (value);
 			ApplyValue ();
 		}
-
-		protected internal abstract T OnDeserialize (byte[] data);
 
 	}
 

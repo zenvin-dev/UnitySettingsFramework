@@ -1,8 +1,9 @@
-using Zenvin.Settings.Framework;
-using Zenvin.Settings.Loading;
 using UnityEngine;
 
-namespace Zenvin.Settings {
+using Zenvin.Settings.Framework;
+using Zenvin.Settings.Loading;
+
+namespace Zenvin.Settings.Samples {
 	[DisallowMultipleComponent]
 	public class SettingsInitializer : MonoBehaviour {
 
@@ -13,8 +14,9 @@ namespace Zenvin.Settings {
 
 		[SerializeField] private InitMode mode = InitMode.Start;
 		[SerializeField] private SettingsAsset settings;
-		[Space, SerializeField] private SettingsImportData dynamicSettings;
-		[SerializeField, TextArea (35, 100)] private string dynamicSettingsJson = "";
+		[Space, SerializeField] private bool loadDynamicSettings = true;
+		[SerializeField] private SettingsImportData dynamicSettings;
+		[SerializeField, TextArea (25, 35)] private string dynamicSettingsJson = "";
 
 		private void Awake () {
 			if (mode == InitMode.Awake) {
@@ -30,7 +32,9 @@ namespace Zenvin.Settings {
 
 
 		private void Init () {
-			SettingsAsset.OnInitialize += LoadSettings;
+			if (loadDynamicSettings) {
+				SettingsAsset.OnInitialize += LoadSettings;
+			}
 			if (settings != null) {
 				settings.Initialize ();
 			}
@@ -40,7 +44,9 @@ namespace Zenvin.Settings {
 			if (dynamicSettingsJson == null || dynamicSettingsJson.Length == 0) {
 				return;
 			}
-			RuntimeSettingLoader.LoadSettingsIntoAsset (asset, dynamicSettingsJson, null, new BoolSettingFactory (), new IntSettingFactory (), new FloatSettingFactory ());
+			RuntimeSettingLoader.LoadSettingsIntoAsset (
+				asset, dynamicSettingsJson, null, new BoolSettingFactory (), new IntSettingFactory (), new FloatSettingFactory (), new DropdownSettingFactory ()
+			);
 		}
 
 		private void OnValidate () {

@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 using UnityEngine;
-using System;
+
+using Zenvin.Settings.Framework;
+using UnityEngine.UI;
 
 namespace Zenvin.Settings.Samples {
 	public class SettingsMenu : MonoBehaviour {
 
-		private readonly Dictionary<Type, int> controlPrefabLookup = new Dictionary<Type, int> ();
-
 		[SerializeField] private SettingsAsset asset;
 		[SerializeField] private RectTransform settingHeaderPrefab;
-		[SerializeField] private SettingControl[] controlPrefabs;
+		[SerializeField] private SettingControlCollection controlPrefabs;
 		[SerializeField] private TabView tabView;
 
 
@@ -19,17 +17,9 @@ namespace Zenvin.Settings.Samples {
 			if (asset == null) {
 				return;
 			}
-			InitLookup ();
 			SpawnMenu ();
 		}
-		private void InitLookup () {
-			for (int i = 0; i < controlPrefabs.Length; i++) {
-				if (controlPrefabs[i] != null) {
-					controlPrefabLookup[controlPrefabs[i].ControlType] = i;
-				}
-			}
-		}
-
+		
 		private void SpawnMenu () {
 
 			// get settings groups for tabs
@@ -69,11 +59,19 @@ namespace Zenvin.Settings.Samples {
 		}
 
 		private void SpawnPrefab (RectTransform parent, SettingBase setting) {
-			if (controlPrefabLookup.TryGetValue (setting.GetType (), out int index) && controlPrefabs[index].TryInstantiateWith (setting, out SettingControl control)) {
-				control.transform.SetParent (parent);
-				control.transform.localScale = Vector3.one;
+			// get prefab fitting the setting type.
+			if (controlPrefabs.TryGetControl (setting.GetType (), out SettingControl ctrl)) {
+				// spawn prefab, if it is spawnable for the current setting
+				if (ctrl.TryInstantiateWith (setting, out SettingControl control)) {
+					// setup instance
+					control.transform.SetParent (parent);
+					control.transform.localScale = Vector3.one;
+					control.transform.localPosition = Vector3.zero;
+				} else {
+					Debug.Log ($"Can't spawn prefab for {setting.Name} ({setting.GetType ()})");
+				}
 			} else {
-				Debug.Log ($"Can't spawn prefab for {setting.Name} ({setting.GetType ()})");
+				Debug.Log ($"No prefab found for {setting.Name} ({setting.GetType ()}).");
 			}
 		}
 

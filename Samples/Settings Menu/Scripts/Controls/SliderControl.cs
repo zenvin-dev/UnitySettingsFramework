@@ -1,8 +1,8 @@
+using Zenvin.Settings.Utility;
 using Zenvin.Settings.UI;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
-using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderControl : SettingControl<SliderSetting, float> {
@@ -16,8 +16,19 @@ namespace Zenvin.Settings.Samples {
 			slider.minValue = 0f;
 			slider.maxValue = 1f;
 			slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CurrentValue));
+
 			label?.SetText (Setting.Name);
+			UpdateValueLabel ();
 		}
+
+		protected override void OnSettingReset () {
+			UpdateSlider ();
+		}
+
+		protected override void OnSettingReverted () {
+			UpdateSlider ();
+		}
+
 
 		public void OnValueChange (float value) {
 			if (Setting == null) {
@@ -28,8 +39,20 @@ namespace Zenvin.Settings.Samples {
 			value = MathUtility.SnapValueToIncrement (value, Setting.Increment);
 
 			Setting.SetValue (value);
-			slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CachedValue));
-			valueLabel?.SetText (value.ToString ("0.0"));
+			UpdateSlider ();
+		}
+
+		private void UpdateSlider () {
+			if (slider != null) {
+				slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CachedValue));
+			}
+			UpdateValueLabel ();
+		}
+
+		private void UpdateValueLabel () {
+			if (valueLabel != null) {
+				valueLabel.SetText (Setting.CachedValue.ToString ("0.0"));
+			}
 		}
 
 	}

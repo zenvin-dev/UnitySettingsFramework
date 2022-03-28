@@ -113,6 +113,7 @@ namespace Zenvin.Settings.Loading {
 						SettingBase obj = fact.CreateSettingFromType (s.DefaultValue, s.Values);
 						if (obj != null) {
 
+							obj.asset = asset;
 							obj.GUID = s.GUID;
 							obj.External = true;
 

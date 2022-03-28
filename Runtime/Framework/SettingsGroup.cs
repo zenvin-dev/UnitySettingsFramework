@@ -100,7 +100,7 @@ namespace Zenvin.Settings.Framework {
 				group.Parent.RemoveChildGroup (group);
 				group.Parent = this;
 			}
-			
+
 			groups.Insert (index, group);
 		}
 
@@ -152,8 +152,6 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			Debug.Log ($"Group count '{group.Name}': {group.InternalChildGroupCount}");
-
 			if (group.groups != null) {
 				groupList.AddRange (group.groups);
 			}
@@ -177,13 +175,13 @@ namespace Zenvin.Settings.Framework {
 			return externalSettings[index - InternalSettingCount];
 		}
 
-		public virtual ReadOnlyCollection<SettingBase> GetSettings () {
+		public virtual List<SettingBase> GetSettings () {
 			List<SettingBase> settingsList = new List<SettingBase> ();
 
 			settingsList.AddRange (settings);
 			settingsList.AddRange (externalSettings);
 
-			return settingsList.AsReadOnly ();
+			return settingsList;
 		}
 
 		public List<SettingBase> GetAllSettings () {
@@ -204,6 +202,33 @@ namespace Zenvin.Settings.Framework {
 			}
 			setting.group = this;
 			settings.Add (setting);
+		}
+
+		internal void AddSetting (SettingBase setting, int index) {
+			if (settings == null) {
+				settings = new List<SettingBase> ();
+			}
+			if (setting == null) {
+				return;
+			}
+
+			Debug.Log ($"Inserting Setting '{setting.Name}' into {index}");
+			index = Mathf.Clamp (index, 0, settings.Count);
+
+			if (setting.group != this) {
+				setting.group.RemoveSetting (setting);
+			} else {
+				if (settings[index] == setting) {
+					return;
+				}
+				settings.Remove (setting);
+				if (index > settings.Count) {
+					index--;
+				}
+			}
+
+			setting.group = this;
+			settings.Insert (index, setting);
 		}
 
 		internal void IntegrateSetting (SettingBase setting) {

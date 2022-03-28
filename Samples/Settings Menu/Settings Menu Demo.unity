@@ -798,9 +798,10 @@ MonoBehaviour:
   asset: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
   settingHeaderPrefab: {fileID: 0}
   controlPrefabs:
-  - {fileID: 6569405655600696519, guid: faa0f1f188e6f3544aa00d94143d7df9, type: 3}
-  - {fileID: 228375907464600107, guid: 755c3dab683e5af48aca1961f036a904, type: 3}
-  - {fileID: 3343890958718214053, guid: 94280cc4c5815d147a24070d834c82e0, type: 3}
+    controls:
+    - {fileID: 228375907464600107, guid: 755c3dab683e5af48aca1961f036a904, type: 3}
+    - {fileID: 3343890958718214053, guid: 94280cc4c5815d147a24070d834c82e0, type: 3}
+    - {fileID: 6569405655600696519, guid: faa0f1f188e6f3544aa00d94143d7df9, type: 3}
   tabView: {fileID: 1572041089}
 --- !u!114 &780348620
 MonoBehaviour:
@@ -816,10 +817,61 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mode: 0
   settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
+  loadDynamicSettings: 1
   dynamicSettings:
     Groups: []
-    Settings: []
-  dynamicSettingsJson: "{\n    \"Groups\": [],\n    \"Settings\": []\n}"
+    Settings:
+    - GUID: toggle_crouch
+      Name: Toggle Crouch
+      LocalizationKey: 
+      ParentGroupGUID: gameplay
+      OrderInGroup: 0
+      Type: bool
+      DefaultValue: true
+      Values: []
+    - GUID: toggle_sprint
+      Name: Toggle Sprint
+      LocalizationKey: 
+      ParentGroupGUID: gameplay
+      OrderInGroup: 0
+      Type: bool
+      DefaultValue: true
+      Values: []
+    - GUID: anti_aliasing
+      Name: Anti-Aliasing
+      LocalizationKey: 
+      ParentGroupGUID: graphics
+      OrderInGroup: 0
+      Type: dropdown
+      DefaultValue: 2
+      Values:
+      - Key: 
+        Value: Disabled
+      - Key: 
+        Value: 2x Multisampling
+      - Key: 
+        Value: 4x Multisampling
+      - Key: 
+        Value: 8x Multisampling
+  dynamicSettingsJson: "{\n    \"Groups\": [],\n    \"Settings\": [\n        {\n           
+    \"GUID\": \"toggle_crouch\",\n            \"Name\": \"Toggle Crouch\",\n           
+    \"LocalizationKey\": \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n           
+    \"OrderInGroup\": 0,\n            \"Type\": \"bool\",\n            \"DefaultValue\":
+    \"true\",\n            \"Values\": []\n        },\n        {\n            \"GUID\":
+    \"toggle_sprint\",\n            \"Name\": \"Toggle Sprint\",\n            \"LocalizationKey\":
+    \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\":
+    0,\n            \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n           
+    \"Values\": []\n        },\n        {\n            \"GUID\": \"anti_aliasing\",\n           
+    \"Name\": \"Anti-Aliasing\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"graphics\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"dropdown\",\n            \"DefaultValue\": \"2\",\n            \"Values\":
+    [\n                {\n                    \"Key\": \"\",\n                   
+    \"Value\": \"Disabled\"\n                },\n                {\n                   
+    \"Key\": \"\",\n                    \"Value\": \"2x Multisampling\"\n               
+    },\n                {\n                    \"Key\": \"\",\n                   
+    \"Value\": \"4x Multisampling\"\n                },\n                {\n                   
+    \"Key\": \"\",\n                    \"Value\": \"8x Multisampling\"\n               
+    }\n            ]\n        }\n    ]\n}"
 --- !u!1 &800521288
 GameObject:
   m_ObjectHideFlags: 0

@@ -20,7 +20,7 @@ namespace Zenvin.Settings.Framework {
 			/// <summary> Non-dirty settings. </summary>
 			Clean = 0b1000,
 
-			All = ~0b0
+			All = ~0b0000
 		}
 
 		private const float indentSize = 15f;
@@ -30,6 +30,7 @@ namespace Zenvin.Settings.Framework {
 		private static readonly Color hierarchyColorB = new Color (0.1f, 0.1f, 0.1f, 0f);
 		private static readonly Color hierarchyColorSelected = new Color (0f, 0.5f, 1.0f, 0.4f);
 		private static readonly Color hierarchyColordragged = new Color (1f, 0.5f, 1f, 0.4f);
+		private static readonly Color hierarchyColorHover = new Color (0.3f, 0.3f, 0.3f);
 
 		private static GUIStyle foldoutStyleInternal;
 		private static GUIStyle foldoutStyleExternal;
@@ -49,6 +50,7 @@ namespace Zenvin.Settings.Framework {
 		private HierarchyFilter searchFilter = HierarchyFilter.All;
 
 		[NonSerialized] private ScriptableObject dragged = null;
+		[NonSerialized] private ScriptableObject hovered = null;
 		[NonSerialized] private Rect? dragPreview;
 
 		private readonly Dictionary<SettingsGroup, bool> expansionState = new Dictionary<SettingsGroup, bool> ();
@@ -59,6 +61,7 @@ namespace Zenvin.Settings.Framework {
 		private Type[] viableTypes = null;
 
 		private HierarchyFilter CurrentFilter => Application.isPlaying ? searchFilter : HierarchyFilter.All;
+		private bool AllowDrag => searchResults == null;
 
 
 		// Menus
@@ -110,19 +113,24 @@ namespace Zenvin.Settings.Framework {
 		// GUI methods
 
 		private void OnGUI () {
+			// try to find existing setting asset
 			if (asset == null) {
 				asset = FindAsset ();
 			}
+
+			// prompt setting asset creation if there is none
 			if (asset == null) {
 				DrawCreateAssetButton ();
 				Repaint ();
 				return;
 			}
 
+			// make sure styles are set up
 			if (foldoutStyleInternal == null || foldoutStyleExternal == null || labelStyleInternal == null || labelStyleExternal == null) {
 				SetupStyles ();
 			}
 
+			// create rects for windows partitions
 			Rect topBarRect = new Rect (
 				margin, margin, position.width - margin * 2f, EditorGUIUtility.singleLineHeight + 1
 			);
@@ -133,26 +141,33 @@ namespace Zenvin.Settings.Framework {
 				hierarchyWidth + 2f + margin * 2f, margin + topBarRect.height + margin, position.width - hierarchyWidth - 2f - margin * 2f, position.height - margin * 3f - topBarRect.height
 			);
 
-			Rect rect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
-			if (MakeHorizontalDragRect (ref rect)) {
-				hierarchyWidth = rect.x;
+			// draw move-able line between hierarchy and inspector
+			Rect dragRect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
+			if (MakeHorizontalDragRect (ref dragRect)) {
+				hierarchyWidth = dragRect.x;
 				hierarchyWidth = Mathf.Clamp (hierarchyWidth, 200f, position.width - 300f);
 				Repaint ();
 			}
 
+			// draw window partition contents
 			DrawTopBar (topBarRect);
 			DrawHierarchy (hierarchyRect);
 			DrawEditor (editorRect);
 
+			// update window frequently if a hierarchy item is being dragged
 			if (dragged != null && dragPreview.HasValue) {
 				EditorGUI.DrawRect (dragPreview.Value, Color.blue);
 				Repaint ();
 			}
 
+			// handle drag escaping
 			Event e = Event.current;
-			if (e.type == EventType.MouseUp && dragged != null) {
-				dragged = null;
-				e.Use ();
+			if (dragged != null) {
+				if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape) {
+					Select (dragged);
+					HandleEndDrag ();
+					e.Use ();
+				}
 			}
 
 			EditorUtility.SetDirty (asset);
@@ -189,32 +204,45 @@ namespace Zenvin.Settings.Framework {
 
 		private void DrawHierarchy (Rect rect) {
 			GUILayout.BeginArea (rect);
-
-			//DrawSearchBar ();
-
 			hierarchyScroll = EditorGUILayout.BeginScrollView (hierarchyScroll, false, false);
 
+			// reset hovered object and drag preview rect
+			hovered = null;
+			dragPreview = null;
+
+			// display normal hierarchy
 			if (searchResults == null) {
 				int index = 0;
 				DrawSettingsGroup (asset, 0, ref index);
+
+				// display hierarchy based on search results
 			} else {
 				for (int i = 0; i < searchResults.Count; i++) {
-					DrawSetting (searchResults[i], 0, i);
+					DrawSetting (searchResults[i], 0, i, i);
 				}
 			}
 
 			EditorGUILayout.EndScrollView ();
+
+			// draw preview rect if necessary
+			if (dragPreview != null) {
+				EditorGUI.DrawRect (dragPreview.Value, Color.blue);
+			}
+
 			GUILayout.EndArea ();
 		}
 
 		private void DrawEditor (Rect rect) {
+			// return if current editor is invalid
 			if (editor == null || editor.target == null || editor.serializedObject == null) {
 				return;
 			}
 
 			GUILayout.BeginArea (rect);
+			// make read-only while in play mode
 			EditorGUI.BeginDisabledGroup (Application.isPlaying);
 
+			// draw editor based on type of selected object
 			switch (editor.target) {
 				case SettingsGroup g:
 					DrawDefaultEditor (g);
@@ -231,6 +259,7 @@ namespace Zenvin.Settings.Framework {
 			editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
 			if (Application.isPlaying) {
 
+				// draw read-only runtime information
 				if (editor.target is SettingBase s) {
 					EditorGUILayout.LabelField ("Default Value", s.DefaultValueRaw.ToString (), EditorStyles.textField);
 					EditorGUILayout.LabelField ("Current Value", s.CurrentValueRaw.ToString (), EditorStyles.textField);
@@ -240,6 +269,7 @@ namespace Zenvin.Settings.Framework {
 
 			} else {
 
+				// draw default inspector to allow for custom properties in settings
 				editor.DrawDefaultInspector ();
 				editor.serializedObject.ApplyModifiedProperties ();
 				EditorUtility.SetDirty (editor.target);
@@ -253,17 +283,23 @@ namespace Zenvin.Settings.Framework {
 
 		private void DrawDefaultEditor (SettingsGroup group) {
 
+			// as long as the selected object is not the root asset
 			if (group != asset) {
+				// draw GUID field
 				DrawGuidField (editor.serializedObject, true);
+			} else {
+				EditorGUILayout.LabelField ("GUID", "None (Root)");
 			}
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 
+			// draw base properties separate from inspector
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupName)), new GUIContent ("Name"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupNameLocKey)), new GUIContent ("Loc. Key"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupIcon)), new GUIContent ("Icon"));
 
-			if (group == asset) {
+			// display runtime information on root asset
+			if (group == asset && Application.isPlaying) {
 				GUILayout.Space (10);
 				EditorGUILayout.LabelField ("Registered Settings", asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
 				EditorGUILayout.LabelField ("Dirty Settings", asset.DirtySettingsCount.ToString (), EditorStyles.textField);
@@ -288,31 +324,36 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		// Special field drawers
+
 		private void DrawSearchBar (float? width = null) {
 
 			string search = searchString;
 
 			if (width.HasValue) {
 				GUILayout.BeginHorizontal (GUILayout.MaxWidth (width.Value));
-				//searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.MaxWidth (width.Value));
 			} else {
 				GUILayout.BeginHorizontal ();
-				//searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField);
 			}
 
+			// draw search field
 			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth (true));
 
+			// if application is playing, enable setting filtering
+			// during edit-time there are not enough relevant, differentiating properties to warrant filtering.
 			if (Application.isPlaying) {
 				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter);
 			}
 			GUILayout.EndHorizontal ();
 
+			// reset search results if search string is empty
 			if (string.IsNullOrEmpty (searchString)) {
 				searchResults = null;
 				Repaint ();
 				return;
 			}
 
+			// update search results if search string has changed
 			if (search != searchString) {
 				var settings = asset.GetAllSettings ();
 				searchResults = new List<SettingBase> ();
@@ -328,25 +369,32 @@ namespace Zenvin.Settings.Framework {
 			if (obj == null) {
 				return;
 			}
+
+			// find the GUID property of the selected object
 			SerializedProperty guidProp = obj.FindProperty ("guid");
 			if (guidProp == null) {
 				return;
 			}
 
+			// draw GUID input field
 			string val = guidProp.stringValue;
 			string newVal = EditorGUILayout.DelayedTextField ("GUID", val);
 			if (newVal == val) {
 				return;
 			}
 
+			// validate GUID
 			if (!asset.Editor_IsValidGUID (newVal, group)) {
 				newVal = val;
 			}
 
+			// update GUID value
 			guidProp.stringValue = newVal;
 			obj.ApplyModifiedPropertiesWithoutUndo ();
 		}
 
+
+		// Hierarchy drawers
 
 		private void DrawSettingsGroup (SettingsGroup group, int groupIndex, ref int index, int indent = 0) {
 			if (group == null) {
@@ -355,24 +403,23 @@ namespace Zenvin.Settings.Framework {
 
 			index++;
 
-			Color col = GetHierarchyColor (group, index);
-
+			// create the rect for this hierarchy item
 			Rect rect = EditorGUILayout.GetControlRect ();
 			rect.x -= 2f;
 			rect.width += 4;
 			rect.y -= 2f;
 			rect.height += 2f;
 
+			// draw coloured background
+			Color col = GetHierarchyColor (group, index, rect.Contains (Event.current.mousePosition));
 			EditorGUI.DrawRect (rect, col);
 
-			Rect btnRect = new Rect (rect);
-			btnRect.x += indentSize * indent;
-			btnRect.width = indentSize;
-
+			// calculate indented rect
 			Rect lblRect = new Rect (rect);
 			lblRect.x += indentSize * (indent + 1);
 			lblRect.width -= indentSize * (indent + 1);
 
+			// toggle expansion state
 			if (!expansionState.TryGetValue (group, out bool expanded)) {
 				expanded = false;
 			}
@@ -389,24 +436,28 @@ namespace Zenvin.Settings.Framework {
 				EditorGUI.LabelField (foldRect, group.Name);
 			}
 
+			// input handling
 			Event e = Event.current;
-			int quad = GetCursorQuadrant (rect, e.mousePosition);
-
 			if (lblRect.Contains (e.mousePosition)) {
+				hovered = group;
+				
 				switch (e.type) {
+					//case EventType.ContextClick:
+					//	e.Use ();
+					//	Select (group);
+					//	ShowGroupMenu (group);
+					//	break;
 					case EventType.MouseDown:
-						if (dragged == null) {
+						if (e.button == 1) {
+							Select (group);
+							ShowGroupMenu (group);
+						} else if (dragged == null) {
 							e.Use ();
 							Select (group);
 						}
 						break;
-					case EventType.ContextClick:
-						e.Use ();
-						Select (group);
-						ShowGroupMenu (group);
-						break;
 					case EventType.MouseDrag:
-						if (e.button == 0) {
+						if (AllowDrag && e.button == 0) {
 							Select (null);
 							if (dragged == null && group != asset) {
 								e.Use ();
@@ -414,70 +465,26 @@ namespace Zenvin.Settings.Framework {
 							}
 						}
 						break;
-				}
-
-				// TODO: Fix Group dragging
-				SettingsGroup dragGroup = dragged as SettingsGroup;
-				if (dragGroup != null && dragGroup.IsNestedChildGroup (group)) {
-					dragGroup = null;
-				}
-
-				Rect topRect = new Rect (lblRect);
-				topRect.height *= 0.75f;
-				Rect btmRect = new Rect (lblRect);
-				btmRect.height *= 0.25f;
-				btmRect.y += topRect.height;
-
-				if (e.type == EventType.MouseUp || e.type == EventType.MouseLeaveWindow) {
-					if (dragGroup != null) {
-						e.Use ();
-
-						if (quad == 1 && dragGroup != group) {
-							MoveGroup (dragGroup, group, groupIndex);
-							Debug.Log ("Transferred");
-						} else if (quad == -1) {
-							MoveGroup (dragGroup, group.Parent == null ? asset : group.Parent, groupIndex);
-							Debug.Log ("Moved");
-						} else {
-							Debug.Log ("-");
+					case EventType.MouseUp:
+						if (AllowDrag) {
+							HandleEndDrag (group, groupIndex);
+							e.Use ();
 						}
-
-						dragged = null;
-						Repaint ();
-					}
-				}
-
-				const float previewHeight = 2f;
-
-				if (dragGroup == null || quad == 0) {
-					dragPreview = null;
-				} else if (quad == 1 && dragGroup != group) {
-
-					Rect preview = new Rect (rect);
-					preview.y += preview.height - previewHeight * 2f;
-					preview.height = previewHeight * 2f;
-					dragPreview = preview;
-
-				} else if (quad == -1) {
-
-					Rect preview = new Rect (rect);
-					preview.y += preview.height - previewHeight;
-					preview.height = previewHeight;
-					dragPreview = preview;
-
-				} else {
-					dragPreview = null;
+						break;
 				}
 			}
 
+			// don't draw children if item is not expanded in the hierarchy
 			if (!expanded) {
 				return;
 			}
 
+			// draw sub-groups
 			for (int i = 0; i < group.ChildGroupCount; i++) {
 				DrawSettingsGroup (group.GetGroupAt (i), i, ref index, indent + 1);
 			}
 
+			// draw settings from current group
 			DrawGroupSettings (group, ref index, indent + 1);
 
 		}
@@ -491,42 +498,45 @@ namespace Zenvin.Settings.Framework {
 					continue;
 				}
 
-				//var filter = CurrentFilter;
-				//if ((int)filter != -1) {
-				//	if ((filter & HierarchyFilter.Clean) != HierarchyFilter.Clean || !setting.IsDirty &&
-				//		(filter & HierarchyFilter.Dirty) != HierarchyFilter.Dirty || setting.IsDirty &&
-				//		(filter & HierarchyFilter.Normal) != HierarchyFilter.Normal || !setting.External &&
-				//		(filter & HierarchyFilter.External) != HierarchyFilter.External || setting.External) {
+				// only show setting if current filter matches setting properties.
+				// during edit-time, CurrentFilter will always be HierarchyFilter.All
+				var filter = CurrentFilter;
+				if (((filter & HierarchyFilter.Clean) != 0 && !setting.IsDirty) ||
+					((filter & HierarchyFilter.Dirty) != 0 && setting.IsDirty) ||
+					((filter & HierarchyFilter.Normal) != 0 && !setting.External) ||
+					((filter & HierarchyFilter.External) != 0 && setting.External)) {
 
-				//		continue;
-				//	}
-				//}
+					index++;
+					DrawSetting (setting, indent, index, i);
 
-				index++;
-
-				DrawSetting (setting, indent, index);
+				}
 			}
 
 		}
 
-		private void DrawSetting (SettingBase setting, int indent, int index) {
-			Color col = GetHierarchyColor (setting, index);
+		private void DrawSetting (SettingBase setting, int indent, int index, int settingIndex) {
 
+			// calculate rect for this hierarchy item
 			Rect rect = EditorGUILayout.GetControlRect ();
 			rect.x -= 2f;
 			rect.width += 4;
 			rect.y -= 2f;
 			rect.height += 2f;
 
+			// draw coloured background
+			Color col = GetHierarchyColor (setting, index, rect.Contains (Event.current.mousePosition));
 			EditorGUI.DrawRect (rect, col);
 
-
+			// calculate indented rect & display label
 			float indentValue = (indent + 1) * indentSize + 10f;
 			Rect foldRect = new Rect (rect.x + indentValue, rect.y, rect.width - indentValue, rect.height);
 			EditorGUI.LabelField (foldRect, $"{setting.Name} ({setting.ValueType.Name})", setting.External ? labelStyleExternal : labelStyleInternal);
 
+			// input handling
 			Event e = Event.current;
 			if (foldRect.Contains (e.mousePosition)) {
+				hovered = setting;
+
 				switch (e.type) {
 					case EventType.MouseDown:
 						e.Use ();
@@ -537,37 +547,113 @@ namespace Zenvin.Settings.Framework {
 						Select (setting);
 						ShowSettingMenu (setting);
 						break;
+					case EventType.MouseDrag:
+						if (AllowDrag && e.button == 0) {
+							Select (null);
+							if (dragged == null) {
+								e.Use ();
+								dragged = setting;
+							}
+						}
+						break;
+					case EventType.MouseUp:
+						if (AllowDrag) {
+							HandleEndDrag (setting, settingIndex);
+							e.Use ();
+						}
+						break;
 				}
 			}
-
-			// TODO: Implement Setting dragging
 		}
+
+
+		// Hierarchy manipulation
 
 		private void MoveGroup (SettingsGroup dragged, SettingsGroup settingsGroup, int groupIndex) {
 			settingsGroup.AddChildGroup (dragged, groupIndex);
+		}
+
+		private void MoveSetting (SettingBase dragged, SettingsGroup settingsGroup, int index) {
+			settingsGroup.AddSetting (dragged, index);
 		}
 
 		private void Select (ScriptableObject sel) {
 			if (sel == selected) {
 				return;
 			}
+
+			// reset GUI focus
 			GUI.FocusControl ("");
+
+			// update editor
 			if (sel == null) {
 				editor = null;
 			} else {
 				editor = Editor.CreateEditor (sel);
 			}
+
 			selected = sel;
+			Repaint ();
 		}
 
+		private void HandleEndDrag () {
+			dragged = null;
+		}
+
+		private void HandleEndDrag (ScriptableObject hover, int index) {
+			ScriptableObject _dragged = dragged;
+			dragged = null;
+
+			if (_dragged == null || hovered == null) {
+				return;
+			}
+
+			if (_dragged == hover) {
+				return;
+			}
+
+			SettingsGroup dGroup = _dragged as SettingsGroup;
+			SettingsGroup hGroup = hovered as SettingsGroup;
+			SettingBase dSetting = _dragged as SettingBase;
+			SettingBase hSetting = hovered as SettingBase;
+
+			// dragging group onto group
+			if (dGroup != null && hGroup != null) {
+				MoveGroup (dGroup, hGroup, 0);
+
+				// dragging setting onto group
+			} else if (dSetting != null && hGroup != null) {
+				MoveSetting (dSetting, hGroup, 0);
+
+				// dragging setting onto setting
+			} else if (dSetting != null && hSetting != null) {
+				MoveSetting (dSetting, hSetting.group, index);
+
+				// dragging group onto setting
+			} else if (dGroup != null && dSetting != null) {
+				MoveGroup (dGroup, dSetting.group, dSetting.group.ChildGroupCount);
+
+			}
+		}
+
+
+		// Context Menu creation
 
 		private void ShowGroupMenu (SettingsGroup group) {
 			GenericMenu gm = new GenericMenu ();
 
+			// only allow changing menus to be shown during edit-time
 			if (!Application.isPlaying) {
+
+				// load all types inheriting SettingBase<T>
+				// result will be cached automatically
 				LoadViableTypes ();
+
+				// there are no viable types to create settings from
 				if (viableTypes.Length == 0) {
 					gm.AddDisabledItem (new GUIContent ("Add Setting"));
+
+					// generate sub-menus for each viable type
 				} else {
 					foreach (Type t in viableTypes) {
 						Type generic = null;
@@ -606,8 +692,6 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void ShowSettingMenu (SettingBase setting) {
-
-
 			GenericMenu gm = new GenericMenu ();
 
 			if (!Application.isPlaying) {
@@ -627,6 +711,8 @@ namespace Zenvin.Settings.Framework {
 			gm.ShowAsContext ();
 		}
 
+
+		// Creating and deleting Settings & Groups
 
 		private void CreateSettingAsChildOfGroup (object data) {
 			if (!(data is NewSettingData d)) {
@@ -779,11 +865,13 @@ namespace Zenvin.Settings.Framework {
 			return a.FullName.CompareTo (b.FullName);
 		}
 
-		private Color GetHierarchyColor (ScriptableObject obj, int index) {
+		private Color GetHierarchyColor (ScriptableObject obj, int index, bool hovered) {
 			if (obj == dragged) {
 				return hierarchyColordragged;
 			} else if (obj == selected) {
 				return hierarchyColorSelected;
+			} else if (hovered) {
+				return hierarchyColorHover;
 			} else {
 				return index % 2 == 0 ? hierarchyColorA : hierarchyColorB;
 			}
@@ -791,12 +879,20 @@ namespace Zenvin.Settings.Framework {
 
 		private int GetCursorQuadrant (Rect rect, Vector2 cursor, float ratio = 0.5f) {
 			ratio = Mathf.Clamp (ratio, 0.1f, 0.9f);
+
+			// outside rect
 			if (!rect.Contains (cursor)) {
 				return 0;
 			}
-			if (cursor.y < rect.y + rect.height * ratio) {
+
+			// top rect
+			Rect r = new Rect (rect);
+			r.height *= ratio;
+			if (r.Contains (cursor)) {
 				return 1;
 			}
+
+			// bottom rect
 			return -1;
 		}
 
@@ -814,7 +910,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		// Serialization
+		// Hierarchy Serialization
 
 		void ISerializationCallbackReceiver.OnBeforeSerialize () {
 			hierarchyState = new List<SettingsGroup> ();

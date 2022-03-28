@@ -1,10 +1,12 @@
 using Zenvin.Settings.Framework;
 using UnityEngine;
+
 using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderSetting : FloatSetting {
 
+		// slider settings
 		[SerializeField] private float minValue = 0f;
 		[SerializeField] private float maxValue = 1f;
 		[SerializeField, Min (0f)] private float increment = 0.5f;
@@ -14,11 +16,37 @@ namespace Zenvin.Settings.Samples {
 		public float Increment => increment;
 
 
+		// make sure the value snaps to an increment
 		protected override void ProcessValue (ref float value) {
 			value = Mathf.Clamp (value, minValue, maxValue);
 			if (increment > 0f) {
 				value = MathUtility.SnapValueToIncrement (value, increment);
 			}
+		}
+
+		// try assigning slider settings
+		protected override void OnCreateWithValues (StringValuePair[] values) {
+			foreach (var value in values) {
+
+				if (value.Key.Equals ("minValue", System.StringComparison.OrdinalIgnoreCase)) {
+					float.TryParse (value.Value, out minValue);
+					continue;
+				}
+
+				if (value.Key.Equals ("maxValue", System.StringComparison.OrdinalIgnoreCase)) {
+					float.TryParse (value.Value, out maxValue);
+					continue;
+				}
+
+				if (value.Key.Equals ("increment", System.StringComparison.OrdinalIgnoreCase)) {
+					float.TryParse (value.Value, out increment);
+					increment = Mathf.Max (0f, increment);
+					continue;
+				}
+
+			}
+
+			MathUtility.AssignMinMax (ref minValue, ref maxValue);
 		}
 
 	}

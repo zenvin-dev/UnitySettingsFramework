@@ -3,31 +3,24 @@ using UnityEngine;
 namespace Zenvin.Settings.Utility {
 	public static class MathUtility {
 
-		public static float Difference (float a, float b) {
-			if (a == b) {
-				return 0f;
-			}
-
-			if (a == 0f) {
-				return Mathf.Abs (b);
-			}
-			if (b == 0f) {
-				return Mathf.Abs (a);
-			}
-
-			if (a < 0f && b > 0f) {
-				return -a + b;
-			}
-			if (b < 0f && a > 0f) {
-				return -b + a;
-			}
-
-			return 0f;
-		}
-
+		/// <summary>
+		/// Snaps a given value to an increment.
+		/// </summary>
 		public static float SnapValueToIncrement (float value, float increment) {
 			float mod = value % increment;
 			return value - Mathf.Abs (mod) + (increment < 0f && mod != 0f ? Mathf.Abs (increment) : 0f) + increment;
+		}
+
+		/// <summary>
+		/// Makes sure that <paramref name="min"/> is the smaller value and <paramref name="max"/> is the larger value.
+		/// </summary>
+		public static void AssignMinMax (ref float min, ref float max) {
+			if (min <= max) {
+				return;
+			}
+			float cache = max;
+			max = min;
+			min = cache;
 		}
 
 	}

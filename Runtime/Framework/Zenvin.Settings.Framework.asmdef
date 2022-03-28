@@ -2,7 +2,8 @@
     "name": "Zenvin.Settings.Framework",
     "rootNamespace": "",
     "references": [
-        "GUID:e4427921c419fbe45ab53ffae928789c"
+        "GUID:e4427921c419fbe45ab53ffae928789c",
+        "GUID:2407e9dba5422d242bcb0a0c026a4b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -32,8 +32,6 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void InitializeSettings () {
-			Debug.Log ("Start register  Settings.");
-
 			RegisterSettingsRecursively (this, settingsDict, false);
 			RegisterGroupsRecursively (this, groupsDict, false);
 
@@ -42,7 +40,6 @@ namespace Zenvin.Settings.Framework {
 			RegisterSettingsRecursively (this, settingsDict, true);
 			RegisterGroupsRecursively (this, groupsDict, true);
 
-			Debug.Log ($"Registered {settingsDict.Count} Settings, {groupsDict.Count} Groups.");
 			initialized = true;
 		}
 
@@ -100,7 +97,7 @@ namespace Zenvin.Settings.Framework {
 			return false;
 		}
 
-		public bool TryGetSettingByGUID<T> (string guid, out SettingBase<T> setting) where T : struct {
+		public bool TryGetSettingByGUID<T> (string guid, out SettingBase<T> setting) /*where T : struct*/ {
 			if (settingsDict.TryGetValue (guid, out SettingBase sb)) {
 				setting = sb as SettingBase<T>;
 				return setting != null;
