@@ -263,5 +263,46 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+
+		/// <summary>
+		/// Applies all dirty Settings within this group.<br></br>
+		/// Note that <see cref="SettingsAsset.ApplyDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		public void ApplyDirtyGroupSettings (bool includeChildGroups) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				if (setting.IsDirty) {
+					setting.ApplyValue ();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Reverts all dirty Settings within this group to their current, unapplied values.<br></br>
+		/// Note that <see cref="SettingsAsset.RevertDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		public void RevertDirtyGroupSettings (bool includeChildGroups) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				if (setting.IsDirty) {
+					setting.RevertValue ();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Resets all Settings within this group to their default values.<br></br>
+		/// Note that <see cref="SettingsAsset.ResetAllSettings(bool)"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		public void ResetAllGroupSettings (bool includeChildGroups, bool applyAfterReset) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				setting.ResetValue (applyAfterReset);
+			}
+		}
+
 	}
 }

@@ -128,6 +128,9 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		/// <summary>
+		/// Applies all dirty Settings.
+		/// </summary>
 		public void ApplyDirtySettings () {
 			SettingBase[] _dirtySettings = new SettingBase[dirtySettings.Count];
 			dirtySettings.CopyTo (_dirtySettings);
@@ -137,6 +140,9 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		/// <summary>
+		/// Reverts all dirty Settings to their current, unapplied values.
+		/// </summary>
 		public void RevertDirtySettings () {
 			SettingBase[] _dirtySettings = new SettingBase[dirtySettings.Count];
 			dirtySettings.CopyTo (_dirtySettings);
@@ -146,6 +152,10 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		/// <summary>
+		/// Resets all dirty Settings to their default values.
+		/// </summary>
+		/// <param name="apply"> Apply each Setting after reset? </param>
 		public void ResetAllSettings (bool apply) {
 			foreach (var s in settingsDict.Values) {
 				s.ResetValue (apply);

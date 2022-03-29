@@ -79,9 +79,10 @@ namespace Zenvin.Settings.Framework {
 	}
 
 	/// <summary>
-	/// Base class for all typed Settings objects. Inherit to create Settings with custom structs.
+	/// Base class for all typed Settings objects.<br></br>
+	/// Inherit to create Settings with any type, but note that Unity won't be able to serialize every single type you may conveive Settings for.
 	/// </summary>
-	public abstract class SettingBase<T> : SettingBase /*where T : struct*/ {
+	public abstract class SettingBase<T> : SettingBase {
 
 		public delegate void OnApplyValue ();
 		public delegate void OnValueChanged ();
