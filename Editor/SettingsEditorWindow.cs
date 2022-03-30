@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using System;
+using UnityEditor.Callbacks;
 
 namespace Zenvin.Settings.Framework {
 	internal class SettingsEditorWindow : EditorWindow, ISerializationCallbackReceiver {
@@ -42,13 +43,13 @@ namespace Zenvin.Settings.Framework {
 
 		private static SettingsAsset asset;
 
-		private ScriptableObject selected = null;
 		private float hierarchyWidth = 200f;
 
 		[NonSerialized] private string searchString = string.Empty;
 		private List<SettingBase> searchResults = null;
 		private HierarchyFilter searchFilter = HierarchyFilter.All;
 
+		private ScriptableObject selected = null;
 		[NonSerialized] private ScriptableObject dragged = null;
 		[NonSerialized] private ScriptableObject hovered = null;
 		[NonSerialized] private Rect? dragPreview;
@@ -59,6 +60,7 @@ namespace Zenvin.Settings.Framework {
 		private Editor editor = null;
 
 		private Type[] viableTypes = null;
+
 
 		private HierarchyFilter CurrentFilter => Application.isPlaying ? searchFilter : HierarchyFilter.All;
 		private bool AllowDrag => searchResults == null;
@@ -86,13 +88,22 @@ namespace Zenvin.Settings.Framework {
 			return asset;
 		}
 
-
 		[MenuItem ("Window/Zenvin/Settings Asset Editor")]
 		private static void Init () {
 			SettingsEditorWindow win = GetWindow<SettingsEditorWindow> ();
 			win.titleContent = new GUIContent ("Settings Editor");
 			win.minSize = new Vector2 (500f, 200f);
 			win.Show ();
+		}
+
+		[OnOpenAsset]
+		private static bool HandleOpenAsset (int instanceID, int line) {
+			Object obj = EditorUtility.InstanceIDToObject (instanceID);
+			if (obj is SettingsAsset asset) {
+				Init ();
+				return true;
+			}
+			return false;
 		}
 
 
