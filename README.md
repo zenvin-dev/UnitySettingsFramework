@@ -6,6 +6,10 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 \
 **The package will not work properly in pre-2020.1 versions!**
 
+## Planned features
+* Allow for sorting external groups and settings
+* Implement re-ordering of groups in the Settings Editor window's hierarchy (currently only supported for settings)
+
 ## Using the Package
 
 ### 1. Setup
