@@ -226,7 +226,7 @@ Such a JSON string could look like this:
             "GUID": "anti_aliasing",
             "Name": "Anti-Aliasing",
             "LocalizationKey": "",
-            "ParentGroupGUID": "graphics",
+            "ParentGroupGUID": "_graphics",
             "Type": "dropdown",
             "DefaultValue": "2",
             "Values": [
@@ -251,7 +251,7 @@ Such a JSON string could look like this:
     ]
 }
 ```
-This would try to create a setting from ahypothetical `dropdown` factory, give it a default value of `2` and try to set it up with an array of values.
+This would first try to create a new group called `Graphics` with GUID `_graphics`, and then to make a setting from a hypothetical `dropdown` factory, give it a default value of `2` and try to set it up with an array of values. Assuming both were successful, the new setting would become a child of the new group. If there already was a group with GUID `_graphics`, no new group will be created, and the setting will be added to the existing one instead.
 
 ## 4. Setting up a dynamic Setting
 Sometimes, a default value alone is not enough to set up an external setting with. Because of that, the `SettingBase<T>` class allows you to override its `OnCreateWithValues(StringValuePair[])` method. Sticking with the class from the previous examples, you could use the `Key`s of all the `StringValuePair`s you get, to populate your `values`.
