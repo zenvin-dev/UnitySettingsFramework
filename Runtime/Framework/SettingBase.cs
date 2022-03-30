@@ -127,6 +127,10 @@ namespace Zenvin.Settings.Framework {
 		/// Creates a new instance of a given <see cref="SettingBase{T}"/> and assigns it a default value.
 		/// </summary>
 		public static U CreateInstanceWithValues<U> (T defaultValue, StringValuePair[] values = null) where U : SettingBase<T> {
+			if (!Application.isPlaying) {
+				return null;
+			}
+
 			U setting = CreateInstance<U> ();
 
 			setting.OnCreateWithValues (values);

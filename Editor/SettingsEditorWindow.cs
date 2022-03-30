@@ -541,12 +541,15 @@ namespace Zenvin.Settings.Framework {
 					case EventType.MouseDown:
 						e.Use ();
 						Select (setting);
+						if (e.button == 1) {
+							ShowSettingMenu (setting);
+						}
 						break;
-					case EventType.ContextClick:
-						e.Use ();
-						Select (setting);
-						ShowSettingMenu (setting);
-						break;
+					//case EventType.ContextClick:
+					//	e.Use ();
+					//	Select (setting);
+					//	ShowSettingMenu (setting);
+					//	break;
 					case EventType.MouseDrag:
 						if (AllowDrag && e.button == 0) {
 							Select (null);
