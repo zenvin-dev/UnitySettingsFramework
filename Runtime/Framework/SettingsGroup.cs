@@ -159,8 +159,10 @@ namespace Zenvin.Settings.Framework {
 				groupList.AddRange (group.externalGroups);
 			}
 
-			foreach (SettingsGroup g in group.groups) {
-				GetGroupsRecursively (g, groupList);
+			if (group.groups != null) {
+				foreach (SettingsGroup g in group.groups) {
+					GetGroupsRecursively (g, groupList);
+				}
 			}
 		}
 
@@ -178,7 +180,9 @@ namespace Zenvin.Settings.Framework {
 		public virtual List<SettingBase> GetSettings () {
 			List<SettingBase> settingsList = new List<SettingBase> ();
 
-			settingsList.AddRange (settings);
+			if (settings != null) {
+				settingsList.AddRange (settings);
+			}
 			settingsList.AddRange (externalSettings);
 
 			return settingsList;
@@ -258,8 +262,10 @@ namespace Zenvin.Settings.Framework {
 				settingsList.AddRange (group.externalSettings);
 			}
 
-			foreach (SettingsGroup g in group.groups) {
-				GetSettingsRecursively (g, settingsList);
+			if (group.groups != null) {
+				foreach (SettingsGroup g in group.groups) {
+					GetSettingsRecursively (g, settingsList);
+				}
 			}
 		}
 
@@ -302,6 +308,11 @@ namespace Zenvin.Settings.Framework {
 			foreach (var setting in settings) {
 				setting.ResetValue (applyAfterReset);
 			}
+		}
+
+
+		public override string ToString () {
+			return $"Group '{Name}' ('{GUID}')";
 		}
 
 	}

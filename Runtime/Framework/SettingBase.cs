@@ -76,6 +76,11 @@ namespace Zenvin.Settings.Framework {
 
 		private protected abstract void DeserializeInternal (byte[] data);
 
+
+		public override string ToString () {
+			return $"Setting '{Name}' ('{GUID}')";
+		}
+
 	}
 
 	/// <summary>

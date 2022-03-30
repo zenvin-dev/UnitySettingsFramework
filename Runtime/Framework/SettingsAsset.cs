@@ -20,6 +20,7 @@ namespace Zenvin.Settings.Framework {
 
 		public bool Initialized => initialized;
 		public int RegisteredSettingsCount => settingsDict.Count;
+		public int RegisteredGroupsCount => groupsDict.Count;
 		public int DirtySettingsCount => dirtySettings.Count;
 
 
@@ -32,58 +33,58 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void InitializeSettings () {
-			RegisterSettingsRecursively (this, settingsDict, false);
-			RegisterGroupsRecursively (this, groupsDict, false);
+			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
 
 			OnInitialize?.Invoke (this);
 
-			RegisterSettingsRecursively (this, settingsDict, true);
-			RegisterGroupsRecursively (this, groupsDict, true);
+			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
 
 			initialized = true;
 		}
 
-		private void RegisterSettingsRecursively (SettingsGroup group, Dictionary<string, SettingBase> dict, bool external) {
+		private void RegisterGroupsAndSettingsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
 			if (group == null) {
 				return;
 			}
 
-			var settingList = external ? group.ExternalSettings : group.Settings;
-			if (settingList != null) {
-				foreach (var s in settingList) {
-					bool canAdd = !external || !dict.ContainsKey (s.GUID);
-					if (canAdd) {
-						dict[s.GUID] = s;
-						s.Initialize ();
+
+			// if group is not root
+			if (group != this) {
+				// register group
+				if (!group.External || !groupDict.ContainsKey (group.GUID)) {
+					groupDict[group.GUID] = group;
+				}
+			}
+
+			// register settings
+			if (external) {
+				// register external settings
+				foreach (var s in group.ExternalSettings) {
+					if (!settingsDict.ContainsKey (s.GUID)) {
+						settingsDict[s.GUID] = s;
 					}
 				}
-			}
-
-			var groupList = external ? group.ExternalGroups : group.Groups;
-			if (groupList != null) {
-				foreach (var g in groupList) {
-					RegisterSettingsRecursively (g, dict, external);
-				}
-			}
-		}
-
-		private void RegisterGroupsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> dict, bool external) {
-			if (group == null) {
-				return;
-			}
-
-			if (!external && group == this) {
-				dict[group.GUID] = group;
-			} else {
-				if (!external || !dict.ContainsKey (group.GUID)) {
-					dict[group.GUID] = group;
+			} else if (group.Settings != null) {
+				// register internal settings
+				foreach (var s in group.Settings) {
+					settingsDict[s.GUID] = s;
 				}
 			}
 
-			var groupList = external ? group.ExternalGroups : group.Groups;
-			foreach (var g in groupList) {
-				RegisterGroupsRecursively (g, dict, external);
+			// register sub-groups
+			if (group.Groups != null) {
+				foreach (var g in group.Groups) {
+					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
+				}
 			}
+
+			// register external sub-groups, if necessary
+			if (external) {
+				foreach (var g in group.ExternalGroups) {
+					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
+				}
+			}
+
 		}
 
 
@@ -107,7 +108,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		public bool TryGetGroupByGUID (string guid, out SettingsGroup group) {
-			if (guid == "") {
+			if (string.IsNullOrWhiteSpace (guid)) {
 				group = this;
 				return true;
 			}

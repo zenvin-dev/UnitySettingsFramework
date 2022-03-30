@@ -45,7 +45,8 @@ namespace Zenvin.Settings.Samples {
 				return;
 			}
 			RuntimeSettingLoader.LoadSettingsIntoAsset (
-				asset, dynamicSettingsJson, null, new BoolSettingFactory (), new IntSettingFactory (), new FloatSettingFactory (), new DropdownSettingFactory ()
+				asset, dynamicSettingsJson, null,
+				new BoolSettingFactory (), new IntSettingFactory (), new FloatSettingFactory (), new DropdownSettingFactory (), new SliderSettingFactory ()
 			);
 		}
 

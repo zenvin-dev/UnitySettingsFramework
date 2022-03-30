@@ -105,6 +105,7 @@ namespace Zenvin.Settings.Loading {
 			foreach (var s in settingsData) {
 				if (fDict.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
 					SettingsGroup parent;
+
 					if (!groups.TryGetValue (s.ParentGroupGUID, out parent)) {
 						asset.TryGetGroupByGUID (s.ParentGroupGUID, out parent);
 					}

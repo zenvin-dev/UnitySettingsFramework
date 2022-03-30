@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.UI {
 	[Serializable]
@@ -8,6 +9,7 @@ namespace Zenvin.Settings.UI {
 
 		private readonly Dictionary<Type, SettingControl> controlDict = new Dictionary<Type, SettingControl>();
 
+		[SerializeField] private bool assignBaseTypes = true;
 		[SerializeField] private SettingControl[] controls;
 
 
@@ -46,7 +48,26 @@ namespace Zenvin.Settings.UI {
 			}
 			controlDict.Clear ();
 			foreach (var sc in controls) {
-				controlDict[sc.ControlType] = sc;
+				if (sc != null) {
+					controlDict[sc.ControlType] = sc;
+				}
+			}
+			if (assignBaseTypes) {
+				SetupBaseTypeKeys ();
+			}
+		}
+
+		private void SetupBaseTypeKeys () {
+			Type baseType = typeof (SettingBase);
+
+			var coll = new List<Type> (controlDict.Keys);
+			foreach (var type in coll) {
+				Type _type;
+				do {
+					_type = type.BaseType;
+					controlDict[_type] = controlDict[type];
+
+				} while (_type != baseType && !controlDict.ContainsKey (_type));
 			}
 		}
 

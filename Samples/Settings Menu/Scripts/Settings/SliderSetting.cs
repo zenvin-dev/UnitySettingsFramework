@@ -26,27 +26,43 @@ namespace Zenvin.Settings.Samples {
 
 		// try assigning slider settings
 		protected override void OnCreateWithValues (StringValuePair[] values) {
+
+			float? min = null;
+			float? max = null;
+			float? inc = null;
+
 			foreach (var value in values) {
 
-				if (value.Key.Equals ("minValue", System.StringComparison.OrdinalIgnoreCase)) {
-					float.TryParse (value.Value, out minValue);
+				if (min == null && value.Key.Equals ("minValue", System.StringComparison.OrdinalIgnoreCase)) {
+					float.TryParse (value.Value, out float _min);
+					min = _min;
 					continue;
 				}
 
 				if (value.Key.Equals ("maxValue", System.StringComparison.OrdinalIgnoreCase)) {
-					float.TryParse (value.Value, out maxValue);
+					float.TryParse (value.Value, out float _max);
+					max = _max;
 					continue;
 				}
 
 				if (value.Key.Equals ("increment", System.StringComparison.OrdinalIgnoreCase)) {
-					float.TryParse (value.Value, out increment);
-					increment = Mathf.Max (0f, increment);
+					float.TryParse (value.Value, out float _inc);
+					inc = Mathf.Max (0f, _inc);
 					continue;
 				}
 
 			}
 
+			min = min ?? 0f;
+			max = max ?? 1f;
+			inc = inc ?? 0f;
+
+			minValue = min.Value;
+			maxValue = max.Value;
+			increment = inc.Value;
+
 			MathUtility.AssignMinMax (ref minValue, ref maxValue);
+
 		}
 
 	}

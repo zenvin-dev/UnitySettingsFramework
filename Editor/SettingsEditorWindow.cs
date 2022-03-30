@@ -272,9 +272,9 @@ namespace Zenvin.Settings.Framework {
 
 				// draw read-only runtime information
 				if (editor.target is SettingBase s) {
-					EditorGUILayout.LabelField ("Default Value", s.DefaultValueRaw.ToString (), EditorStyles.textField);
-					EditorGUILayout.LabelField ("Current Value", s.CurrentValueRaw.ToString (), EditorStyles.textField);
-					EditorGUILayout.LabelField ("Cached Value", s.CachedValueRaw.ToString (), EditorStyles.textField);
+					EditorGUILayout.LabelField ("Default Value", s.DefaultValueRaw?.ToString () ?? "", EditorStyles.textField);
+					EditorGUILayout.LabelField ("Current Value", s.CurrentValueRaw?.ToString () ?? "", EditorStyles.textField);
+					EditorGUILayout.LabelField ("Cached Value", s.CachedValueRaw?.ToString () ?? "", EditorStyles.textField);
 					EditorGUILayout.LabelField ("Is Dirty", s.IsDirty.ToString (), EditorStyles.textField);
 				}
 
@@ -312,6 +312,7 @@ namespace Zenvin.Settings.Framework {
 			// display runtime information on root asset
 			if (group == asset && Application.isPlaying) {
 				GUILayout.Space (10);
+				EditorGUILayout.LabelField ("Registered Groups", asset.RegisteredGroupsCount.ToString (), EditorStyles.textField);
 				EditorGUILayout.LabelField ("Registered Settings", asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
 				EditorGUILayout.LabelField ("Dirty Settings", asset.DirtySettingsCount.ToString (), EditorStyles.textField);
 			}

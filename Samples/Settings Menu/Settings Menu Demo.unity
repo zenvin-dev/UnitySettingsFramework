@@ -819,7 +819,13 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
   loadDynamicSettings: 1
   dynamicSettings:
-    Groups: []
+    Groups:
+    - GUID: _new_group
+      Name: New Group
+      LocalizationKey: 
+      ParentGroupGUID: 
+      OrderInGroup: 0
+      IconResource: 
     Settings:
     - GUID: toggle_crouch
       Name: Toggle Crouch
@@ -853,15 +859,26 @@ MonoBehaviour:
         Value: 4x Multisampling
       - Key: 
         Value: 8x Multisampling
-  dynamicSettingsJson: "{\n    \"Groups\": [],\n    \"Settings\": [\n        {\n           
-    \"GUID\": \"toggle_crouch\",\n            \"Name\": \"Toggle Crouch\",\n           
-    \"LocalizationKey\": \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n           
-    \"OrderInGroup\": 0,\n            \"Type\": \"bool\",\n            \"DefaultValue\":
-    \"true\",\n            \"Values\": []\n        },\n        {\n            \"GUID\":
-    \"toggle_sprint\",\n            \"Name\": \"Toggle Sprint\",\n            \"LocalizationKey\":
+    - GUID: _test_setting
+      Name: Test Setting
+      LocalizationKey: 
+      ParentGroupGUID: _new_group
+      OrderInGroup: 0
+      Type: slider
+      DefaultValue: 
+      Values: []
+  dynamicSettingsJson: "{\n    \"Groups\": [\n        {\n            \"GUID\": \"_new_group\",\n           
+    \"Name\": \"New Group\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"\",\n            \"OrderInGroup\": 0,\n            \"IconResource\":
+    \"\"\n        }\n    ],\n    \"Settings\": [\n        {\n            \"GUID\":
+    \"toggle_crouch\",\n            \"Name\": \"Toggle Crouch\",\n            \"LocalizationKey\":
     \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\":
     0,\n            \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n           
-    \"Values\": []\n        },\n        {\n            \"GUID\": \"anti_aliasing\",\n           
+    \"Values\": []\n        },\n        {\n            \"GUID\": \"toggle_sprint\",\n           
+    \"Name\": \"Toggle Sprint\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n            \"Values\":
+    []\n        },\n        {\n            \"GUID\": \"anti_aliasing\",\n           
     \"Name\": \"Anti-Aliasing\",\n            \"LocalizationKey\": \"\",\n           
     \"ParentGroupGUID\": \"graphics\",\n            \"OrderInGroup\": 0,\n           
     \"Type\": \"dropdown\",\n            \"DefaultValue\": \"2\",\n            \"Values\":
@@ -871,7 +888,11 @@ MonoBehaviour:
     },\n                {\n                    \"Key\": \"\",\n                   
     \"Value\": \"4x Multisampling\"\n                },\n                {\n                   
     \"Key\": \"\",\n                    \"Value\": \"8x Multisampling\"\n               
-    }\n            ]\n        }\n    ]\n}"
+    }\n            ]\n        },\n        {\n            \"GUID\": \"_test_setting\",\n           
+    \"Name\": \"Test Setting\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"_new_group\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"slider\",\n            \"DefaultValue\": \"\",\n            \"Values\":
+    []\n        }\n    ]\n}"
 --- !u!1 &800521288
 GameObject:
   m_ObjectHideFlags: 0
