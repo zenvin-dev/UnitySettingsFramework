@@ -191,14 +191,21 @@ namespace Zenvin.Settings.Framework {
 		/// <param name="data"> The loaded data. </param>
 		protected abstract T OnDeserialize (byte[] data);
 
+		/// <summary>
+		/// Called after the setting has been registered in the Settings Asset.
+		/// Use this to set up values.
+		/// </summary>
+		protected virtual void OnInitialize () { }
+
 
 		internal override void Initialize () {
+			OnInitialize ();
+
 			T value = defaultValue;
 			ProcessValue (ref value);
 
 			currentValue = value;
 			cachedValue = value;
-			isDirty = false;
 		}
 
 

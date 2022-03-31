@@ -681,6 +681,127 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &724441635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 724441637}
+  - component: {fileID: 724441636}
+  m_Layer: 0
+  m_Name: Settings Initializer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &724441636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724441635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c51ac20d3ea06d44fbcc8ca88588ecbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mode: 0
+  settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
+  loadDynamicSettings: 1
+  dynamicSettings:
+    Groups:
+    - GUID: _new_group
+      Name: New Group
+      LocalizationKey: 
+      ParentGroupGUID: 
+      OrderInGroup: 0
+      IconResource: 
+    Settings:
+    - GUID: toggle_crouch
+      Name: Toggle Crouch
+      LocalizationKey: 
+      ParentGroupGUID: gameplay
+      OrderInGroup: 0
+      Type: bool
+      DefaultValue: true
+      Values: []
+    - GUID: toggle_sprint
+      Name: Toggle Sprint
+      LocalizationKey: 
+      ParentGroupGUID: gameplay
+      OrderInGroup: 0
+      Type: bool
+      DefaultValue: true
+      Values: []
+    - GUID: anti_aliasing
+      Name: Anti-Aliasing
+      LocalizationKey: 
+      ParentGroupGUID: graphics
+      OrderInGroup: 0
+      Type: dropdown
+      DefaultValue: 2
+      Values:
+      - Key: 
+        Value: Disabled
+      - Key: 
+        Value: 2x Multisampling
+      - Key: 
+        Value: 4x Multisampling
+      - Key: 
+        Value: 8x Multisampling
+    - GUID: _test_setting
+      Name: Test Setting
+      LocalizationKey: 
+      ParentGroupGUID: _new_group
+      OrderInGroup: 0
+      Type: slider
+      DefaultValue: 
+      Values: []
+  dynamicSettingsJson: "{\n    \"Groups\": [\n        {\n            \"GUID\": \"_new_group\",\n           
+    \"Name\": \"New Group\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"\",\n            \"OrderInGroup\": 0,\n            \"IconResource\":
+    \"\"\n        }\n    ],\n    \"Settings\": [\n        {\n            \"GUID\":
+    \"toggle_crouch\",\n            \"Name\": \"Toggle Crouch\",\n            \"LocalizationKey\":
+    \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\":
+    0,\n            \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n           
+    \"Values\": []\n        },\n        {\n            \"GUID\": \"toggle_sprint\",\n           
+    \"Name\": \"Toggle Sprint\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n            \"Values\":
+    []\n        },\n        {\n            \"GUID\": \"anti_aliasing\",\n           
+    \"Name\": \"Anti-Aliasing\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"graphics\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"dropdown\",\n            \"DefaultValue\": \"2\",\n            \"Values\":
+    [\n                {\n                    \"Key\": \"\",\n                   
+    \"Value\": \"Disabled\"\n                },\n                {\n                   
+    \"Key\": \"\",\n                    \"Value\": \"2x Multisampling\"\n               
+    },\n                {\n                    \"Key\": \"\",\n                   
+    \"Value\": \"4x Multisampling\"\n                },\n                {\n                   
+    \"Key\": \"\",\n                    \"Value\": \"8x Multisampling\"\n               
+    }\n            ]\n        },\n        {\n            \"GUID\": \"_test_setting\",\n           
+    \"Name\": \"Test Setting\",\n            \"LocalizationKey\": \"\",\n           
+    \"ParentGroupGUID\": \"_new_group\",\n            \"OrderInGroup\": 0,\n           
+    \"Type\": \"slider\",\n            \"DefaultValue\": \"\",\n            \"Values\":
+    []\n        }\n    ]\n}"
+--- !u!4 &724441637
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724441635}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &780348614
 GameObject:
   m_ObjectHideFlags: 0
@@ -693,7 +814,6 @@ GameObject:
   - component: {fileID: 780348617}
   - component: {fileID: 780348616}
   - component: {fileID: 780348615}
-  - component: {fileID: 780348620}
   - component: {fileID: 780348619}
   m_Layer: 5
   m_Name: Canvas
@@ -798,101 +918,12 @@ MonoBehaviour:
   asset: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
   settingHeaderPrefab: {fileID: 0}
   controlPrefabs:
+    assignBaseTypes: 1
     controls:
     - {fileID: 228375907464600107, guid: 755c3dab683e5af48aca1961f036a904, type: 3}
     - {fileID: 3343890958718214053, guid: 94280cc4c5815d147a24070d834c82e0, type: 3}
     - {fileID: 6569405655600696519, guid: faa0f1f188e6f3544aa00d94143d7df9, type: 3}
   tabView: {fileID: 1572041089}
---- !u!114 &780348620
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 780348614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c51ac20d3ea06d44fbcc8ca88588ecbc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mode: 0
-  settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
-  loadDynamicSettings: 1
-  dynamicSettings:
-    Groups:
-    - GUID: _new_group
-      Name: New Group
-      LocalizationKey: 
-      ParentGroupGUID: 
-      OrderInGroup: 0
-      IconResource: 
-    Settings:
-    - GUID: toggle_crouch
-      Name: Toggle Crouch
-      LocalizationKey: 
-      ParentGroupGUID: gameplay
-      OrderInGroup: 0
-      Type: bool
-      DefaultValue: true
-      Values: []
-    - GUID: toggle_sprint
-      Name: Toggle Sprint
-      LocalizationKey: 
-      ParentGroupGUID: gameplay
-      OrderInGroup: 0
-      Type: bool
-      DefaultValue: true
-      Values: []
-    - GUID: anti_aliasing
-      Name: Anti-Aliasing
-      LocalizationKey: 
-      ParentGroupGUID: graphics
-      OrderInGroup: 0
-      Type: dropdown
-      DefaultValue: 2
-      Values:
-      - Key: 
-        Value: Disabled
-      - Key: 
-        Value: 2x Multisampling
-      - Key: 
-        Value: 4x Multisampling
-      - Key: 
-        Value: 8x Multisampling
-    - GUID: _test_setting
-      Name: Test Setting
-      LocalizationKey: 
-      ParentGroupGUID: _new_group
-      OrderInGroup: 0
-      Type: slider
-      DefaultValue: 
-      Values: []
-  dynamicSettingsJson: "{\n    \"Groups\": [\n        {\n            \"GUID\": \"_new_group\",\n           
-    \"Name\": \"New Group\",\n            \"LocalizationKey\": \"\",\n           
-    \"ParentGroupGUID\": \"\",\n            \"OrderInGroup\": 0,\n            \"IconResource\":
-    \"\"\n        }\n    ],\n    \"Settings\": [\n        {\n            \"GUID\":
-    \"toggle_crouch\",\n            \"Name\": \"Toggle Crouch\",\n            \"LocalizationKey\":
-    \"\",\n            \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\":
-    0,\n            \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n           
-    \"Values\": []\n        },\n        {\n            \"GUID\": \"toggle_sprint\",\n           
-    \"Name\": \"Toggle Sprint\",\n            \"LocalizationKey\": \"\",\n           
-    \"ParentGroupGUID\": \"gameplay\",\n            \"OrderInGroup\": 0,\n           
-    \"Type\": \"bool\",\n            \"DefaultValue\": \"true\",\n            \"Values\":
-    []\n        },\n        {\n            \"GUID\": \"anti_aliasing\",\n           
-    \"Name\": \"Anti-Aliasing\",\n            \"LocalizationKey\": \"\",\n           
-    \"ParentGroupGUID\": \"graphics\",\n            \"OrderInGroup\": 0,\n           
-    \"Type\": \"dropdown\",\n            \"DefaultValue\": \"2\",\n            \"Values\":
-    [\n                {\n                    \"Key\": \"\",\n                   
-    \"Value\": \"Disabled\"\n                },\n                {\n                   
-    \"Key\": \"\",\n                    \"Value\": \"2x Multisampling\"\n               
-    },\n                {\n                    \"Key\": \"\",\n                   
-    \"Value\": \"4x Multisampling\"\n                },\n                {\n                   
-    \"Key\": \"\",\n                    \"Value\": \"8x Multisampling\"\n               
-    }\n            ]\n        },\n        {\n            \"GUID\": \"_test_setting\",\n           
-    \"Name\": \"Test Setting\",\n            \"LocalizationKey\": \"\",\n           
-    \"ParentGroupGUID\": \"_new_group\",\n            \"OrderInGroup\": 0,\n           
-    \"Type\": \"slider\",\n            \"DefaultValue\": \"\",\n            \"Values\":
-    []\n        }\n    ]\n}"
 --- !u!1 &800521288
 GameObject:
   m_ObjectHideFlags: 0

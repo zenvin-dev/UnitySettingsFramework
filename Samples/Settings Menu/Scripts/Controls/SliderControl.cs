@@ -13,9 +13,19 @@ namespace Zenvin.Settings.Samples {
 
 
 		protected override void OnSetup () {
-			slider.minValue = 0f;
-			slider.maxValue = 1f;
-			slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CurrentValue));
+			if (Setting.Increment == 0f) {
+				slider.minValue = Setting.MinValue;
+				slider.maxValue = Setting.MaxValue;
+				slider.wholeNumbers = false;
+
+				slider.SetValueWithoutNotify (Setting.CurrentValue);
+			} else {
+				slider.minValue = Setting.MinValue;
+				slider.maxValue = (Setting.MaxValue - Setting.MinValue + Setting.Increment) / Setting.Increment + Setting.MinValue;
+				slider.wholeNumbers = true;
+
+				slider.SetValueWithoutNotify (Setting.CurrentValue * Setting.Increment);
+			}
 
 			label?.SetText (Setting.Name);
 			UpdateValueLabel ();
@@ -35,23 +45,31 @@ namespace Zenvin.Settings.Samples {
 				return;
 			}
 
-			value = Mathf.Lerp (Setting.MinValue, Setting.MaxValue, value);
-			value = MathUtility.SnapValueToIncrement (value, Setting.Increment);
+			//value = Mathf.Lerp (Setting.MinValue, Setting.MaxValue, value);
+			//value = MathUtility.SnapValueToIncrement (value, Setting.Increment);
 
-			Setting.SetValue (value);
+			//Setting.SetValue (value * Setting.Increment);
+
+			if (Setting.Increment == 0f) {
+				Setting.SetValue (value);
+			} else {
+				Setting.SetValue (value * Setting.Increment);
+			}
+
 			UpdateSlider ();
 		}
 
 		private void UpdateSlider () {
 			if (slider != null) {
-				slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CachedValue));
+				//slider.SetValueWithoutNotify (Mathf.InverseLerp (Setting.MinValue, Setting.MaxValue, Setting.CachedValue));
+				slider.SetValueWithoutNotify (Setting.CachedValue / (Setting.Increment > 0 ? Setting.Increment : 1f));
 			}
 			UpdateValueLabel ();
 		}
 
 		private void UpdateValueLabel () {
 			if (valueLabel != null) {
-				valueLabel.SetText (Setting.CachedValue.ToString ("0.0"));
+				valueLabel.SetText ((Setting.CachedValue/* * Setting.Increment*/).ToString ("0.0"));
 			}
 		}
 

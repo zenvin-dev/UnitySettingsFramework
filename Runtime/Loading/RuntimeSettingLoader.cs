@@ -13,7 +13,7 @@ namespace Zenvin.Settings.Loading {
 
 
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params ISettingFactory[] factories) {
-			if (asset == null || asset.Initialized || string.IsNullOrWhiteSpace (json) || factories == null || factories.Length == 0) {
+			if (string.IsNullOrWhiteSpace (json)) {
 				return false;
 			}
 
@@ -25,10 +25,17 @@ namespace Zenvin.Settings.Loading {
 				return false;
 			}
 
-			if (data.Settings == null || data.Settings.Length == 0 || data.Groups == null) {
+			return LoadSettingsIntoAsset (asset, data, iconLoader, factories);
+		}
+
+		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params ISettingFactory[] factories) {
+			if (asset == null || asset.Initialized || factories == null || factories.Length == 0) {
 				return false;
 			}
 
+			if (data.Settings == null || data.Settings.Length == 0 || data.Groups == null) {
+				return false;
+			}
 
 			// reset loader state
 			fDict.Clear ();

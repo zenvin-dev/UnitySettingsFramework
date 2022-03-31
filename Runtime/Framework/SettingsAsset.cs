@@ -28,18 +28,14 @@ namespace Zenvin.Settings.Framework {
 
 		public void Initialize () {
 			if (!Initialized) {
-				InitializeSettings ();
+				RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
+
+				OnInitialize?.Invoke (this);
+
+				RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
+
+				initialized = true;
 			}
-		}
-
-		private void InitializeSettings () {
-			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
-
-			OnInitialize?.Invoke (this);
-
-			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
-
-			initialized = true;
 		}
 
 		private void RegisterGroupsAndSettingsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
@@ -62,12 +58,14 @@ namespace Zenvin.Settings.Framework {
 				foreach (var s in group.ExternalSettings) {
 					if (!settingsDict.ContainsKey (s.GUID)) {
 						settingsDict[s.GUID] = s;
+						s.Initialize ();
 					}
 				}
 			} else if (group.Settings != null) {
 				// register internal settings
 				foreach (var s in group.Settings) {
 					settingsDict[s.GUID] = s;
+					s.Initialize ();
 				}
 			}
 

@@ -19,9 +19,9 @@ namespace Zenvin.Settings.Samples {
 		// make sure the value snaps to an increment
 		protected override void ProcessValue (ref float value) {
 			value = Mathf.Clamp (value, minValue, maxValue);
-			if (increment > 0f) {
-				value = MathUtility.SnapValueToIncrement (value, increment);
-			}
+			//if (increment > 0f) {
+			//	value = MathUtility.SnapValueToIncrement (value, increment);
+			//}
 		}
 
 		// try assigning slider settings
