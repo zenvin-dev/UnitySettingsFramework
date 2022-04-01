@@ -85,7 +85,7 @@ namespace Zenvin.Settings.Framework {
 
 	/// <summary>
 	/// Base class for all typed Settings objects.<br></br>
-	/// Inherit to create Settings with any type, but note that Unity won't be able to serialize every single type you may conveive Settings for.
+	/// Inherit to create Settings with any type, but note that Unity won't be able to serialize every type you may conveive Settings for, which could break the implementation.
 	/// </summary>
 	public abstract class SettingBase<T> : SettingBase {
 
@@ -193,7 +193,7 @@ namespace Zenvin.Settings.Framework {
 
 		/// <summary>
 		/// Called after the setting has been registered in the Settings Asset.
-		/// Use this to set up values.
+		/// Use this to set up necessary values.
 		/// </summary>
 		protected virtual void OnInitialize () { }
 

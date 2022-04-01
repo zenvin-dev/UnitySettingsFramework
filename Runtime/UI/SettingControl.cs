@@ -21,7 +21,7 @@ namespace Zenvin.Settings.UI {
 
 
 		/// <summary>
-		/// Tries to instantiate an instance of this Control for the given Setting.<br></br>
+		/// Tries to create a new instance of this Control for the given Setting.<br></br>
 		/// Will fail if the given Setting is not of a valid type for this Control.
 		/// </summary>
 		/// <param name="setting"> The Setting to spawn the control for. </param>
@@ -40,7 +40,12 @@ namespace Zenvin.Settings.UI {
 
 	}
 
-	public abstract class SettingControl<T, U> : SettingControl where T : SettingBase<U> where U : struct {
+	/// <summary>
+	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value on runtime.<br></br>
+	/// <typeparamref name="T"/> represents the type of setting that can be managed by the Control (base types will work as well),
+	/// while <typeparamref name="U"/> constrains the type of that setting.
+	/// </summary>
+	public abstract class SettingControl<T, U> : SettingControl where T : SettingBase<U> {
 
 		/// <inheritdoc/>
 		public sealed override Type ControlType => typeof (T);
@@ -52,7 +57,6 @@ namespace Zenvin.Settings.UI {
 		/// <summary>
 		/// Calls <see cref="SettingBase{T}.SetValue(T)"/> on the current <see cref="Setting"/>, if there is one.
 		/// </summary>
-		/// <param name="value">  </param>
 		public void SetValue (U value) {
 			if (Setting != null) {
 				Setting.SetValue (value);
@@ -64,11 +68,18 @@ namespace Zenvin.Settings.UI {
 		/// </summary>
 		protected virtual void OnSetup () { }
 
+		/// <summary>
+		/// Called when the Control's current Setting is reset.
+		/// </summary>
 		protected virtual void OnSettingReset () { }
 
+		/// <summary>
+		/// Called when the Control's current Setting is reverted.
+		/// </summary>
 		protected virtual void OnSettingReverted () { }
 
-		private protected override bool CanAssignTo (SettingBase setting) {
+
+		private protected sealed override bool CanAssignTo (SettingBase setting) {
 			return setting is T;
 		}
 
