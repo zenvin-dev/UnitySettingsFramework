@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
-	public abstract class IdentifiableScriptableObject : ScriptableObject {
+	public abstract class FrameworkObject : ScriptableObject {
 
 		[SerializeField, HideInInspector] private string guid = null;
 		[SerializeField, HideInInspector] private bool external = false;

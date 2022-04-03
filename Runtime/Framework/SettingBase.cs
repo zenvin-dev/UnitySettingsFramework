@@ -5,7 +5,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// Base class for all Settings objects.
 	/// </summary>
-	public abstract class SettingBase : IdentifiableScriptableObject {
+	public abstract class SettingBase : FrameworkObject {
 
 		[SerializeField, HideInInspector] private string settingName;
 		[SerializeField, HideInInspector] private string settingNameLocKey;

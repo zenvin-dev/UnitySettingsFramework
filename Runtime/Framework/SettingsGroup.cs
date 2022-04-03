@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 
 namespace Zenvin.Settings.Framework {
-	public class SettingsGroup : IdentifiableScriptableObject {
+	public class SettingsGroup : FrameworkObject {
 
 		[NonSerialized] private readonly List<SettingBase> externalSettings = new List<SettingBase> ();
 		[NonSerialized] private readonly List<SettingsGroup> externalGroups = new List<SettingsGroup> ();
