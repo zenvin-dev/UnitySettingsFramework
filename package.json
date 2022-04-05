@@ -1,9 +1,9 @@
 {
     "name": "com.zenvin.settings-framework",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "displayName": "Settings Framework",
     "description": "Made to allow for simple implementation of arbitrarily typed game settings.",
-    "unity": "2020.3",
+    "unity": "2020.1",
   "author": {
     "name": "Zenvin",
     "email": "zenvin@outlook.de"
@@ -17,7 +17,7 @@
     {
       "displayName": "Settings Menu",
       "description": "A complete demonstration of how a settings menu could be set up with this package.",
-      "path": "Samples/Main Menu"
+      "path": "Samples/Settings Menu"
     }
   ]
 }
