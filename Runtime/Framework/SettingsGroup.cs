@@ -9,8 +9,8 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private readonly List<SettingBase> externalSettings = new List<SettingBase> ();
 		[NonSerialized] private readonly List<SettingsGroup> externalGroups = new List<SettingsGroup> ();
 
-		[SerializeField, HideInInspector] internal string groupName;
-		[SerializeField, HideInInspector] internal string groupNameLocKey;
+		//[SerializeField, HideInInspector] internal string groupName;
+		//[SerializeField, HideInInspector] internal string groupNameLocKey;
 		[SerializeField, HideInInspector] internal Sprite groupIcon;
 
 		[SerializeField, HideInInspector] private SettingsGroup parent;
@@ -18,14 +18,14 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] private List<SettingBase> settings;
 
 
-		public string Name {
-			get => groupName;
-			internal set => groupName = value;
-		}
-		public string NameLocalizationKey {
-			get => groupNameLocKey;
-			internal set => groupNameLocKey = value;
-		}
+		//public string Name {
+		//	get => groupName;
+		//	internal set => groupName = value;
+		//}
+		//public string NameLocalizationKey {
+		//	get => groupNameLocKey;
+		//	internal set => groupNameLocKey = value;
+		//}
 		public Sprite Icon {
 			get => groupIcon;
 			internal set => groupIcon = value;

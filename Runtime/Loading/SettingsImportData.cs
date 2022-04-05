@@ -10,8 +10,13 @@ namespace Zenvin.Settings.Loading {
 	[Serializable]
 	public abstract class ObjectDataBase {
 		public string GUID;
+
 		public string Name;
-		public string LocalizationKey;
+		public string NameLocalizationKey;
+
+		public string Description;
+		public string DescriptionLocalizationKey;
+
 		public string ParentGroupGUID;
 		public int OrderInGroup;
 	}

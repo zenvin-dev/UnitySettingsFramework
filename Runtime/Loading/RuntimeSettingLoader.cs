@@ -89,8 +89,11 @@ namespace Zenvin.Settings.Loading {
 					obj.External = true;
 
 					obj.Name = g.Name;
-					obj.NameLocalizationKey = g.LocalizationKey;
+					obj.NameLocalizationKey = g.NameLocalizationKey;
 					obj.Icon = loader?.LoadIconResource (g.IconResource);
+
+					obj.Description = g.Description;
+					obj.DescriptionLocalizationKey = g.DescriptionLocalizationKey;
 
 					groups.Add (g.GUID, obj);
 					desiredParents[g.GUID] = g.ParentGroupGUID;
@@ -131,7 +134,10 @@ namespace Zenvin.Settings.Loading {
 							obj.External = true;
 
 							obj.Name = s.Name;
-							obj.NameLocalizationKey = s.LocalizationKey;
+							obj.NameLocalizationKey = s.NameLocalizationKey;
+
+							obj.Description = s.Description;
+							obj.DescriptionLocalizationKey = s.DescriptionLocalizationKey;
 
 							parent.IntegrateSetting (obj);
 

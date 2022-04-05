@@ -16,7 +16,7 @@ namespace Zenvin.Settings.Samples {
 		[SerializeField] private SettingsAsset settings;
 		[Space, SerializeField] private bool loadDynamicSettings = true;
 		[SerializeField] private SettingsImportData dynamicSettings;
-		[SerializeField, TextArea (25, 35)] private string dynamicSettingsJson = "";
+		[SerializeField, TextArea (25, 35), Space (20)] private string dynamicSettingsJsonOutput = "";
 
 		private void Awake () {
 			if (mode == InitMode.Awake) {
@@ -41,11 +41,11 @@ namespace Zenvin.Settings.Samples {
 		}
 
 		private void LoadSettings (SettingsAsset asset) {
-			if (dynamicSettingsJson == null || dynamicSettingsJson.Length == 0) {
+			if (dynamicSettingsJsonOutput == null || dynamicSettingsJsonOutput.Length == 0) {
 				return;
 			}
 			RuntimeSettingLoader.LoadSettingsIntoAsset (
-				asset, dynamicSettingsJson, null,
+				asset, dynamicSettingsJsonOutput, null,
 				("bool", new BoolSettingFactory ()),
 				("int", new IntSettingFactory ()),
 				("float", new FloatSettingFactory ()),
@@ -55,7 +55,7 @@ namespace Zenvin.Settings.Samples {
 		}
 
 		private void OnValidate () {
-			dynamicSettingsJson = JsonUtility.ToJson (dynamicSettings, true);
+			dynamicSettingsJsonOutput = JsonUtility.ToJson (dynamicSettings, true);
 		}
 
 	}

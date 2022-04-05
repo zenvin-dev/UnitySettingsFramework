@@ -75,7 +75,8 @@ namespace Zenvin.Settings.Framework {
 			if (asset == null) {
 				asset = CreateInstance<SettingsAsset> ();
 				asset.name = "Game Settings";
-				asset.groupName = "Game Settings";
+				asset.Name = "Game Settings";
+				//asset.groupName = "Game Settings";
 
 				AssetDatabase.CreateAsset (asset, $"Assets/Game Settings.asset");
 
@@ -253,6 +254,21 @@ namespace Zenvin.Settings.Framework {
 			// make read-only while in play mode
 			EditorGUI.BeginDisabledGroup (Application.isPlaying);
 
+			if (editor.target == asset) {
+				EditorGUILayout.LabelField ("GUID", "None (Root)");
+			} else {
+				DrawGuidField (editor.serializedObject, true);
+			}
+
+			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("label"), new GUIContent ("Name"));
+			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("labelLocalizationKey"), new GUIContent ("Name Loc. Key"));
+
+			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+			DrawTextArea ("Description", editor.serializedObject.FindProperty ("description"), rect);
+			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("descriptionLocalizationKey"), new GUIContent ("Description Loc. Key"));
+
+			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 			// draw editor based on type of selected object
 			switch (editor.target) {
 				case SettingsGroup g:
@@ -295,18 +311,18 @@ namespace Zenvin.Settings.Framework {
 		private void DrawDefaultEditor (SettingsGroup group) {
 
 			// as long as the selected object is not the root asset
-			if (group != asset) {
-				// draw GUID field
-				DrawGuidField (editor.serializedObject, true);
-			} else {
-				EditorGUILayout.LabelField ("GUID", "None (Root)");
-			}
+			//if (group != asset) {
+			//	// draw GUID field
+			//	DrawGuidField (editor.serializedObject, true);
+			//} else {
+			//	EditorGUILayout.LabelField ("GUID", "None (Root)");
+			//}
 
-			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+			//GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 
 			// draw base properties separate from inspector
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupName)), new GUIContent ("Name"));
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupNameLocKey)), new GUIContent ("Loc. Key"));
+			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*nameof (SettingsGroup.groupName)*/"label"), new GUIContent ("Name"));
+			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*nameof (SettingsGroup.groupNameLocKey)*/"labelLocalizationKey"), new GUIContent ("Loc. Key"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupIcon)), new GUIContent ("Icon"));
 
 			// display runtime information on root asset
@@ -323,16 +339,16 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawDefaultEditor (SettingBase setting) {
-			DrawGuidField (editor.serializedObject, false);
+			//DrawGuidField (editor.serializedObject, false);
 
-			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+			//GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingName"), new GUIContent ("Name"));
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("settingNameLocKey"), new GUIContent ("Loc. Key"));
+			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*"settingName"*/"label"), new GUIContent ("Name"));
+			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*"settingNameLocKey"*/"labelLocalizationKey"), new GUIContent ("Loc. Key"));
 
-			if (!Application.isPlaying) {
-				editor.serializedObject.ApplyModifiedProperties ();
-			}
+			//if (!Application.isPlaying) {
+			//	editor.serializedObject.ApplyModifiedProperties ();
+			//}
 		}
 
 
@@ -403,6 +419,23 @@ namespace Zenvin.Settings.Framework {
 			// update GUID value
 			guidProp.stringValue = newVal;
 			obj.ApplyModifiedPropertiesWithoutUndo ();
+		}
+
+		private void DrawTextArea (string label, SerializedProperty property, Rect rect) {
+			if (property.propertyType != SerializedPropertyType.String) {
+				return;
+			}
+			EditorGUILayout.LabelField (label);
+
+			string val = property.stringValue;
+			float height = EditorStyles.textArea.CalcHeight (new GUIContent (val), rect.width);
+
+			val = EditorGUILayout.TextArea (val, GUILayout.Height (Mathf.Max (height, EditorGUIUtility.singleLineHeight * 3f)));
+
+			if (property.stringValue != val) {
+				property.stringValue = val;
+				property.serializedObject.ApplyModifiedProperties ();
+			}
 		}
 
 
@@ -756,7 +789,8 @@ namespace Zenvin.Settings.Framework {
 
 			SettingsGroup newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
 				g.name = "New Group";
-				g.groupName = "New Group";
+				//g.groupName = "New Group";
+				g.Name = "New Group";
 				g.GUID = Guid.NewGuid ().ToString ();
 			});
 

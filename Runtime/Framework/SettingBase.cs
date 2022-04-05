@@ -7,24 +7,24 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase : FrameworkObject {
 
-		[SerializeField, HideInInspector] private string settingName;
-		[SerializeField, HideInInspector] private string settingNameLocKey;
+		//[SerializeField, HideInInspector] private string settingName;
+		//[SerializeField, HideInInspector] private string settingNameLocKey;
 
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
 		[SerializeField, HideInInspector] internal SettingsGroup group;
 
 
-		public string Name {
-			get => settingName;
-			internal set {
-				settingName = value;
-				name = value;
-			}
-		}
-		public string NameLocalizationKey {
-			get => settingNameLocKey;
-			internal set => settingNameLocKey = value;
-		}
+		//public string Name {
+		//	get => settingName;
+		//	internal set {
+		//		settingName = value;
+		//		name = value;
+		//	}
+		//}
+		//public string NameLocalizationKey {
+		//	get => settingNameLocKey;
+		//	internal set => settingNameLocKey = value;
+		//}
 
 
 		protected internal abstract object DefaultValueRaw { get; }
