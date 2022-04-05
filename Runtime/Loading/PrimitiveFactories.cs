@@ -2,7 +2,7 @@ using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
 	public class BoolSettingFactory : ISettingFactory {
-		string ISettingFactory.GetValidType () {
+		string ISettingFactory.GetDefaultValidType () {
 			return "bool";
 		}
 
@@ -12,7 +12,7 @@ namespace Zenvin.Settings.Loading {
 	}
 
 	public class IntSettingFactory : ISettingFactory {
-		string ISettingFactory.GetValidType () {
+		string ISettingFactory.GetDefaultValidType () {
 			return "int";
 		}
 
@@ -22,7 +22,7 @@ namespace Zenvin.Settings.Loading {
 	}
 
 	public class FloatSettingFactory : ISettingFactory {
-		string ISettingFactory.GetValidType () {
+		string ISettingFactory.GetDefaultValidType () {
 			return "float";
 		}
 

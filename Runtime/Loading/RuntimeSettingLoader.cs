@@ -12,13 +12,13 @@ namespace Zenvin.Settings.Loading {
 		private static readonly List<(SettingsGroup parent, SettingsGroup group)> rootGroups = new List<(SettingsGroup parent, SettingsGroup group)> ();
 
 
-		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params ISettingFactory[] factories) {
+		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (string.IsNullOrWhiteSpace (json)) {
 				return false;
 			}
 
 			// parse data from JSON
-			SettingsImportData data = null;
+			SettingsImportData data;
 			try {
 				data = JsonUtility.FromJson<SettingsImportData> (json);
 			} catch {
@@ -28,7 +28,7 @@ namespace Zenvin.Settings.Loading {
 			return LoadSettingsIntoAsset (asset, data, iconLoader, factories);
 		}
 
-		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params ISettingFactory[] factories) {
+		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (asset == null || asset.Initialized || factories == null || factories.Length == 0) {
 				return false;
 			}
@@ -64,12 +64,17 @@ namespace Zenvin.Settings.Loading {
 			return true;
 		}
 
-		private static void PopulateFactoryDict (ISettingFactory[] factories) {
+		private static void PopulateFactoryDict (TypeFactoryWrapper[] factories) {
 			foreach (var f in factories) {
-				if (f != null) {
-					string fType = f.GetValidType ();
+				if (f.Factory != null) {
+					string fType = f.Type;
+
+					if (string.IsNullOrEmpty (fType)) {
+						fType = f.Factory.GetDefaultValidType ();
+					}
+
 					if (!string.IsNullOrEmpty (fType)) {
-						fDict[fType] = f;
+						fDict[fType] = f.Factory;
 					}
 				}
 			}
@@ -144,5 +149,22 @@ namespace Zenvin.Settings.Loading {
 			}
 		}
 
+
+		public struct TypeFactoryWrapper {
+			public string Type;
+			public ISettingFactory Factory;
+
+
+			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory) { }
+
+			public TypeFactoryWrapper (string type, ISettingFactory factory) {
+				Type = type;
+				Factory = factory;
+			}
+
+			public static implicit operator TypeFactoryWrapper ((string, ISettingFactory) tuple) {
+				return new TypeFactoryWrapper (tuple.Item1, tuple.Item2);
+			}
+		}
 	}
 }

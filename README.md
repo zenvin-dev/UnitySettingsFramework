@@ -120,7 +120,7 @@ In order to load external settings, the system needs to know how to translate th
 \
 That is where the `ISettingFactory` interface comes into play:
 \
-* `ISettingFactory.GetValidType()`: This method returns the type `string` which this factory can translate into a setting object.
+* `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
 * `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired setting class.
 
 # Examples
@@ -198,12 +198,12 @@ public class SettingsInitializer : MonoBehaviour
             asset,                        // the target asset
             json,                         // the json string to load from
             null,                         // an IGroupIconLoader object to load group icons
-            new BoolSettingFactory(),     // factories provided by the package
-            new IntSettingFactory(),
-            new FloatSettingFactory(),
+            ("bool", new BoolSettingFactory()),         // factories provided by the package. 
+            (null, new IntSettingFactory()),            // override for default type string is null, resulting in the interface value being used.
+            ("float", new FloatSettingFactory()),       // override for default type string is "float", meaning this setting will be used wherever the json type is "float"
             
-            new DropdownSettingFactory(), // the factory we created earlier
-            ...                           // potential further custom settings factories
+            ("dropdown", new DropdownSettingFactory()), // the factory we created earlier, along with an override for the type string
+            ...                                         // potential further custom settings factories
         );
     }
 }

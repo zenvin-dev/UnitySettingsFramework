@@ -2,7 +2,7 @@ using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
 	public interface ISettingFactory {
-		string GetValidType ();
+		string GetDefaultValidType ();
 		SettingBase CreateSettingFromType (string defaultValue, StringValuePair[] values);
 	}
 }

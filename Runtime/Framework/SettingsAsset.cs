@@ -166,11 +166,12 @@ namespace Zenvin.Settings.Framework {
 
 		/// <summary>
 		/// Saves all settings to a stream.<br></br>
-		/// Returns the number of settings saved, or -1 if there was an error.
+		/// Returns the number of settings saved, or -1 if there was an error.<br></br>
+		/// The asset needs to be initialized before settings can be saved.
 		/// </summary>
 		/// <param name="stream"> The <see cref="Stream"/> the method will write to. </param>
 		public int SaveAllSettings (Stream stream) {
-			if (stream == null) {
+			if (stream == null || !Initialized) {
 				return -1;
 			}
 
@@ -195,7 +196,8 @@ namespace Zenvin.Settings.Framework {
 
 		/// <summary>
 		/// Loads all settings from a stream.<br></br>
-		/// Returns the number of settings loaded, or -1 if there was an error.
+		/// Returns the number of settings loaded, or -1 if there was an error.<br></br>
+		/// The asset needs to be initialized before settings can be loaded.
 		/// </summary>
 		/// <param name="reader"> The <see cref="Stream"/> the method will read from. </param>	
 		public int LoadAllSettings (Stream stream) {

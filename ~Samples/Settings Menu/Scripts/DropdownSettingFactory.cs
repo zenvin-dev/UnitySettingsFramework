@@ -3,7 +3,7 @@ using Zenvin.Settings.Loading;
 
 namespace Zenvin.Settings.Samples {
 	public class DropdownSettingFactory : ISettingFactory {
-		string ISettingFactory.GetValidType () {
+		string ISettingFactory.GetDefaultValidType () {
 			return "dropdown";
 		}
 
