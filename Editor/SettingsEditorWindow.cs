@@ -261,14 +261,15 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("label"), new GUIContent ("Name"));
-			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("labelLocalizationKey"), new GUIContent ("Name Loc. Key"));
+			DrawPropertyField (editor.serializedObject.FindProperty ("label"), new GUIContent ("Name"));
+			DrawPropertyField (editor.serializedObject.FindProperty ("labelLocalizationKey"), new GUIContent ("Name Loc. Key"));
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 			DrawTextArea ("Description", editor.serializedObject.FindProperty ("description"), rect);
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty ("descriptionLocalizationKey"), new GUIContent ("Description Loc. Key"));
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+
 			// draw editor based on type of selected object
 			switch (editor.target) {
 				case SettingsGroup g:
@@ -419,6 +420,11 @@ namespace Zenvin.Settings.Framework {
 			// update GUID value
 			guidProp.stringValue = newVal;
 			obj.ApplyModifiedPropertiesWithoutUndo ();
+		}
+
+		private void DrawPropertyField (SerializedProperty property, GUIContent label) {
+			EditorGUILayout.PropertyField (property, label);
+			property.serializedObject.ApplyModifiedProperties ();
 		}
 
 		private void DrawTextArea (string label, SerializedProperty property, Rect rect) {
