@@ -71,7 +71,7 @@ Note that changing the settings hierarchy is only permitted during edit-time. Th
 
 
 ## 5. Using Settings
-Settings can be either referenced directly as a `SettingBase<t>` in the editor, or accessed by its `GUID`, assuming that the SettingsAsset has been initialized.
+Settings can be either referenced directly as a `SettingBase<T>` in the editor, or accessed by its `GUID`, assuming that the SettingsAsset has been initialized.
 
 ### 5.0 Initialization
 Upon runtime start, the SettingsAsset needs to be initialized. This happens with a call to the _non-static_ `SettingsAsset.Initialize()` method.
@@ -130,18 +130,18 @@ Make a new script and paste the below code into it:
 using System;
 using Zenvin.Settings.Framework;
 
-public class DropdownSetting : SettingBase<int>
+public class DropdownSetting : SettingBase<int>     // declare custom setting type
 {
-    [SerializeField] private string[] values;
+    [SerializeField] private string[] values;       // expose field in the editor to allow assigning dropdown values
 
     protected override byte[] OnSerialize ()
     {
-        return BitConverter.GetBytes (CurrentValue);
+        return BitConverter.GetBytes (CurrentValue);    // serialize the current value
     }
     
     protected override int OnDeserialize (byte[] data)
     {
-      return BitConverter.ToInt32 (data, 0);
+      return BitConverter.ToInt32 (data, 0);            // deserialize the current value
     }
 }
 ```
@@ -163,19 +163,21 @@ First, create factories for your custom setting types. For the class from **Exam
 ```csharp
 public class DropdownSettingFactory : ISettingFactory
 {
-    string ISettingFactory.GetValidType() => "dropdown";
+    string ISettingFactory.GetDefaultValidType() => "dropdown";     // make default type string "dropdown"
     
     SettingBase ISettingFactory.CreateSettingFromValue(string defaultValue, StringValuePair[] values)
     {
-        if (!int.TryParse(defaultValue, out int val)) {
-          val = 0;
+        if (!int.TryParse(defaultValue, out int val)) {     // try parsing the json default value to an int
+          val = 0;                                              // if not possible, use 0 as default
         }
-        return DropdownSetting.CreateInstanceWithValues<DropdownSetting>(val, values);
+        return DropdownSetting.CreateInstanceWithValues<DropdownSetting>(val, values);  // create a new instance.
     }
 }
 ```
-
-Next, make a `MonoBehaviour` to initialize your Settings Asset and load settings:
+The above factory can create an instance of `DropdownSetting`. By default, it will respond to the json type string `"dropdown"`.
+Note that the factory uses `SettingBase<T>.CreateInstanceWithValues`, rather than {`ScriptableObject.CreateInstance`](https://docs.unity3d.com/ScriptReference/ScriptableObject.CreateInstance.html). This is necessary, because the setting needs to be initialized. Setting instances created with the latter method will not be considered during loading.
+\
+Next, make a `MonoBehaviour` to initialize your Settings Asset and load settings using the `Zenvin.Settings.Loading.RuntimeSettingLoader` class:
 ```csharp
 using UnityEngine;
 using Zenvin.Settings.Framework;
@@ -208,7 +210,9 @@ public class SettingsInitializer : MonoBehaviour
     }
 }
 ```
-And last, create a JSON string for the settings you want to load and assign it to that `MonoBehaviour`, along with the Settings Asset.
+Note that the `LoadSettingsIntoAsset` method can override individual factories' target types. This allows using the same factory for multiple types of settings.
+\
+Last, create a JSON string for the settings you want to load and assign it to that `MonoBehaviour`, along with the Settings Asset.
 Such a JSON string could look like this:
 ```json
 {
@@ -251,7 +255,9 @@ Such a JSON string could look like this:
     ]
 }
 ```
-This would first try to create a new group called `Graphics` with GUID `_graphics`, and then to make a setting from a hypothetical `dropdown` factory, give it a default value of `2` and try to set it up with an array of values. Assuming both were successful, the new setting would become a child of the new group. If there already was a group with GUID `_graphics`, no new group will be created, and the setting will be added to the existing one instead.
+This would first try to create a new group called `Graphics` with GUID `_graphics`, and then to make a setting from a hypothetical `dropdown` factory, give it a default value of `2` and try to set it up with an array of values. Assuming both were successful, the new setting would become a child of the new group.
+\
+If there already was a group with GUID `_graphics`, no new group will be created, and the setting will be added to the existing one instead.
 
 ## 4. Setting up a dynamic Setting
 Sometimes, a default value alone is not enough to set up an external setting with. Because of that, the `SettingBase<T>` class allows you to override its `OnCreateWithValues(StringValuePair[])` method. Sticking with the class from the previous examples, you could use the `Key`s of all the `StringValuePair`s you get, to populate your `values`.
@@ -267,11 +273,6 @@ protected override void OnCreateWithValues (StringValuePair[] _values)
     }
 }
 ```
-
-
-
-
-
 
 
 

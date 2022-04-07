@@ -129,7 +129,7 @@ namespace Zenvin.Settings.Framework {
 
 
 		/// <summary>
-		/// Creates a new instance of a given <see cref="SettingBase{T}"/> and assigns it a default value.
+		/// Creates a new, external instance of a given <see cref="SettingBase{T}"/> and initializes with the given values.
 		/// </summary>
 		public static U CreateInstanceWithValues<U> (T defaultValue, StringValuePair[] values = null) where U : SettingBase<T> {
 			if (!Application.isPlaying) {
@@ -137,6 +137,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			U setting = CreateInstance<U> ();
+			setting.External = true;
 
 			setting.OnCreateWithValues (values);
 

@@ -127,11 +127,11 @@ namespace Zenvin.Settings.Loading {
 
 					if (parent != null) {
 						SettingBase obj = fact.CreateSettingFromType (s.DefaultValue, s.Values);
-						if (obj != null) {
+						if (obj != null && obj.External) {
 
 							obj.asset = asset;
 							obj.GUID = s.GUID;
-							obj.External = true;
+							//obj.External = true;
 
 							obj.Name = s.Name;
 							obj.NameLocalizationKey = s.NameLocalizationKey;
