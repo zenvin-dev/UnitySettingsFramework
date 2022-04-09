@@ -175,7 +175,8 @@ public class DropdownSettingFactory : ISettingFactory
 }
 ```
 The above factory can create an instance of `DropdownSetting`. By default, it will respond to the json type string `"dropdown"`.
-Note that the factory uses `SettingBase<T>.CreateInstanceWithValues`, rather than {`ScriptableObject.CreateInstance`](https://docs.unity3d.com/ScriptReference/ScriptableObject.CreateInstance.html). This is necessary, because the setting needs to be initialized. Setting instances created with the latter method will not be considered during loading.
+Note that the factory uses `SettingBase<T>.CreateInstanceWithValues`, rather than [`ScriptableObject.CreateInstance`](https://docs.unity3d.com/ScriptReference/ScriptableObject.CreateInstance.html). This is necessary, because the setting needs to be initialized. Setting instances created with the latter method will not be considered during loading.
+\
 \
 Next, make a `MonoBehaviour` to initialize your Settings Asset and load settings using the `Zenvin.Settings.Loading.RuntimeSettingLoader` class:
 ```csharp
