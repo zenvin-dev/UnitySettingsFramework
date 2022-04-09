@@ -41,23 +41,23 @@ namespace Zenvin.Settings.UI {
 	}
 
 	/// <summary>
-	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value on runtime.<br></br>
-	/// <typeparamref name="T"/> represents the type of setting that can be managed by the Control (base types will work as well),
-	/// while <typeparamref name="U"/> constrains the type of that setting.
+	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value on runtime.
 	/// </summary>
-	public abstract class SettingControl<T, U> : SettingControl where T : SettingBase<U> {
+	/// <typeparam name="TControlType"> The most basic type of <see cref="SettingBase{T}"/> that this control can handle. </typeparam>
+	/// <typeparam name="THandledType"> The type used by the handled <see cref="SettingBase{T}"/>. </typeparam>
+	public abstract class SettingControl<TControlType, THandledType> : SettingControl where TControlType : SettingBase<THandledType> {
 
 		/// <inheritdoc/>
-		public sealed override Type ControlType => typeof (T);
+		public sealed override Type ControlType => typeof (TControlType);
 
 		/// <summary> The <see cref="SettingBase{T}"/> assigned to this Control. </summary>
-		public T Setting { get; internal set; }
+		public TControlType Setting { get; internal set; }
 
 
 		/// <summary>
 		/// Calls <see cref="SettingBase{T}.SetValue(T)"/> on the current <see cref="Setting"/>, if there is one.
 		/// </summary>
-		public void SetValue (U value) {
+		public void SetValue (THandledType value) {
 			if (Setting != null) {
 				Setting.SetValue (value);
 			}
@@ -70,7 +70,8 @@ namespace Zenvin.Settings.UI {
 
 		/// <summary>
 		/// Called when the Setting's value was changed in any way. <br></br>
-		/// Equivalent of subscribing to <see cref="SettingBase{T}.OnValueChanged"/>.
+		/// Equivalent of subscribing to <see cref="SettingBase{T}.OnValueChanged"/>.<br></br>
+		/// <b>Do not change the Setting's value from here, unless you know what you are doing. Otherwise you might create an infinite recursion!</b>
 		/// </summary>
 		/// <param name="mode"> In what way the value was changed. </param>
 		protected virtual void OnSettingValueChanged (SettingBase.ValueChangeMode mode) { }
@@ -87,15 +88,15 @@ namespace Zenvin.Settings.UI {
 
 
 		private protected sealed override bool CanAssignTo (SettingBase setting) {
-			return setting is T;
+			return setting is TControlType;
 		}
 
 		private protected override sealed void OnSetupInternal () {
-			Setting = SettingRaw as T;
+			Setting = SettingRaw as TControlType;
+			Setting.OnValueChanged += OnSettingValueChanged;
 			OnSetup ();
 			//Setting.OnValueReset += OnSettingReset;
 			//Setting.OnValueReverted += OnSettingReverted;
-			Setting.OnValueChanged += OnSettingValueChanged;
 		}
 
 		private void OnDestroy () {
