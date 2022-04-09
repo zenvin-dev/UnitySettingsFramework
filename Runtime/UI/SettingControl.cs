@@ -69,14 +69,21 @@ namespace Zenvin.Settings.UI {
 		protected virtual void OnSetup () { }
 
 		/// <summary>
-		/// Called when the Control's current Setting is reset.
+		/// Called when the Setting's value was changed in any way. <br></br>
+		/// Equivalent of subscribing to <see cref="SettingBase{T}.OnValueChanged"/>.
 		/// </summary>
-		protected virtual void OnSettingReset () { }
+		/// <param name="mode"> In what way the value was changed. </param>
+		protected virtual void OnSettingValueChanged (SettingBase.ValueChangeMode mode) { }
 
-		/// <summary>
-		/// Called when the Control's current Setting is reverted.
-		/// </summary>
-		protected virtual void OnSettingReverted () { }
+		///// <summary>
+		///// Called when the Control's current Setting is reset.
+		///// </summary>
+		//protected virtual void OnSettingReset () { }
+
+		///// <summary>
+		///// Called when the Control's current Setting is reverted.
+		///// </summary>
+		//protected virtual void OnSettingReverted () { }
 
 
 		private protected sealed override bool CanAssignTo (SettingBase setting) {
@@ -85,14 +92,16 @@ namespace Zenvin.Settings.UI {
 
 		private protected override sealed void OnSetupInternal () {
 			Setting = SettingRaw as T;
-			Setting.OnValueReset += OnSettingReset;
-			Setting.OnValueReverted += OnSettingReverted;
 			OnSetup ();
+			//Setting.OnValueReset += OnSettingReset;
+			//Setting.OnValueReverted += OnSettingReverted;
+			Setting.OnValueChanged += OnSettingValueChanged;
 		}
 
 		private void OnDestroy () {
-			Setting.OnValueReset -= OnSettingReset;
-			Setting.OnValueReverted -= OnSettingReverted;
+			//Setting.OnValueReset -= OnSettingReset;
+			//Setting.OnValueReverted -= OnSettingReverted;
+			Setting.OnValueChanged -= OnSettingValueChanged;
 		}
 
 	}

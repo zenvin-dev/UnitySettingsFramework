@@ -3,6 +3,7 @@ using Zenvin.Settings.UI;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
+using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderControl : SettingControl<SliderSetting, float> {
@@ -31,11 +32,15 @@ namespace Zenvin.Settings.Samples {
 			UpdateValueLabel ();
 		}
 
-		protected override void OnSettingReset () {
-			UpdateSlider ();
-		}
+		//protected override void OnSettingReset () {
+		//	UpdateSlider ();
+		//}
 
-		protected override void OnSettingReverted () {
+		//protected override void OnSettingReverted () {
+		//	UpdateSlider ();
+		//}
+
+		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			UpdateSlider ();
 		}
 

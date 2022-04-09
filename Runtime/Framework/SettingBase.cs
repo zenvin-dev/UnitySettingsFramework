@@ -7,24 +7,15 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase : FrameworkObject {
 
-		//[SerializeField, HideInInspector] private string settingName;
-		//[SerializeField, HideInInspector] private string settingNameLocKey;
+		public enum ValueChangeMode {
+			Set,
+			Reset,
+			Revert,
+			Apply
+		}
 
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
 		[SerializeField, HideInInspector] internal SettingsGroup group;
-
-
-		//public string Name {
-		//	get => settingName;
-		//	internal set {
-		//		settingName = value;
-		//		name = value;
-		//	}
-		//}
-		//public string NameLocalizationKey {
-		//	get => settingNameLocKey;
-		//	internal set => settingNameLocKey = value;
-		//}
 
 
 		protected internal abstract object DefaultValueRaw { get; }
@@ -89,12 +80,15 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase<T> : SettingBase {
 
-		public delegate void OnApplyValue ();
-		public delegate void OnValueChanged ();
+		//public delegate void OnApplyValue ();
+		//public delegate void OnValueChanged ();
 
-		public event OnApplyValue OnValueApplied;
-		public event OnValueChanged OnValueReset;
-		public event OnValueChanged OnValueReverted;
+		//public event OnApplyValue OnValueApplied;
+		//public event OnValueChanged OnValueReset;
+		//public event OnValueChanged OnValueReverted;
+
+		public delegate void OnValueChangedEvt (SettingBase.ValueChangeMode mode);
+		public event OnValueChangedEvt OnValueChanged;
 
 		[NonSerialized] private T cachedValue;
 		[NonSerialized] private T currentValue;
@@ -160,6 +154,7 @@ namespace Zenvin.Settings.Framework {
 			if (!cachedValue.Equals (value)) {
 				cachedValue = value;
 				IsDirty = true;
+				OnValueChanged?.Invoke (ValueChangeMode.Set);
 			}
 		}
 
@@ -215,9 +210,10 @@ namespace Zenvin.Settings.Framework {
 				return false;
 			}
 			currentValue = cachedValue;
-			OnAfterApplyValue ();
-			OnValueApplied?.Invoke ();
 			IsDirty = false;
+			OnAfterApplyValue ();
+			//OnValueApplied?.Invoke ();
+			OnValueChanged?.Invoke (ValueChangeMode.Apply);
 			return true;
 		}
 
@@ -228,7 +224,8 @@ namespace Zenvin.Settings.Framework {
 			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
-			OnValueReverted?.Invoke ();
+			//OnValueReverted?.Invoke ();
+			OnValueChanged?.Invoke (ValueChangeMode.Revert);
 			return true;
 		}
 
@@ -237,7 +234,8 @@ namespace Zenvin.Settings.Framework {
 			if (apply) {
 				ApplyValue ();
 			}
-			OnValueReset?.Invoke ();
+			//OnValueReset?.Invoke ();
+			OnValueChanged?.Invoke (ValueChangeMode.Reset);
 			return true;
 		}
 

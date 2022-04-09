@@ -18,6 +18,11 @@
       "displayName": "Settings Menu",
       "description": "A complete demonstration of how a settings menu could be set up with this package.",
       "path": "Samples/Settings Menu"
+    },
+    {
+      "displayName": "Localization Setting",
+      "description": "An implementation of a dropdown setting, specifically for changing the localization of the game. REQUIRES UNTIY'S LOCALIZATION PACKAGE!",
+      "path": "Samples/Localization Setting"
     }
   ]
 }
