@@ -293,6 +293,9 @@ namespace Zenvin.Settings.Framework {
 					EditorGUILayout.LabelField ("Current Value", s.CurrentValueRaw?.ToString () ?? "", EditorStyles.textField);
 					EditorGUILayout.LabelField ("Cached Value", s.CachedValueRaw?.ToString () ?? "", EditorStyles.textField);
 					EditorGUILayout.LabelField ("Is Dirty", s.IsDirty.ToString (), EditorStyles.textField);
+
+					GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+					EditorGUILayout.LabelField ("Order in Group", s.OrderInGroup.ToString (), EditorStyles.textField);
 				}
 
 			} else {

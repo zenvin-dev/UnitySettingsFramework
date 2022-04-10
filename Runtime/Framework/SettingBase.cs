@@ -5,7 +5,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// Base class for all Settings objects.
 	/// </summary>
-	public abstract class SettingBase : FrameworkObject {
+	public abstract class SettingBase : FrameworkObject, IComparable<SettingBase> {
 
 		public enum ValueChangeMode {
 			Set,
@@ -23,7 +23,7 @@ namespace Zenvin.Settings.Framework {
 		protected internal abstract object CachedValueRaw { get; }
 		protected internal abstract Type ValueType { get; }
 		public abstract bool IsDirty { get; private protected set; }
-
+		public abstract int OrderInGroup { get; internal set; }
 
 		internal virtual void Initialize () { }
 
@@ -72,6 +72,13 @@ namespace Zenvin.Settings.Framework {
 			return $"Setting '{Name}' ('{GUID}')";
 		}
 
+		int IComparable<SettingBase>.CompareTo (SettingBase other) {
+			int def = OrderInGroup.CompareTo (other.OrderInGroup);
+			if (def != 0) {
+				return def;
+			}
+			return External.CompareTo (other.External);
+		}
 	}
 
 	/// <summary>
@@ -80,19 +87,14 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase<T> : SettingBase {
 
-		//public delegate void OnApplyValue ();
-		//public delegate void OnValueChanged ();
-
-		//public event OnApplyValue OnValueApplied;
-		//public event OnValueChanged OnValueReset;
-		//public event OnValueChanged OnValueReverted;
-
-		public delegate void OnValueChangedEvt (SettingBase.ValueChangeMode mode);
+		public delegate void OnValueChangedEvt (ValueChangeMode mode);
 		public event OnValueChangedEvt OnValueChanged;
 
 		[NonSerialized] private T cachedValue;
 		[NonSerialized] private T currentValue;
 		[NonSerialized] private bool isDirty;
+
+		[NonSerialized] private int orderInGroup;
 
 		[SerializeField] private T defaultValue;
 
@@ -114,6 +116,15 @@ namespace Zenvin.Settings.Framework {
 				isDirty = value;
 				asset.SetDirty (this, isDirty);
 			}
+		}
+
+		/// <summary>
+		/// Value by which Settings can be ordered in their group hierarchy.<br></br>
+		/// Settings created in the editor will automatically be assigned a value.
+		/// </summary>
+		public sealed override int OrderInGroup {
+			get => orderInGroup;
+			internal set => orderInGroup = value;
 		}
 
 		protected internal sealed override object DefaultValueRaw => defaultValue;
@@ -212,7 +223,6 @@ namespace Zenvin.Settings.Framework {
 			currentValue = cachedValue;
 			IsDirty = false;
 			OnAfterApplyValue ();
-			//OnValueApplied?.Invoke ();
 			OnValueChanged?.Invoke (ValueChangeMode.Apply);
 			return true;
 		}
@@ -224,7 +234,6 @@ namespace Zenvin.Settings.Framework {
 			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
-			//OnValueReverted?.Invoke ();
 			OnValueChanged?.Invoke (ValueChangeMode.Revert);
 			return true;
 		}
@@ -234,7 +243,6 @@ namespace Zenvin.Settings.Framework {
 			if (apply) {
 				ApplyValue ();
 			}
-			//OnValueReset?.Invoke ();
 			OnValueChanged?.Invoke (ValueChangeMode.Reset);
 			return true;
 		}

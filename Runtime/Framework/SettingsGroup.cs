@@ -167,13 +167,17 @@ namespace Zenvin.Settings.Framework {
 			return externalSettings[index - InternalSettingCount];
 		}
 
-		public virtual List<SettingBase> GetSettings () {
+		public List<SettingBase> GetSettings (bool sorted = false) {
 			List<SettingBase> settingsList = new List<SettingBase> ();
 
 			if (settings != null) {
 				settingsList.AddRange (settings);
 			}
 			settingsList.AddRange (externalSettings);
+
+			if (sorted) {
+				settingsList.Sort ();
+			}
 
 			return settingsList;
 		}

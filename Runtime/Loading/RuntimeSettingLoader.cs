@@ -131,7 +131,7 @@ namespace Zenvin.Settings.Loading {
 
 							obj.asset = asset;
 							obj.GUID = s.GUID;
-							//obj.External = true;
+							obj.OrderInGroup = s.OrderInGroup;
 
 							obj.Name = s.Name;
 							obj.NameLocalizationKey = s.NameLocalizationKey;

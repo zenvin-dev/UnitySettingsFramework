@@ -17,6 +17,7 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private readonly HashSet<SettingBase> dirtySettings = new HashSet<SettingBase> ();
 		[NonSerialized] private bool initialized;
 
+		[SerializeField, Min (0)] private int orderStep = 100;
 
 		public bool Initialized => initialized;
 		public int RegisteredSettingsCount => settingsDict.Count;
@@ -43,7 +44,6 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-
 			// if group is not root
 			if (group != this) {
 				// register group
@@ -63,9 +63,12 @@ namespace Zenvin.Settings.Framework {
 				}
 			} else if (group.Settings != null) {
 				// register internal settings
+				int i = group.SettingCount;
 				foreach (var s in group.Settings) {
 					settingsDict[s.GUID] = s;
+					s.OrderInGroup = -i * orderStep;
 					s.Initialize ();
+					i--;
 				}
 			}
 
@@ -82,7 +85,6 @@ namespace Zenvin.Settings.Framework {
 					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
 				}
 			}
-
 		}
 
 
@@ -96,7 +98,7 @@ namespace Zenvin.Settings.Framework {
 			return false;
 		}
 
-		public bool TryGetSettingByGUID<T> (string guid, out SettingBase<T> setting) /*where T : struct*/ {
+		public bool TryGetSettingByGUID<T> (string guid, out SettingBase<T> setting) {
 			if (settingsDict.TryGetValue (guid, out SettingBase sb)) {
 				setting = sb as SettingBase<T>;
 				return setting != null;
