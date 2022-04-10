@@ -719,9 +719,8 @@ namespace Zenvin.Settings.Framework {
 							generic = generics[0];
 						}
 						string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
-						string gn = generic?.Name?.Split ('`')[0];
 						gm.AddItem (
-							new GUIContent ($"Add Setting/{ns}/{t.Name} {(string.IsNullOrEmpty (gn) ? "" : $"({gn})")}"),
+							new GUIContent ($"Add Setting/{ns}/{ToEditorSpelling(t.Name)}"),
 							false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
 						);
 					}
@@ -967,6 +966,37 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private string ToEditorSpelling (string value) {
+			if (value.StartsWith ("<")) {
+				value = value.Substring (1);
+				value = value.Replace (">k__BackingField", "");
+			}
+
+			if (value.Length > 2 && value[1] == '_') {
+				value = value.Substring (2);
+			}
+
+			value = value.Replace ("_", " ");
+
+			string val = "";
+			for (int i = 0; i < value.Length; i++) {
+				if (i == 0) {
+					val = char.ToUpper (value[0]).ToString ();
+					continue;
+				}
+
+				val = val + value[i];
+
+				if (i < value.Length - 1) {
+					char next = value[i + 1];
+					if ((char.IsUpper (next) || char.IsNumber (next)) && !char.IsUpper (value[i]) && value[i] != '.') {
+						val = val + " ";
+					}
+				}
+			}
+
+			return val.TrimEnd ('_');
+		}
 
 		// Hierarchy Serialization
 
