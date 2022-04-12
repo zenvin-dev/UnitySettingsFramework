@@ -16,14 +16,6 @@ namespace Zenvin.Settings.Samples {
 			toggle.SetIsOnWithoutNotify (Setting.CurrentValue);
 		}
 
-		//protected override void OnSettingReset () {
-		//	toggle?.SetIsOnWithoutNotify (Setting.CachedValue);
-		//}
-
-		//protected override void OnSettingReverted () {
-		//	toggle?.SetIsOnWithoutNotify (Setting.CachedValue);
-		//}
-
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			toggle?.SetIsOnWithoutNotify (Setting.CachedValue);
 		}

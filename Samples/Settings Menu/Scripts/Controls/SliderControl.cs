@@ -31,20 +31,13 @@ namespace Zenvin.Settings.Samples {
 			label?.SetText (Setting.Name);
 			UpdateValueLabel ();
 		}
-
-		//protected override void OnSettingReset () {
-		//	UpdateSlider ();
-		//}
-
-		//protected override void OnSettingReverted () {
-		//	UpdateSlider ();
-		//}
-
+		
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			UpdateSlider ();
 		}
 
 
+		// TODO: Redo so increment snapping actually works RELIABLY.
 		public void OnValueChange (float value) {
 			if (Setting == null) {
 				return;

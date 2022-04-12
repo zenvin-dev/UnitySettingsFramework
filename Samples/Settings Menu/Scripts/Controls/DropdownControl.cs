@@ -20,14 +20,6 @@ namespace Zenvin {
 			label?.SetText (Setting.Name);
 		}
 
-		//protected override void OnSettingReset () {
-		//	dropdown?.SetValueWithoutNotify (Setting.CachedValue);
-		//}
-
-		//protected override void OnSettingReverted () {
-		//	dropdown?.SetValueWithoutNotify (Setting.CachedValue);
-		//}
-
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			dropdown?.SetValueWithoutNotify (Setting.CachedValue);
 		}

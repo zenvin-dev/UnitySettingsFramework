@@ -76,17 +76,6 @@ namespace Zenvin.Settings.UI {
 		/// <param name="mode"> In what way the value was changed. </param>
 		protected virtual void OnSettingValueChanged (SettingBase.ValueChangeMode mode) { }
 
-		///// <summary>
-		///// Called when the Control's current Setting is reset.
-		///// </summary>
-		//protected virtual void OnSettingReset () { }
-
-		///// <summary>
-		///// Called when the Control's current Setting is reverted.
-		///// </summary>
-		//protected virtual void OnSettingReverted () { }
-
-
 		private protected sealed override bool CanAssignTo (SettingBase setting) {
 			return setting is TControlType;
 		}
@@ -95,13 +84,9 @@ namespace Zenvin.Settings.UI {
 			Setting = SettingRaw as TControlType;
 			Setting.OnValueChanged += OnSettingValueChanged;
 			OnSetup ();
-			//Setting.OnValueReset += OnSettingReset;
-			//Setting.OnValueReverted += OnSettingReverted;
 		}
 
 		private void OnDestroy () {
-			//Setting.OnValueReset -= OnSettingReset;
-			//Setting.OnValueReverted -= OnSettingReverted;
 			Setting.OnValueChanged -= OnSettingValueChanged;
 		}
 
