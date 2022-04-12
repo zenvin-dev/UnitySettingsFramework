@@ -1,13 +1,10 @@
 # UnitySettingsFramework
 
-This package aims to provide a comprehensive, simple and expandable way of providing settings for any Unity game.
+This package aims to provide a comprehensive, simple and expandable way of creating in-game settings for any Unity game.
 \
 To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html) and [generics](https://docs.microsoft.com/en-us/dotnet/standard/generics/), the latter of which Unity can serialize since version [2020.1](https://forum.unity.com/threads/generics-serialization.746300/).
 \
 **The package will not work properly in pre-2020.1 versions!**
-
-## Planned features
-* Implement re-ordering of groups in the Settings Editor window's hierarchy (currently only supported for settings)
 
 ## Using the Package
 
@@ -20,7 +17,7 @@ Once you have created the SettingsAsset, you can use the **Settings Editor Windo
 
 
 ## 2. Settings
-Settings are represented by Scriptable Object instances that inherit `Zenvin.Settings.Framework.SettingBase<T>`. They each contain a number of values by default (see below), but can be extended to contain further fields by creating own classes inheriting the aforementioned base class.
+Settings are represented by Scriptable Object instances that inherit `Zenvin.Settings.Framework.SettingBase<T>`. They each contain a number of properties by default (see below), but can be extended to contain further fields by creating own classes inheriting the aforementioned base class.
 
 ### 2.0 GUID
 The `GUID` provides a unique identifier for each setting. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.
@@ -119,6 +116,7 @@ In order to load external settings, the system needs to know how to translate th
 \
 That is where the `ISettingFactory` interface comes into play:
 \
+
 * `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
 * `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired setting class.
 
@@ -274,5 +272,75 @@ protected override void OnCreateWithValues (StringValuePair[] _values)
 }
 ```
 
+## 5. Automatically spawning UI for registered Settings
+The Framewok does not provide a way to do this, but it has a tool to help:
+\
+`Zenvin.Settings.UI.SettingControlCollection`
+\
+This class provides a way to reference `SettingControl` prefabs and get the fitting prefab for any given `SettingBase` sub-class, as long as there is one referenced.
+\
+Below is a simple example for how that can be used in a dynamically created settings menu:
+\
+```csharp
+using UnityEngine.UI;
+using Zenvin.Settings.UI;
+using Zenvin.Settings.Framework;
 
+public class SettingsMenu : MonoBehaviour
+{
 
+    [SerializeField] private SettingsAsset asset;
+    [SerializeField] private SettingControlCollection prefabs;
+    [SerializeField] private LayoutGroup parent;
+
+    private void Start ()
+    {
+        asset.Initialize();    // Initializing settings could be done somewhere else as well.
+        SpawnSettings();
+    }
+
+    private void SpawnSettings ()
+    {
+        var settings = asset.GetAllSettings();
+        foreach (var setting in settings)   // iterate over all registered settings
+        {
+            if (prefabs.TryGetControl(setting.GetType(), out SettingControl prefab))    // try get a SettingControl prefab matching the current setting
+            {
+                if (prefab.TryInstantiateWith (setting, out SettingControl ctrl))     // try instantiating the found prefab with the given setting. If successful, this will automatically spawn and initialize the prefab.
+                {
+                    control.transform.SetParent (parent.transform); // make instance a child of the layout group
+                    control.transform.localScale = Vector3.one; // reset instance scale, because parenting UI elements likes to mess that up
+                }
+            }
+        }
+    }
+
+}
+```
+This could be expanded to utilize the Settings' group structure to implement tabs and/or headers in the menu as well. Have a look into [SettingsMenu.cs](https://github.com/xZenvin/UnitySettingsFramework/blob/main/Samples/Settings%20Menu/Scripts/SettingsMenu.cs) to see how that might work.
+
+## 6. Creating a SettingControl for a specific Setting type
+In **Example 1**, we implemented a Setting to represent a dropdown. In order to properly display it on UI, a SettingControl is required that can take that Setting's values and represent them.
+\
+To achieve this, we first need a way of accessing the `DropdownSetting`'s `values`. A simple way to do this is by adding the following property:
+```csharp
+public string[] Options => values; // return the values
+```
+With that, creating a control for that Setting type is simply a matter of making a new class that inherits `Zenvin.Settings.UI.SettingControl<TControlType, THandledType>` and using either `UnityEngine.UI` or `TMPro.TMP_Dropdown` to actually display the values:
+```csharp
+public class DropdownControl : SettingControl<DropdownSetting, int> // DropdownSetting is the SettingBase this Control is meant for, and int is the value type ultimately managed by the Setting
+{
+    [SerializeField] private TMP_Dropdown dropdown;
+
+    protected override void OnSetup () {    // OnSetup is called when the Control is spawned via TryInstantiateWith()
+        dropdown.ClearOptions ();
+        dropdown.AddOptions (new List<string> (Setting.Options));   // Setting is provided by the base class. It will have the type given in the class declaration, so DropdownSetting in this case.
+        dropdown.SetValueWithoutNotify (Setting.CurrentValue);
+	}
+
+    protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {  // called whenever the assigned Setting's value changes
+	    dropdown?.SetValueWithoutNotify (Setting.CachedValue);  // make sure the dropdown's selection is "in sync" with the Setting's value
+	}
+}
+```
+To have the dropdown update the Setting's value, you can hook it up to the `SetValue(THandledType)` method provided by `SettingControl<TControlType, THandledType>` - which simply calls `Setting.SetValue(THandledType)` - or implement your own way.

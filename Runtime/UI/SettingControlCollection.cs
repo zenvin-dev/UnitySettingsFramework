@@ -31,11 +31,29 @@ namespace Zenvin.Settings.UI {
 		}
 
 		/// <summary>
+		/// Tries to return a <see cref="SettingControl"/> matching the given <see cref="Type"/>.
+		/// </summary>
+		/// <param name="control"> The found <see cref="SettingControl"/>, if any. </param>
+		public bool TryGetControl<T> (out SettingControl control) where T : SettingBase {
+			return TryGetControl (typeof (T), out control);
+		}
+
+		/// <summary>
 		/// Returns either the last <see cref="SettingControl"/> matching the given <see cref="Type"/>, or <c>null</c>.
 		/// </summary>
 		/// <param name="type"> The <see cref="Type"/> of <see cref="SettingControl"/> to retrieve. </param>
 		public SettingControl GetControl (Type type) {
 			if (TryGetControl (type, out SettingControl control)) {
+				return control;
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Returns either the last <see cref="SettingControl"/> matching the given <see cref="Type"/>, or <c>null</c>.
+		/// </summary>
+		public SettingControl GetControl<T> () where T : SettingBase {
+			if (TryGetControl (typeof(T), out SettingControl control)) {
 				return control;
 			}
 			return null;
