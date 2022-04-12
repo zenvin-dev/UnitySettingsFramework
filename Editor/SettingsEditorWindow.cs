@@ -111,6 +111,7 @@ namespace Zenvin.Settings.Framework {
 		// Initialization
 
 		private void OnEnable () {
+			hierarchyWidth = EditorPrefs.GetFloat ($"{GetType ().FullName}.{nameof (hierarchyWidth)}", 200f);
 			ExpandToSelection (false);
 		}
 
@@ -142,9 +143,13 @@ namespace Zenvin.Settings.Framework {
 				SetupStyles ();
 			}
 
+			if (asset.ChildGroupCount == 0 && asset.SettingCount == 0) {
+				Select (asset);
+			}
+
 			// create rects for windows partitions
 			Rect topBarRect = new Rect (
-				margin, margin, position.width - margin * 2f, EditorGUIUtility.singleLineHeight + 1
+				margin, margin, position.width - margin * 2f, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + 1
 			);
 			Rect hierarchyRect = new Rect (
 				margin, margin + topBarRect.height + margin, hierarchyWidth - margin * 2f, position.height - margin * 2f - topBarRect.height
@@ -158,6 +163,7 @@ namespace Zenvin.Settings.Framework {
 			if (MakeHorizontalDragRect (ref dragRect)) {
 				hierarchyWidth = dragRect.x;
 				hierarchyWidth = Mathf.Clamp (hierarchyWidth, 200f, position.width - 300f);
+				EditorPrefs.SetFloat ($"{GetType ().FullName}.{nameof (hierarchyWidth)}", hierarchyWidth);
 				Repaint ();
 			}
 
@@ -209,7 +215,31 @@ namespace Zenvin.Settings.Framework {
 
 			GUILayout.BeginArea (bar);
 
+			GUILayout.BeginHorizontal ();
+
 			DrawSearchBar (hierarchyWidth);
+
+			SettingsGroup selGroup = selected as SettingsGroup;
+			bool canAdd = selGroup != null;
+
+			GUI.enabled = canAdd;
+			if (GUILayout.Button ("Add Group", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+				CreateGroupAsChildOfGroup (selected);
+			}
+
+			Rect addSettingBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
+			if (GUI.Button (addSettingBtnRect, "Add Setting")) {
+				GenericMenu gm = new GenericMenu ();
+				PopulateSettingTypeMenu (gm, selGroup, false);
+				gm.DropDown (addSettingBtnRect);
+			}
+			GUI.enabled = true;
+
+			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+				Selection.activeObject = asset;
+			}
+
+			GUILayout.EndHorizontal ();
 
 			GUILayout.EndArea ();
 		}
@@ -235,6 +265,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			EditorGUILayout.EndScrollView ();
+
 
 			// draw preview rect if necessary
 			if (dragPreview != null) {
@@ -362,21 +393,21 @@ namespace Zenvin.Settings.Framework {
 
 			string search = searchString;
 
-			if (width.HasValue) {
-				GUILayout.BeginHorizontal (GUILayout.MaxWidth (width.Value));
-			} else {
-				GUILayout.BeginHorizontal ();
-			}
+			//if (width.HasValue) {
+			//	GUILayout.BeginHorizontal (GUILayout.MaxWidth (width.Value));
+			//} else {
+			//	GUILayout.BeginHorizontal ();
+			//}
 
 			// draw search field
-			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth (true));
+			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.Width (width ?? 100f));
 
 			// if application is playing, enable setting filtering
 			// during edit-time there are not enough relevant, differentiating properties to warrant filtering.
 			if (Application.isPlaying) {
 				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter);
 			}
-			GUILayout.EndHorizontal ();
+			//GUILayout.EndHorizontal ();
 
 			// reset search results if search string is empty
 			if (string.IsNullOrEmpty (searchString)) {
@@ -494,7 +525,9 @@ namespace Zenvin.Settings.Framework {
 			Event e = Event.current;
 			if (lblRect.Contains (e.mousePosition)) {
 				hovered = group;
-				
+				//int? q = GetCursorQuadrant (rect, e.mousePosition, 0.3f);
+				bool below = e.mousePosition.y > (rect.y + rect.height * 0.8f);
+
 				switch (e.type) {
 					//case EventType.ContextClick:
 					//	e.Use ();
@@ -521,10 +554,40 @@ namespace Zenvin.Settings.Framework {
 						break;
 					case EventType.MouseUp:
 						if (AllowDrag) {
-							HandleEndDrag (group, groupIndex);
+							//HandleEndDrag (group, groupIndex, q);
+							HandleEndDrag (group, groupIndex, below);
 							e.Use ();
 						}
 						break;
+				}
+
+				if (dragged != null && dragged != group/* && q.HasValue*/ && below) {
+
+					Rect preview = new Rect (rect);
+					preview.y += rect.height * 0.8f;
+					preview.height = rect.height * 0.2f;
+					EditorGUI.DrawRect (preview, Color.blue);
+
+					//	int _q = q.Value;
+
+					//	float prevHeight = 2f;
+					//	float prevOffset = prevHeight * 0.5f;
+					//	Rect preview = new Rect (rect);
+					//	switch (_q) {
+					//		case -1:
+					//			preview.y -= prevOffset;
+					//			preview.height = prevHeight;
+					//			dragPreview = preview;
+					//			break;
+					//		case 1:
+					//			preview.y += preview.height - prevOffset;
+					//			preview.height = prevHeight;
+					//			dragPreview = preview;
+					//			break;
+					//		default:
+					//			dragPreview = null;
+					//			break;
+					//	}
 				}
 			}
 
@@ -627,7 +690,7 @@ namespace Zenvin.Settings.Framework {
 		// Hierarchy manipulation
 
 		private void MoveGroup (SettingsGroup dragged, SettingsGroup settingsGroup, int groupIndex) {
-			settingsGroup.AddChildGroup (dragged, groupIndex);
+			settingsGroup?.AddChildGroup (dragged, groupIndex);
 		}
 
 		private void MoveSetting (SettingBase dragged, SettingsGroup settingsGroup, int index) {
@@ -657,7 +720,7 @@ namespace Zenvin.Settings.Framework {
 			dragged = null;
 		}
 
-		private void HandleEndDrag (ScriptableObject hover, int index) {
+		private void HandleEndDrag (ScriptableObject hover, int index, bool below = false) {
 			ScriptableObject _dragged = dragged;
 			dragged = null;
 
@@ -674,9 +737,16 @@ namespace Zenvin.Settings.Framework {
 			SettingBase dSetting = _dragged as SettingBase;
 			SettingBase hSetting = hovered as SettingBase;
 
+			Debug.Log ($"Ending Drag. dGroup: {dGroup != null}, hGroup: {hGroup != null}, dSetting: {dSetting != null}, hSetting: {hSetting != null}, Below: {below}");
+
 			// dragging group onto group
 			if (dGroup != null && hGroup != null) {
-				MoveGroup (dGroup, hGroup, 0);
+				if (below) {
+					Debug.Log ($"Parent: {hGroup.Parent != null}, Index: {index}");
+					MoveGroup (dGroup, hGroup.Parent ?? asset, index);
+				} else {
+					MoveGroup (dGroup, hGroup, 0);
+				}
 
 				// dragging setting onto group
 			} else if (dSetting != null && hGroup != null) {
@@ -702,31 +772,7 @@ namespace Zenvin.Settings.Framework {
 			// only allow changing menus to be shown during edit-time
 			if (!Application.isPlaying) {
 
-				// load all types inheriting SettingBase<T>
-				// result will be cached automatically
-				LoadViableTypes ();
-
-				// there are no viable types to create settings from
-				if (viableTypes.Length == 0) {
-					gm.AddDisabledItem (new GUIContent ("Add Setting"));
-
-					// generate sub-menus for each viable type
-				} else {
-					foreach (Type t in viableTypes) {
-						Type generic = null;
-						Type[] generics = t.BaseType.GetGenericArguments ();
-						if (generics.Length > 0) {
-							generic = generics[0];
-						}
-						string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
-						gm.AddItem (
-							new GUIContent ($"Add Setting/{ns}/{ToEditorSpelling(t.Name)}"),
-							false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
-						);
-					}
-				}
-
-
+				PopulateSettingTypeMenu (gm, group);
 				gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
 
 				if (group != asset) {
@@ -745,6 +791,37 @@ namespace Zenvin.Settings.Framework {
 			gm.AddItem (new GUIContent ("Collapse/To This"), false, () => { ExpandToSelection (true); });
 
 			gm.ShowAsContext ();
+		}
+
+		private void PopulateSettingTypeMenu (GenericMenu gm, SettingsGroup group, bool prefixItem = true) {
+			if (gm == null || group == null) {
+				return;
+			}
+
+			// load all types inheriting SettingBase<T>
+			// result will be cached automatically
+			LoadViableTypes ();
+
+			// there are no viable types to create settings from
+			if (viableTypes.Length == 0) {
+				gm.AddDisabledItem (prefixItem ? new GUIContent ("Add Setting") : new GUIContent ("No Setting types found."));
+
+				// generate sub-menus for each viable type
+			} else {
+				string prefix = prefixItem ? "Add Setting/" : "";
+				foreach (Type t in viableTypes) {
+					Type generic = null;
+					Type[] generics = t.BaseType.GetGenericArguments ();
+					if (generics.Length > 0) {
+						generic = generics[0];
+					}
+					string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
+					gm.AddItem (
+						new GUIContent ($"{prefix}{ns}/{ToEditorSpelling (t.Name)}"),
+						false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
+					);
+				}
+			}
 		}
 
 		private void ShowSettingMenu (SettingBase setting) {
@@ -932,25 +1009,6 @@ namespace Zenvin.Settings.Framework {
 			} else {
 				return index % 2 == 0 ? hierarchyColorA : hierarchyColorB;
 			}
-		}
-
-		private int GetCursorQuadrant (Rect rect, Vector2 cursor, float ratio = 0.5f) {
-			ratio = Mathf.Clamp (ratio, 0.1f, 0.9f);
-
-			// outside rect
-			if (!rect.Contains (cursor)) {
-				return 0;
-			}
-
-			// top rect
-			Rect r = new Rect (rect);
-			r.height *= ratio;
-			if (r.Contains (cursor)) {
-				return 1;
-			}
-
-			// bottom rect
-			return -1;
 		}
 
 		private void ExpandToSelection (bool collapseOthers) {

@@ -85,6 +85,9 @@ namespace Zenvin.Settings.Framework {
 			index = Mathf.Clamp (index, 0, groups.Count);
 
 			if (group.Parent == this) {
+				if (index < groups.IndexOf (group)) {
+					index++;
+				}
 				groups.Remove (group);
 			} else if (group.Parent != null) {
 				group.Parent.RemoveChildGroup (group);
