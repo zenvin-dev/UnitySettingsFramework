@@ -1,3 +1,5 @@
+![Unity Settings Framework Logo](/.GitHubResources/Banner.png)
+
 # UnitySettingsFramework
 
 This package aims to provide a comprehensive, simple and expandable way of creating in-game settings for any Unity game.
@@ -115,8 +117,6 @@ However, loading is only possible during the initialization process of the Setti
 In order to load external settings, the system needs to know how to translate the `string` values it gets from the parsed JSON objects into `SettingBase<T>` instances.
 \
 That is where the `ISettingFactory` interface comes into play:
-\
-
 * `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
 * `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired setting class.
 
@@ -280,22 +280,21 @@ The Framewok does not provide a way to do this, but it has a tool to help:
 This class provides a way to reference `SettingControl` prefabs and get the fitting prefab for any given `SettingBase` sub-class, as long as there is one referenced.
 \
 Below is a simple example for how that can be used in a dynamically created settings menu:
-\
 ```csharp
-using UnityEngine.UI;
-using Zenvin.Settings.UI;
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.UI;
+using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
+    [SerializeField] private SettingsAsset asset;   // the asset to source the settings from
+    [SerializeField] private SettingControlCollection prefabs;  // a collection of available setting control prefabs
+    [SerializeField] private LayoutGroup parent;    // the layout group to parent the spawned setting controls to
 
-    [SerializeField] private SettingsAsset asset;
-    [SerializeField] private SettingControlCollection prefabs;
-    [SerializeField] private LayoutGroup parent;
 
     private void Start ()
     {
-        asset.Initialize();    // Initializing settings could be done somewhere else as well.
+        asset.Initialize();    // initializing settings could be done somewhere else as well.
         SpawnSettings();
     }
 
@@ -306,7 +305,7 @@ public class SettingsMenu : MonoBehaviour
         {
             if (prefabs.TryGetControl(setting.GetType(), out SettingControl prefab))    // try get a SettingControl prefab matching the current setting
             {
-                if (prefab.TryInstantiateWith (setting, out SettingControl ctrl))     // try instantiating the found prefab with the given setting. If successful, this will automatically spawn and initialize the prefab.
+                if (prefab.TryInstantiateWith (setting, out SettingControl control))     // try instantiating the found prefab with the given setting. If successful, this will automatically spawn and initialize the prefab.
                 {
                     control.transform.SetParent (parent.transform); // make instance a child of the layout group
                     control.transform.localScale = Vector3.one; // reset instance scale, because parenting UI elements likes to mess that up
@@ -314,7 +313,6 @@ public class SettingsMenu : MonoBehaviour
             }
         }
     }
-
 }
 ```
 This could be expanded to utilize the Settings' group structure to implement tabs and/or headers in the menu as well. Have a look into [SettingsMenu.cs](https://github.com/xZenvin/UnitySettingsFramework/blob/main/Samples/Settings%20Menu/Scripts/SettingsMenu.cs) to see how that might work.

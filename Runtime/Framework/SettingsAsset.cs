@@ -15,7 +15,7 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private readonly Dictionary<string, SettingsGroup> groupsDict = new Dictionary<string, SettingsGroup> ();
 
 		[NonSerialized] private readonly HashSet<SettingBase> dirtySettings = new HashSet<SettingBase> ();
-		[NonSerialized] private bool initialized;
+		[NonSerialized] private bool initialized = false;
 
 		[SerializeField, Min (0)] private int orderStep = 100;
 
@@ -28,6 +28,10 @@ namespace Zenvin.Settings.Framework {
 		// Initialization
 
 		public void Initialize () {
+			if (!Application.isPlaying) {
+				Debug.LogWarning ("Cannot initialize SettingsAsset in edit-time.");
+				return;
+			}
 			if (!Initialized) {
 				RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
 
@@ -88,7 +92,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		// Component Access
+		// Setting/Group Access
 
 		public bool TryGetSettingByGUID (string guid, out SettingBase setting) {
 			if (settingsDict.TryGetValue (guid, out setting)) {
@@ -113,6 +117,17 @@ namespace Zenvin.Settings.Framework {
 				return true;
 			}
 			return groupsDict.TryGetValue (guid, out group);
+		}
+
+		public override List<SettingBase> GetAllSettings (bool sorted = false) {
+			if (initialized) {
+				List<SettingBase> settings = new List<SettingBase> (settingsDict.Values);
+				if (sorted) {
+					settings.Sort ();
+				}
+				return settings;
+			}
+			return base.GetAllSettings (sorted);
 		}
 
 

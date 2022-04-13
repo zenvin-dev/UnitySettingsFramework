@@ -185,9 +185,13 @@ namespace Zenvin.Settings.Framework {
 			return settingsList;
 		}
 
-		public List<SettingBase> GetAllSettings () {
+		public virtual List<SettingBase> GetAllSettings (bool sorted = false) {
 			List<SettingBase> settings = new List<SettingBase> ();
 			GetSettingsRecursively (this, settings);
+
+			if (sorted) {
+				settings.Sort ();
+			}
 			return settings;
 		}
 
