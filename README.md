@@ -1,4 +1,4 @@
-![Unity Settings Framework Logo](/.GitHubResources/Banner.png)
+![# Unity Settings Framework Logo](/.GitHubResources/Banner.png)
 
 # UnitySettingsFramework
 

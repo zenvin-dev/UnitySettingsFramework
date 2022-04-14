@@ -18,6 +18,7 @@ namespace Zenvin.Settings.Samples {
 		[SerializeField] private SettingsImportData dynamicSettings;
 		[SerializeField, TextArea (25, 35), Space (20)] private string dynamicSettingsJsonOutput = "";
 
+
 		private void Awake () {
 			if (mode == InitMode.Awake) {
 				Init ();

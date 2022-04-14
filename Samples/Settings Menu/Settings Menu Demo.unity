@@ -931,6 +931,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   asset: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
+  sortSettings: 1
   settingHeaderPrefab: {fileID: 0}
   controlPrefabs:
     assignBaseTypes: 1

@@ -39,6 +39,8 @@ namespace Zenvin.Settings.Framework {
 		private static GUIStyle labelStyleExternal;
 
 
+		[SerializeField] private Texture windowIcon;
+
 		[SerializeField, HideInInspector] private List<SettingsGroup> hierarchyState;
 
 		private static SettingsAsset asset;
@@ -92,7 +94,7 @@ namespace Zenvin.Settings.Framework {
 		[MenuItem ("Window/Zenvin/Settings Asset Editor")]
 		private static void Init () {
 			SettingsEditorWindow win = GetWindow<SettingsEditorWindow> ();
-			win.titleContent = new GUIContent ("Settings Editor");
+			win.titleContent = new GUIContent ("Settings Editor", win.windowIcon);
 			win.minSize = new Vector2 (500f, 200f);
 			win.Show ();
 		}
@@ -393,12 +395,6 @@ namespace Zenvin.Settings.Framework {
 
 			string search = searchString;
 
-			//if (width.HasValue) {
-			//	GUILayout.BeginHorizontal (GUILayout.MaxWidth (width.Value));
-			//} else {
-			//	GUILayout.BeginHorizontal ();
-			//}
-
 			// draw search field
 			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.Width (width ?? 100f));
 
@@ -407,8 +403,7 @@ namespace Zenvin.Settings.Framework {
 			if (Application.isPlaying) {
 				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter);
 			}
-			//GUILayout.EndHorizontal ();
-
+			
 			// reset search results if search string is empty
 			if (string.IsNullOrEmpty (searchString)) {
 				searchResults = null;
@@ -418,10 +413,11 @@ namespace Zenvin.Settings.Framework {
 
 			// update search results if search string has changed
 			if (search != searchString) {
+				Select (null);
 				var settings = asset.GetAllSettings ();
 				searchResults = new List<SettingBase> ();
 				foreach (var s in settings) {
-					if (s.Name.Contains (searchString)) {
+					if (s.Name.ToUpperInvariant().Contains (searchString.ToUpperInvariant())) {
 						searchResults.Add (s);
 					}
 				}

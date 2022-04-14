@@ -2,12 +2,12 @@ using Zenvin.Settings.UI;
 using UnityEngine;
 
 using Zenvin.Settings.Framework;
-using UnityEngine.UI;
 
 namespace Zenvin.Settings.Samples {
 	public class SettingsMenu : MonoBehaviour {
 
 		[SerializeField] private SettingsAsset asset;
+		[SerializeField] private bool sortSettings = true;
 		[SerializeField] private RectTransform settingHeaderPrefab;
 		[SerializeField] private SettingControlCollection controlPrefabs;
 		[SerializeField] private TabView tabView;
@@ -31,7 +31,7 @@ namespace Zenvin.Settings.Samples {
 				RectTransform tabTransform = tabView.AddTab (tg);
 
 				// populate tab
-				var tabSettings = tg.GetSettings ();
+				var tabSettings = tg.GetSettings (sortSettings);
 				foreach (var setting in tabSettings) {
 					SpawnPrefab (tabTransform, setting);
 				}
@@ -47,7 +47,7 @@ namespace Zenvin.Settings.Samples {
 					}
 
 					// spawn controls
-					var settings = cg.GetAllSettings ();
+					var settings = cg.GetAllSettings (sortSettings);
 					foreach (var setting in settings) {
 						SpawnPrefab (tabTransform, setting);
 					}
