@@ -1,7 +1,5 @@
 ![# Unity Settings Framework Logo](/.GitHubResources/Banner.png)
 
-# UnitySettingsFramework
-
 This package aims to provide a comprehensive, simple and expandable way of creating in-game settings for any Unity game.
 \
 To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html) and [generics](https://docs.microsoft.com/en-us/dotnet/standard/generics/), the latter of which Unity can serialize since version [2020.1](https://forum.unity.com/threads/generics-serialization.746300/).

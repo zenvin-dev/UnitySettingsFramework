@@ -225,12 +225,12 @@ namespace Zenvin.Settings.Framework {
 			bool canAdd = selGroup != null;
 
 			GUI.enabled = canAdd;
-			if (GUILayout.Button ("Add Group", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+			if (GUILayout.Button ("Add Group", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight)) && !Application.isPlaying) {
 				CreateGroupAsChildOfGroup (selected);
 			}
 
 			Rect addSettingBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
-			if (GUI.Button (addSettingBtnRect, "Add Setting")) {
+			if (GUI.Button (addSettingBtnRect, "Add Setting") && !Application.isPlaying) {
 				GenericMenu gm = new GenericMenu ();
 				PopulateSettingTypeMenu (gm, selGroup, false);
 				gm.DropDown (addSettingBtnRect);
@@ -401,7 +401,7 @@ namespace Zenvin.Settings.Framework {
 			// if application is playing, enable setting filtering
 			// during edit-time there are not enough relevant, differentiating properties to warrant filtering.
 			if (Application.isPlaying) {
-				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter);
+				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter, GUILayout.Width (150));
 			}
 			
 			// reset search results if search string is empty
@@ -720,7 +720,7 @@ namespace Zenvin.Settings.Framework {
 			ScriptableObject _dragged = dragged;
 			dragged = null;
 
-			if (_dragged == null || hovered == null) {
+			if (_dragged == null || hovered == null || Application.isPlaying) {
 				return;
 			}
 
