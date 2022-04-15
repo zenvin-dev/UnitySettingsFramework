@@ -83,12 +83,12 @@ namespace Zenvin.Settings.Framework {
 
 	/// <summary>
 	/// Base class for all typed Settings objects.<br></br>
-	/// Inherit to create Settings with any type, but note that Unity won't be able to serialize every type you may conveive Settings for, which could break the implementation.
+	/// Inherit to create Settings with any type, but keep in mind that Unity won't be able to serialize every type you may conveive Settings for, which could break the implementation.
 	/// </summary>
 	public abstract class SettingBase<T> : SettingBase {
 
 		public delegate void OnValueChangedEvt (ValueChangeMode mode);
-		public event OnValueChangedEvt OnValueChanged;
+		public event OnValueChangedEvt ValueChanged;
 
 		[NonSerialized] private T cachedValue;
 		[NonSerialized] private T currentValue;
@@ -110,16 +110,15 @@ namespace Zenvin.Settings.Framework {
 		public sealed override bool IsDirty {
 			get => isDirty;
 			private protected set {
-				if (isDirty == value) {
-					return;
+				if (isDirty != value) {
+					isDirty = value;
+					asset.SetDirty (this, isDirty);
 				}
-				isDirty = value;
-				asset.SetDirty (this, isDirty);
 			}
 		}
 
 		/// <summary>
-		/// Value by which Settings can be ordered in their group hierarchy.<br></br>
+		/// Value by which Settings <b>can</b> be ordered in their group hierarchy.<br></br>
 		/// Settings created in the editor will automatically be assigned a value.
 		/// </summary>
 		public sealed override int OrderInGroup {
@@ -165,7 +164,8 @@ namespace Zenvin.Settings.Framework {
 			if (!cachedValue.Equals (value)) {
 				cachedValue = value;
 				IsDirty = true;
-				OnValueChanged?.Invoke (ValueChangeMode.Set);
+				OnValueChanged (ValueChangeMode.Set);
+				ValueChanged?.Invoke (ValueChangeMode.Set);
 			}
 		}
 
@@ -181,9 +181,9 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void ProcessValue (ref T value) { }
 
 		/// <summary>
-		/// Called during <see cref="ApplyValue"/>, before the <see cref="OnValueApplied"/> is invoked.
+		/// Called during change operations, before the <see cref="ValueChanged"/> is invoked.
 		/// </summary>
-		protected virtual void OnAfterApplyValue () { }
+		protected virtual void OnValueChanged (ValueChangeMode mode) { }
 
 		/// <summary>
 		/// Called when the setting should be saved.<br></br>
@@ -205,7 +205,7 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void OnInitialize () { }
 
 
-		internal override void Initialize () {
+		internal sealed override void Initialize () {
 			OnInitialize ();
 
 			T value = defaultValue;
@@ -222,8 +222,8 @@ namespace Zenvin.Settings.Framework {
 			}
 			currentValue = cachedValue;
 			IsDirty = false;
-			OnAfterApplyValue ();
-			OnValueChanged?.Invoke (ValueChangeMode.Apply);
+			OnValueChanged (ValueChangeMode.Apply);
+			ValueChanged?.Invoke (ValueChangeMode.Apply);
 			return true;
 		}
 
@@ -234,7 +234,8 @@ namespace Zenvin.Settings.Framework {
 			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
-			OnValueChanged?.Invoke (ValueChangeMode.Revert);
+			OnValueChanged (ValueChangeMode.Revert);
+			ValueChanged?.Invoke (ValueChangeMode.Revert);
 			return true;
 		}
 
@@ -243,7 +244,8 @@ namespace Zenvin.Settings.Framework {
 			if (apply) {
 				ApplyValue ();
 			}
-			OnValueChanged?.Invoke (ValueChangeMode.Reset);
+			OnValueChanged (ValueChangeMode.Reset);
+			ValueChanged?.Invoke (ValueChangeMode.Reset);
 			return true;
 		}
 

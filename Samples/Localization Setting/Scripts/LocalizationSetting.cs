@@ -26,7 +26,12 @@ namespace Zenvin.Settings.Samples {
 		}
 
 		// After appying the Setting
-		protected override void OnAfterApplyValue () {
+		protected override void OnValueChanged (ValueChangeMode mode) {
+			// if the value is not being applied, cancel
+			if (mode != ValueChangeMode.Apply) {
+				return;
+			}
+
 			// get locale that the setting wants to be selected
 			var loc = this[CurrentValue];
 

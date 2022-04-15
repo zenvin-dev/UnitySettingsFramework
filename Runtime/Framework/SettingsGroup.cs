@@ -217,7 +217,6 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			Debug.Log ($"Inserting Setting '{setting.Name}' into {index}");
 			index = Mathf.Clamp (index, 0, settings.Count);
 
 			if (setting.group != this) {

@@ -733,12 +733,9 @@ namespace Zenvin.Settings.Framework {
 			SettingBase dSetting = _dragged as SettingBase;
 			SettingBase hSetting = hovered as SettingBase;
 
-			Debug.Log ($"Ending Drag. dGroup: {dGroup != null}, hGroup: {hGroup != null}, dSetting: {dSetting != null}, hSetting: {hSetting != null}, Below: {below}");
-
 			// dragging group onto group
 			if (dGroup != null && hGroup != null) {
 				if (below) {
-					Debug.Log ($"Parent: {hGroup.Parent != null}, Index: {index}");
 					MoveGroup (dGroup, hGroup.Parent ?? asset, index);
 				} else {
 					MoveGroup (dGroup, hGroup, 0);

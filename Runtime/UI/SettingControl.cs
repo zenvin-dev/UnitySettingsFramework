@@ -70,7 +70,7 @@ namespace Zenvin.Settings.UI {
 
 		/// <summary>
 		/// Called when the Setting's value was changed in any way. <br></br>
-		/// Equivalent of subscribing to <see cref="SettingBase{T}.OnValueChanged"/>.<br></br>
+		/// Equivalent of subscribing to <see cref="SettingBase{T}.ValueChanged"/>.<br></br>
 		/// <b>Do not change the Setting's value from here, unless you know what you are doing. Otherwise you might create an infinite recursion!</b>
 		/// </summary>
 		/// <param name="mode"> In what way the value was changed. </param>
@@ -82,12 +82,12 @@ namespace Zenvin.Settings.UI {
 
 		private protected override sealed void OnSetupInternal () {
 			Setting = SettingRaw as TControlType;
-			Setting.OnValueChanged += OnSettingValueChanged;
+			Setting.ValueChanged += OnSettingValueChanged;
 			OnSetup ();
 		}
 
 		private void OnDestroy () {
-			Setting.OnValueChanged -= OnSettingValueChanged;
+			Setting.ValueChanged -= OnSettingValueChanged;
 		}
 
 	}
