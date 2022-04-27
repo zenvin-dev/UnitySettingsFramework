@@ -87,7 +87,9 @@ namespace Zenvin.Settings.UI {
 		}
 
 		private void OnDestroy () {
-			Setting.ValueChanged -= OnSettingValueChanged;
+			if (Setting != null) {
+				Setting.ValueChanged -= OnSettingValueChanged;
+			}
 		}
 
 	}
