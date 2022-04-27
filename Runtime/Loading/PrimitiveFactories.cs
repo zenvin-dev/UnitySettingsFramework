@@ -1,6 +1,9 @@
 using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
+	/// <summary>
+	/// A factory class for <see cref="BoolSetting"/>, <see cref="BoolSetting"/>, <see cref="IntSetting"/> and <see cref="FloatSetting"/>.
+	/// </summary>
 	public class BoolSettingFactory : ISettingFactory {
 		string ISettingFactory.GetDefaultValidType () {
 			return "bool";

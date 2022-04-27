@@ -22,7 +22,10 @@ namespace Zenvin.Settings.Framework {
 		protected internal abstract object CurrentValueRaw { get; }
 		protected internal abstract object CachedValueRaw { get; }
 		protected internal abstract Type ValueType { get; }
+
+		/// <summary> Whether the Setting's value has been changed but not applied yet. </summary>
 		public abstract bool IsDirty { get; private protected set; }
+		/// <summary> The sorting order this Setting will have, relative to its group. Assigned automatically on internal groups, can be assigned manually on external ones. </summary>
 		public abstract int OrderInGroup { get; internal set; }
 
 		internal virtual void Initialize () { }

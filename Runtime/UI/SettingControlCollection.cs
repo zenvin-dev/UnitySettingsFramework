@@ -4,6 +4,9 @@ using System;
 using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.UI {
+	/// <summary>
+	/// Helper class for managing references to <see cref="SettingControl"/> prefabs.
+	/// </summary>
 	[Serializable]
 	public class SettingControlCollection {
 

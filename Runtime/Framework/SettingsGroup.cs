@@ -16,15 +16,18 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] private List<SettingBase> settings;
 
 
+		/// <summary> The icon assigned in the inspector. </summary>
 		public Sprite Icon {
 			get => groupIcon;
 			internal set => groupIcon = value;
 		}
 
 		private int InternalChildGroupCount => groups?.Count ?? 0;
+		/// <summary> The total count of child Groups, including both internal and external Groups. </summary>
 		public int ChildGroupCount => InternalChildGroupCount + externalGroups.Count;
 
 		private int InternalSettingCount => settings?.Count ?? 0;
+		/// <summary> The total count of child Settings, including both internal and external Settings. </summary>
 		public int SettingCount => InternalSettingCount + externalSettings.Count;
 
 		protected internal List<SettingsGroup> Groups => groups;
@@ -32,12 +35,16 @@ namespace Zenvin.Settings.Framework {
 		protected internal List<SettingBase> Settings => settings;
 		protected internal List<SettingBase> ExternalSettings => externalSettings;
 
+		/// <summary> The Group's parent Group. </summary>
 		public SettingsGroup Parent {
 			get => parent;
 			private set => parent = value;
 		}
 
 
+		/// <summary>
+		/// Get the child Setting at the given index. Null if the index is invalid.
+		/// </summary>
 		public SettingsGroup GetGroupAt (int index) {
 			if (index < 0 || index >= ChildGroupCount) {
 				return null;
@@ -48,6 +55,9 @@ namespace Zenvin.Settings.Framework {
 			return externalGroups[index - InternalChildGroupCount];
 		}
 
+		/// <summary>
+		/// Gets all direct child Groups.
+		/// </summary>
 		public ReadOnlyCollection<SettingsGroup> GetGroups () {
 			List<SettingsGroup> groupsList = new List<SettingsGroup> ();
 
@@ -57,6 +67,9 @@ namespace Zenvin.Settings.Framework {
 			return groupsList.AsReadOnly ();
 		}
 
+		/// <summary>
+		/// Recursively gets all child Groups.
+		/// </summary>
 		public ReadOnlyCollection<SettingsGroup> GetAllGroups () {
 			List<SettingsGroup> groups = new List<SettingsGroup> ();
 			GetGroupsRecursively (this, groups);
@@ -160,6 +173,9 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		/// <summary>
+		/// Get the child Group at the given index. Null if the index is invalid.
+		/// </summary>
 		public SettingBase GetSettingAt (int index) {
 			if (index < 0 || index >= SettingCount) {
 				return null;
@@ -170,6 +186,9 @@ namespace Zenvin.Settings.Framework {
 			return externalSettings[index - InternalSettingCount];
 		}
 
+		/// <summary>
+		/// Gets all direct child Settings.
+		/// </summary>
 		public List<SettingBase> GetSettings (bool sorted = false) {
 			List<SettingBase> settingsList = new List<SettingBase> ();
 
@@ -185,6 +204,9 @@ namespace Zenvin.Settings.Framework {
 			return settingsList;
 		}
 
+		/// <summary>
+		/// Recursively gets all child Settings.
+		/// </summary>
 		public virtual List<SettingBase> GetAllSettings (bool sorted = false) {
 			List<SettingBase> settings = new List<SettingBase> ();
 			GetSettingsRecursively (this, settings);

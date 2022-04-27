@@ -5,6 +5,9 @@ using System.IO;
 using System;
 
 namespace Zenvin.Settings.Framework {
+	/// <summary>
+	/// <see cref="ScriptableObject"/> that contains all Settings and Settings Groups.
+	/// </summary>
 	public sealed class SettingsAsset : SettingsGroup {
 
 		public delegate void SettingsAssetEvt (SettingsAsset asset);
@@ -19,14 +22,21 @@ namespace Zenvin.Settings.Framework {
 
 		[SerializeField, Min (0)] private int orderStep = 100;
 
+		/// <summary> Whether the asset has been initialized. </summary>
 		public bool Initialized => initialized;
+		/// <summary> The number of Settings registered in the asset. Returns 0 if the asset is not initialized. </summary>
 		public int RegisteredSettingsCount => settingsDict.Count;
+		/// <summary> The number of Groups registered in the asset. Returns 0 if the asset is not initialized. </summary>
 		public int RegisteredGroupsCount => groupsDict.Count;
+		/// <summary> The number of Settings registered in the asset, which have been changed bot not applied yet. </summary>
 		public int DirtySettingsCount => dirtySettings.Count;
 
 
 		// Initialization
 
+		/// <summary>
+		/// Initializes the asset.
+		/// </summary>
 		public void Initialize () {
 			if (!Application.isPlaying) {
 				Debug.LogWarning ("Cannot initialize SettingsAsset in edit-time.");
@@ -93,7 +103,11 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Setting/Group Access
-
+		/// <summary>
+		/// Gets the setting with the associated GUID.
+		/// </summary>
+		/// <param name="guid"> The GUID of the setting to get. </param>
+		/// <param name="setting"> Contains the found setting, if any. Otherwise null. </param>
 		public bool TryGetSettingByGUID (string guid, out SettingBase setting) {
 			if (settingsDict.TryGetValue (guid, out setting)) {
 				return true;
@@ -102,6 +116,11 @@ namespace Zenvin.Settings.Framework {
 			return false;
 		}
 
+		/// <summary>
+		/// Gets a typed setting with the associated GUID.
+		/// </summary>
+		/// <param name="guid"> The GUID of the setting to get. </param>
+		/// <param name="setting"> Contains the found setting, if any. Otherwise null. </param>
 		public bool TryGetSettingByGUID<T> (string guid, out SettingBase<T> setting) {
 			if (settingsDict.TryGetValue (guid, out SettingBase sb)) {
 				setting = sb as SettingBase<T>;
@@ -111,6 +130,11 @@ namespace Zenvin.Settings.Framework {
 			return false;
 		}
 
+		/// <summary>
+		/// Gets the groupwith the associated GUID.
+		/// </summary>
+		/// <param name="guid"> The GUID of the group to get. </param>
+		/// <param name="setting"> Contains the found group, if any. Otherwise null. </param>
 		public bool TryGetGroupByGUID (string guid, out SettingsGroup group) {
 			if (string.IsNullOrWhiteSpace (guid)) {
 				group = this;
@@ -119,6 +143,10 @@ namespace Zenvin.Settings.Framework {
 			return groupsDict.TryGetValue (guid, out group);
 		}
 
+		/// <summary>
+		/// Gets a list of all settings registered in the asset.
+		/// </summary>
+		/// <param name="sorted"> Whether the list should be sorted. </param>
 		public override List<SettingBase> GetAllSettings (bool sorted = false) {
 			if (initialized) {
 				List<SettingBase> settings = new List<SettingBase> (settingsDict.Values);

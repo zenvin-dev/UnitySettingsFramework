@@ -23,27 +23,12 @@ namespace Zenvin.Settings.Loading {
 
 	[Serializable]
 	public class GroupData : ObjectDataBase {
-		//public string GUID;
-		//public string ParentGroupGUID;
-		//public int OrderInGroup;
-
-		//public string Name;
-		//public string LocalizationKey;
-
 		public string IconResource;
 	}
 
 	[Serializable]
 	public class SettingData : ObjectDataBase {
-		//public string GUID;
 		public string Type;
-
-		//public string Name;
-		//public string LocalizationKey;
-
-		//public string ParentGroupGUID;
-		//public int OrderInGroup;
-
 		public string DefaultValue;
 		public StringValuePair[] Values;
 	}
