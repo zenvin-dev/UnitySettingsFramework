@@ -45,7 +45,8 @@ namespace Zenvin.Settings.Framework {
 
 		private static SettingsAsset asset;
 
-		private float hierarchyWidth = 200f;
+		//private float hierarchyWidth = 200f;
+		private float hierarchyWidth = 300f;
 
 		[NonSerialized] private string searchString = string.Empty;
 		private List<SettingBase> searchResults = null;
@@ -78,7 +79,6 @@ namespace Zenvin.Settings.Framework {
 				asset = CreateInstance<SettingsAsset> ();
 				asset.name = "Game Settings";
 				asset.Name = "Game Settings";
-				//asset.groupName = "Game Settings";
 
 				AssetDatabase.CreateAsset (asset, $"Assets/Game Settings.asset");
 
@@ -161,13 +161,17 @@ namespace Zenvin.Settings.Framework {
 			);
 
 			// draw move-able line between hierarchy and inspector
-			Rect dragRect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
-			if (MakeHorizontalDragRect (ref dragRect)) {
-				hierarchyWidth = dragRect.x;
-				hierarchyWidth = Mathf.Clamp (hierarchyWidth, 200f, position.width - 300f);
-				EditorPrefs.SetFloat ($"{GetType ().FullName}.{nameof (hierarchyWidth)}", hierarchyWidth);
-				Repaint ();
-			}
+			////if (!hierarchyWidthLocked) {
+			////	Rect dragRect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
+			////	if (MakeHorizontalDragRect (ref dragRect, 200f, position.width - 300f)) {
+			////		hierarchyWidth = dragRect.x;
+			////		EditorPrefs.SetFloat ($"{GetType ().FullName}.{nameof (hierarchyWidth)}", hierarchyWidth);
+			////		Repaint ();
+			////	}
+			////}
+
+			Rect separatorRect = new Rect (hierarchyWidth, topBarRect.height, 1f, position.height - topBarRect.height);
+			EditorGUI.DrawRect (separatorRect, new Color (0.1f, 0.1f, 0.1f));
 
 			// draw window partition contents
 			DrawTopBar (topBarRect);
@@ -192,6 +196,7 @@ namespace Zenvin.Settings.Framework {
 
 			EditorUtility.SetDirty (asset);
 		}
+
 
 		private void DrawCreateAssetButton () {
 			Vector2 btnSize = new Vector2 (250f, 50f);
@@ -273,6 +278,8 @@ namespace Zenvin.Settings.Framework {
 			if (dragPreview != null) {
 				EditorGUI.DrawRect (dragPreview.Value, Color.blue);
 			}
+
+			EditorGUILayout.LabelField (hierarchyWidth + " | " + (position.width - hierarchyWidth));
 
 			GUILayout.EndArea ();
 		}
@@ -403,7 +410,7 @@ namespace Zenvin.Settings.Framework {
 			if (Application.isPlaying) {
 				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter, GUILayout.Width (150));
 			}
-			
+
 			// reset search results if search string is empty
 			if (string.IsNullOrEmpty (searchString)) {
 				searchResults = null;
@@ -417,7 +424,7 @@ namespace Zenvin.Settings.Framework {
 				var settings = asset.GetAllSettings ();
 				searchResults = new List<SettingBase> ();
 				foreach (var s in settings) {
-					if (s.Name.ToUpperInvariant().Contains (searchString.ToUpperInvariant())) {
+					if (s.Name.ToUpperInvariant ().Contains (searchString.ToUpperInvariant ())) {
 						searchResults.Add (s);
 					}
 				}
@@ -931,11 +938,15 @@ namespace Zenvin.Settings.Framework {
 
 		// Helper Methods
 
-		public static bool MakeHorizontalDragRect (ref Rect rect, float size = 5f, Color? color = null) {
+		public static bool MakeHorizontalDragRect (ref Rect rect, float min, float max, float size = 5f, Color? color = null) {
 			Color col = color.HasValue ? color.Value : new Color (0.1f, 0.1f, 0.1f);
 
 			EditorGUI.DrawRect (rect, col);
 			Event e = Event.current;
+
+			if (e.type == EventType.Used) {
+				return false;
+			}
 
 			Rect r = new Rect (rect);
 			r.x -= size * 0.5f;
@@ -950,12 +961,44 @@ namespace Zenvin.Settings.Framework {
 				EditorGUIUtility.AddCursorRect (new Rect (e.mousePosition, Vector2.one * 32f), MouseCursor.ResizeHorizontal);
 
 				if (e.type == EventType.MouseDrag) {
-					rect.x += e.delta.x;
+					rect.x = Mathf.Clamp (rect.x + e.delta.x, min, max);
 					e.Use ();
 					return true;
 				}
 			}
+
 			return false;
+		}
+
+		public static float MakeHorizontalDragRect (Rect rect, float min, float max, float size = 5f, Color? color = null) {
+			Color col = color.HasValue ? color.Value : new Color (0.1f, 0.1f, 0.1f);
+
+			EditorGUI.DrawRect (rect, col);
+			Event e = Event.current;
+
+			if (e.type == EventType.Used) {
+				return rect.x;
+			}
+
+			Rect r = new Rect (rect);
+			r.x -= size * 0.5f;
+			r.width = Mathf.Abs (size);
+
+			r.width += Mathf.Abs (e.delta.x);
+			if (e.delta.x < 0f) {
+				r.x += e.delta.x;
+			}
+
+			if (r.Contains (e.mousePosition)) {
+				EditorGUIUtility.AddCursorRect (new Rect (e.mousePosition, Vector2.one * 32f), MouseCursor.ResizeHorizontal);
+
+				if (e.type == EventType.MouseDrag) {
+					rect.x = Mathf.Clamp (rect.x + e.delta.x, min, max);
+					e.Use ();
+				}
+			}
+
+			return rect.x;
 		}
 
 		private static SettingsAsset FindAsset () {
