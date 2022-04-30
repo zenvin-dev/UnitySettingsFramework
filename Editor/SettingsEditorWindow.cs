@@ -62,7 +62,8 @@ namespace Zenvin.Settings.Framework {
 		private Vector2 editorScroll;
 		private Editor editor = null;
 
-		private Type[] viableTypes = null;
+		private Type[] viableSettingTypes = null;
+		private Type[] viableGroupTypes = null;
 
 
 		private HierarchyFilter CurrentFilter => Application.isPlaying ? searchFilter : HierarchyFilter.All;
@@ -230,8 +231,12 @@ namespace Zenvin.Settings.Framework {
 			bool canAdd = selGroup != null;
 
 			GUI.enabled = canAdd;
-			if (GUILayout.Button ("Add Group", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight)) && !Application.isPlaying) {
-				CreateGroupAsChildOfGroup (selected);
+			Rect addGroupBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
+			if (GUI.Button (addGroupBtnRect, "Add Group"/*, GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight)*/) && !Application.isPlaying) {
+				//CreateGroupAsChildOfGroup (selected);
+				GenericMenu gm = new GenericMenu ();
+				PopulateGroupsTypeMenu (gm, selGroup, false);
+				gm.DropDown (addGroupBtnRect);
 			}
 
 			Rect addSettingBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
@@ -773,7 +778,8 @@ namespace Zenvin.Settings.Framework {
 			if (!Application.isPlaying) {
 
 				PopulateSettingTypeMenu (gm, group);
-				gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
+				//gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
+				PopulateGroupsTypeMenu (gm, group);
 
 				if (group != asset) {
 					gm.AddSeparator ("");
@@ -803,13 +809,13 @@ namespace Zenvin.Settings.Framework {
 			LoadViableTypes ();
 
 			// there are no viable types to create settings from
-			if (viableTypes.Length == 0) {
+			if (viableSettingTypes.Length == 0) {
 				gm.AddDisabledItem (prefixItem ? new GUIContent ("Add Setting") : new GUIContent ("No Setting types found."));
 
 				// generate sub-menus for each viable type
 			} else {
 				string prefix = prefixItem ? "Add Setting/" : "";
-				foreach (Type t in viableTypes) {
+				foreach (Type t in viableSettingTypes) {
 					Type generic = null;
 					Type[] generics = t.BaseType.GetGenericArguments ();
 					if (generics.Length > 0) {
@@ -819,6 +825,38 @@ namespace Zenvin.Settings.Framework {
 					gm.AddItem (
 						new GUIContent ($"{prefix}{ns}/{ToEditorSpelling (t.Name)}"),
 						false, CreateSettingAsChildOfGroup, new NewSettingData (t, group)
+					);
+				}
+			}
+		}
+
+		private void PopulateGroupsTypeMenu (GenericMenu gm, SettingsGroup group, bool prefixItem = true) {
+			if (gm == null || group == null) {
+				return;
+			}
+
+			// load all types inheriting SettingsGroup
+			// result will be cached automatically
+			LoadViableTypes ();
+
+			string prefix = prefixItem ? "Add Group/" : "";
+
+			gm.AddItem (new GUIContent (prefixItem ? "Add Default Group" : "Default Group"), false, CreateGroupAsChildOfGroup, new NewSettingData (typeof (SettingsGroup), group));
+
+			if (viableGroupTypes.Length > 0) {
+				if (!prefixItem) {
+					gm.AddSeparator ("");
+				}
+				foreach (Type t in viableGroupTypes) {
+					Type generic = null;
+					Type[] generics = t.BaseType.GetGenericArguments ();
+					if (generics.Length > 0) {
+						generic = generics[0];
+					}
+					string ns = string.IsNullOrEmpty (t.Namespace) ? "<Global>" : t.Namespace;
+					gm.AddItem (
+						new GUIContent ($"{prefix}{ns}/{ToEditorSpelling (t.Name)}"),
+						false, CreateGroupAsChildOfGroup, new NewSettingData (t, group)
 					);
 				}
 			}
@@ -868,18 +906,49 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void CreateGroupAsChildOfGroup (object group) {
-			if (!(group is SettingsGroup g)) {
-				return;
+			//if (!(group is SettingsGroup g)) {
+			//	return;
+			//}
+
+			//SettingsGroup newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
+			//	g.name = "New Group";
+			//	g.Name = "New Group";
+			//	g.GUID = Guid.NewGuid ().ToString ();
+			//});
+
+			//g.AddChildGroup (newGroup);
+			//Select (newGroup);
+			//ExpandToSelection (false);
+
+			SettingsGroup parentGroup;
+			SettingsGroup newGroup;
+
+			switch (group) {
+				case SettingsGroup g:
+					parentGroup = g;
+					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
+						g.name = "New Group";
+						g.Name = "New Group";
+						g.GUID = Guid.NewGuid ().ToString ();
+					});
+
+					g.AddChildGroup (newGroup);
+					Select (newGroup);
+					ExpandToSelection (false);
+					break;
+				case NewSettingData nsd:
+					parentGroup = nsd.Group;
+					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, nsd.SettingType, g => {
+						g.name = "New Group";
+						g.Name = "New Group";
+						g.GUID = Guid.NewGuid ().ToString ();
+					});
+					break;
+				default:
+					return;
 			}
 
-			SettingsGroup newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
-				g.name = "New Group";
-				//g.groupName = "New Group";
-				g.Name = "New Group";
-				g.GUID = Guid.NewGuid ().ToString ();
-			});
-
-			g.AddChildGroup (newGroup);
+			parentGroup.AddChildGroup (newGroup);
 			Select (newGroup);
 			ExpandToSelection (false);
 		}
@@ -1010,25 +1079,40 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void LoadViableTypes () {
-			if (viableTypes != null) {
+			if (viableSettingTypes != null && viableGroupTypes != null) {
 				return;
 			}
 
-			List<Type> types = new List<Type> ();
-			Type baseType = typeof (SettingBase);
+			List<Type> settingTypes = new List<Type> ();
+			Type settingBaseType = typeof (SettingBase);
+
+			List<Type> groupTypes = new List<Type> ();
+			Type groupBaseType = typeof (SettingsGroup);
 
 			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies ();
 			foreach (Assembly asm in assemblies) {
+
 				Type[] asmTypes = asm.GetTypes ();
 				foreach (Type t in asmTypes) {
-					if (baseType.IsAssignableFrom (t) && !t.IsAbstract) {
-						types.Add (t);
+
+					if (settingBaseType.IsAssignableFrom (t) && !t.IsAbstract) {
+						settingTypes.Add (t);
 					}
+					if (groupBaseType.IsAssignableFrom (t) && !t.IsAbstract && t != groupBaseType && t != typeof (SettingsAsset)) {
+						groupTypes.Add (t);
+					}
+
 				}
 			}
 
-			types.Sort (Compare);
-			viableTypes = types.ToArray ();
+			if (viableSettingTypes == null) {
+				settingTypes.Sort (Compare);
+				viableSettingTypes = settingTypes.ToArray ();
+			}
+			if (viableGroupTypes == null) {
+				groupTypes.Sort (Compare);
+				viableGroupTypes = groupTypes.ToArray ();
+			}
 		}
 
 		private int Compare (Type a, Type b) {

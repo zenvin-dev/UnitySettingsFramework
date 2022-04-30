@@ -134,13 +134,27 @@ namespace Zenvin.Settings.Framework {
 		/// Gets the groupwith the associated GUID.
 		/// </summary>
 		/// <param name="guid"> The GUID of the group to get. </param>
-		/// <param name="setting"> Contains the found group, if any. Otherwise null. </param>
+		/// <param name="group"> Contains the found group, if any. Otherwise null. </param>
 		public bool TryGetGroupByGUID (string guid, out SettingsGroup group) {
 			if (string.IsNullOrWhiteSpace (guid)) {
 				group = this;
 				return true;
 			}
 			return groupsDict.TryGetValue (guid, out group);
+		}
+
+		/// <summary>
+		/// Gets the groupwith the associated GUID.
+		/// </summary>
+		/// <param name="guid"> The GUID of the group to get. </param>
+		/// <param name="group"> Contains the found group, if any. Otherwise null. </param>
+		public bool TryGetGroupByGUID<T> (string guid, out T group) where T : SettingsGroup {
+			if (groupsDict.TryGetValue (guid, out SettingsGroup _group)) {
+				group = _group as T;
+				return group != null;
+			}
+			group = null;
+			return false;
 		}
 
 		/// <summary>
