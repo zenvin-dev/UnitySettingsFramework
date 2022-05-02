@@ -43,6 +43,27 @@ namespace Zenvin.Settings.Framework {
 
 
 		/// <summary>
+		/// Creates a new, external instance of a given <see cref="SettingBase{T}"/> and initializes with the given values.
+		/// </summary>
+		public static T CreateInstanceWithValues<T> (StringValuePair[] values = null) where T : SettingsGroup {
+			if (!Application.isPlaying) {
+				return null;
+			}
+
+			T group = CreateInstance<T> ();
+			group.External = true;
+
+			group.OnCreateWithValues (values);
+
+			return group;
+		}
+
+		/// <summary>
+		/// Called during <see cref="CreateInstanceWithValues{T}(StringValuePair[])"/>.
+		/// </summary>
+		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
+
+		/// <summary>
 		/// Get the child Setting at the given index. Null if the index is invalid.
 		/// </summary>
 		public SettingsGroup GetGroupAt (int index) {

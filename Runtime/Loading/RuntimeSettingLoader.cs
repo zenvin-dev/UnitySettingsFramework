@@ -6,7 +6,8 @@ namespace Zenvin.Settings.Loading {
 	public static class RuntimeSettingLoader {
 
 		// allocate resources
-		private static readonly Dictionary<string, ISettingFactory> fDict = new Dictionary<string, ISettingFactory> ();
+		private static readonly Dictionary<string, ISettingFactory> sfDict = new Dictionary<string, ISettingFactory> ();
+		private static readonly Dictionary<string, IGroupFactory> gfDict = new Dictionary<string, IGroupFactory> ();
 		private static readonly Dictionary<string, string> desiredParents = new Dictionary<string, string> ();
 		private static readonly Dictionary<string, SettingsGroup> groups = new Dictionary<string, SettingsGroup> ();
 		private static readonly List<(SettingsGroup parent, SettingsGroup group)> rootGroups = new List<(SettingsGroup parent, SettingsGroup group)> ();
@@ -38,7 +39,8 @@ namespace Zenvin.Settings.Loading {
 			}
 
 			// reset loader state
-			fDict.Clear ();
+			sfDict.Clear ();
+			gfDict.Clear ();
 			desiredParents.Clear ();
 			groups.Clear ();
 			rootGroups.Clear ();
@@ -66,15 +68,27 @@ namespace Zenvin.Settings.Loading {
 
 		private static void PopulateFactoryDict (TypeFactoryWrapper[] factories) {
 			foreach (var f in factories) {
-				if (f.Factory != null) {
-					string fType = f.Type;
+				string fType = f.Type;
 
-					if (string.IsNullOrEmpty (fType)) {
-						fType = f.Factory.GetDefaultValidType ();
+				if (f.IsGroupFactory) {
+					if (f.GroupFactory != null) {
+						if (string.IsNullOrEmpty (fType)) {
+							fType = f.GroupFactory.GetDefaultValidType ();
+						}
+
+						if (!string.IsNullOrEmpty (fType)) {
+							gfDict[fType] = f.GroupFactory;
+						}
 					}
+				} else {
+					if (f.SettingFactory != null) {
+						if (string.IsNullOrEmpty (fType)) {
+							fType = f.SettingFactory.GetDefaultValidType ();
+						}
 
-					if (!string.IsNullOrEmpty (fType)) {
-						fDict[fType] = f.Factory;
+						if (!string.IsNullOrEmpty (fType)) {
+							sfDict[fType] = f.SettingFactory;
+						}
 					}
 				}
 			}
@@ -82,11 +96,20 @@ namespace Zenvin.Settings.Loading {
 
 		private static void PopulateGroupDict (SettingsAsset asset, GroupData[] groupsData, IGroupIconLoader loader) {
 			foreach (var g in groupsData) {
-				if (!string.IsNullOrWhiteSpace (g.GUID) && !groups.ContainsKey (g.GUID) && asset.IsValidGuid (g.GUID, true)) {
-					SettingsGroup obj = ScriptableObject.CreateInstance<SettingsGroup> ();
+				if (asset.IsValidGuid (g.GUID, true) && !groups.ContainsKey (g.GUID)) {
+					SettingsGroup obj;
+					if (!string.IsNullOrEmpty (g.Type) && gfDict.TryGetValue (g.Type, out IGroupFactory fact)) {
+						obj = fact.CreateGroupFromType (g.Values);
+					} else {
+						obj = ScriptableObject.CreateInstance<SettingsGroup> ();
+						obj.External = true;
+					}
+
+					if (!obj.External) {
+						continue;
+					}
 
 					obj.GUID = g.GUID;
-					obj.External = true;
 
 					obj.Name = g.Name;
 					obj.NameLocalizationKey = g.NameLocalizationKey;
@@ -118,7 +141,7 @@ namespace Zenvin.Settings.Loading {
 
 		private static void IntegrateSettings (SettingsAsset asset, SettingData[] settingsData) {
 			foreach (var s in settingsData) {
-				if (fDict.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
+				if (sfDict.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
 					SettingsGroup parent;
 
 					if (!groups.TryGetValue (s.ParentGroupGUID, out parent)) {
@@ -158,18 +181,27 @@ namespace Zenvin.Settings.Loading {
 
 		public struct TypeFactoryWrapper {
 			public string Type;
-			public ISettingFactory Factory;
+			public ISettingFactory SettingFactory;
+			public IGroupFactory GroupFactory;
+			public readonly bool IsGroupFactory;
 
+			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory, null) { IsGroupFactory = false; }
 
-			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory) { }
+			public TypeFactoryWrapper (IGroupFactory factory) : this (null, null, factory) { IsGroupFactory = true; }
 
-			public TypeFactoryWrapper (string type, ISettingFactory factory) {
+			private TypeFactoryWrapper (string type, ISettingFactory settingFactory, IGroupFactory groupFactory) {
 				Type = type;
-				Factory = factory;
+				SettingFactory = settingFactory;
+				GroupFactory = groupFactory;
+				IsGroupFactory = settingFactory == null;
 			}
 
 			public static implicit operator TypeFactoryWrapper ((string, ISettingFactory) tuple) {
-				return new TypeFactoryWrapper (tuple.Item1, tuple.Item2);
+				return new TypeFactoryWrapper (tuple.Item1, tuple.Item2, null);
+			}
+
+			public static implicit operator TypeFactoryWrapper ((string, IGroupFactory) tuple) {
+				return new TypeFactoryWrapper (tuple.Item1, null, tuple.Item2);
 			}
 		}
 	}

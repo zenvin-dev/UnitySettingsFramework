@@ -10,6 +10,7 @@ namespace Zenvin.Settings.Loading {
 	[Serializable]
 	public abstract class ObjectDataBase {
 		public string GUID;
+		public string Type;
 
 		public string Name;
 		public string NameLocalizationKey;
@@ -18,7 +19,8 @@ namespace Zenvin.Settings.Loading {
 		public string DescriptionLocalizationKey;
 
 		public string ParentGroupGUID;
-		public int OrderInGroup;
+
+		public StringValuePair[] Values;
 	}
 
 	[Serializable]
@@ -28,8 +30,7 @@ namespace Zenvin.Settings.Loading {
 
 	[Serializable]
 	public class SettingData : ObjectDataBase {
-		public string Type;
+		public int OrderInGroup;
 		public string DefaultValue;
-		public StringValuePair[] Values;
 	}
 }

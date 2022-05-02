@@ -1,5 +1,4 @@
 using UnityEngine;
-
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Loading;
 
