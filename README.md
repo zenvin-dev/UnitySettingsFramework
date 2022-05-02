@@ -38,7 +38,7 @@ The `DefaultValue` is a generically typed value, and will be assigned to the Set
 
 ## 3 Settings Groups
 As the name suggests, Settings Groups can be used to group settings together. Just like Settings, they are Scriptable Objects (inheriting `Zenvin.Settings.Framework.SettingsGroup`) that contain several values (see below).
-Other than settings however, groups are not meant to be expanded in functionality.
+Just like with Settings, it is possible to extend the pre-existing `SettingsGroup` type by inheriting from it.
 \
 When creating UI for your settings, groups can be used to separate them into tabs or sub-headers.
 
@@ -109,14 +109,22 @@ The system allows loading one or multiple settings and setting groups from one o
 Loading will ignore all settings and groups whose `GUID`s already exist. However, it is possible to load external settings and groups as children of existing groups, as well as loading external settings as children of external groups from the same or a previous load process.
 \
 \
-However, loading is only possible during the initialization process of the SettingsAsset. To load, first subscribe to `SettingsAsset.OnInitialize`, then call `SettingsAsset.Initialze()`.
+However, loading is only possible during the initialization process of the SettingsAsset. To load, first subscribe to `SettingsAsset.OnInitialize`, then call `SettingsAsset.Initialize()`.
 
 ### 7.0 Setting Factories
 In order to load external settings, the system needs to know how to translate the `string` values it gets from the parsed JSON objects into `SettingBase<T>` instances.
 \
 That is where the `ISettingFactory` interface comes into play:
-* `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
-* `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired setting class.
+* `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
+* `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired Setting class.
+
+### 7.1 Group Factories
+Loading external groups happens similarly to the way external Settings are loaded, with the main difference being that the system will fall back to the built-in `SettingsGroup` type, if it cannot translate the JSON values into Group instances.
+\
+Translating the values again, is where an interface is used - respectively `IGroupFactory`:
+* `IGroupFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Group object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
+* `IGroupFactory.CreateSettingFromType(StringValuePair[])`: Should return an instance of your desired Group class.
+
 
 # Examples
 ## 1. Creating a Setting based on an `int` to serve as a dropdown
