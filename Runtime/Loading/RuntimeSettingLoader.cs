@@ -30,7 +30,11 @@ namespace Zenvin.Settings.Loading {
 		}
 
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
-			if (asset == null || asset.Initialized || factories == null || factories.Length == 0) {
+			if (!Application.isPlaying) {
+				return false;
+			}
+
+			if (asset == null || factories == null || factories.Length == 0) {
 				return false;
 			}
 
@@ -62,6 +66,9 @@ namespace Zenvin.Settings.Loading {
 
 			// integrate created root groups into asset
 			IntegrateRootGroups (asset);
+
+
+			asset.RuntimeSettingsIntegrated ();
 
 			return true;
 		}

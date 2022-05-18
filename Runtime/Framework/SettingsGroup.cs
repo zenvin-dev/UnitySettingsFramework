@@ -279,12 +279,15 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		internal void IntegrateSetting (SettingBase setting) {
-			if (setting == null) {
+			if (setting == null || !setting.External) {
 				return;
 			}
 			setting.group = this;
 			externalSettings.Add (setting);
+			OnIntegratedSetting (setting);
 		}
+
+		private protected virtual void OnIntegratedSetting (SettingBase setting) { }
 
 		internal void RemoveSetting (SettingBase setting) {
 			if (setting == null || setting.group != this) {

@@ -12,7 +12,10 @@ namespace Zenvin.Settings.Framework {
 
 		public delegate void SettingsAssetEvt (SettingsAsset asset);
 
+		/// <summary> Invoked for every <see cref="SettingsAsset"/> during the initialization process. Preferably hook into this to load runtime settings. </summary>
 		public static event SettingsAssetEvt OnInitialize;
+		/// <summary> Invoked for every <see cref="SettingsAsset"/> after runtime settings has been loaded, but <b>only if the asset was already initialized</b>. </summary>
+		public static event SettingsAssetEvt OnRuntimeSettingsLoaded;
 
 		[NonSerialized] private readonly Dictionary<string, SettingBase> settingsDict = new Dictionary<string, SettingBase> ();
 		[NonSerialized] private readonly Dictionary<string, SettingsGroup> groupsDict = new Dictionary<string, SettingsGroup> ();
@@ -39,7 +42,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		public void Initialize () {
 			if (!Application.isPlaying) {
-				Debug.LogWarning ("Cannot initialize SettingsAsset in edit-time.");
+				Debug.LogWarning ("Cannot initialize SettingsAsset during edit-time.");
 				return;
 			}
 			if (!Initialized) {
@@ -279,6 +282,33 @@ namespace Zenvin.Settings.Framework {
 				}
 
 				return loaded;
+			}
+		}
+
+
+		// Integrating runtime settings post-initialization
+
+		private protected override void OnIntegratedChildGroup (SettingsGroup group) {
+			if (!initialized) {
+				return;
+			}
+			if (!groupsDict.ContainsKey (group.GUID)) {
+				groupsDict[group.GUID] = group;
+			}
+		}
+
+		private protected override void OnIntegratedSetting (SettingBase setting) {
+			if (!initialized) {
+				return;
+			}
+			if (!settingsDict.ContainsKey (setting.GUID)) {
+				settingsDict[setting.GUID] = setting;
+			}
+		}
+
+		internal void RuntimeSettingsIntegrated () {
+			if (initialized) {
+				OnRuntimeSettingsLoaded?.Invoke (this);
 			}
 		}
 
