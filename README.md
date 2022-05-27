@@ -11,9 +11,9 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 ### 1. Setup
 After installing the Package into your project via the UPM (and making sure the assembly definitions are recognized by Unity), create a SettingsAsset through _Create > Scriptable Objects > Zenvin > Settings Asset_. This will serve as a collection of all settings you may create.
 \
-The system currently is set up to allow only for a single SettingsAsset object to be created in your project. (You will still be able to duplicate an existing asset, but I would advise against it).
+Once you have created the `SettingsAsset`, you can use the **Settings Editor Window** (_Window > Zenvin > Settings Asset Editor_) to add, delete, move and group settings. Double-clicking `SettingsAsset`s will open the editor.
 \
-Once you have created the SettingsAsset, you can use the **Settings Editor Window** (_Window > Zenvin > Settings Asset Editor_) to add, delete, move and group settings.
+If there is no asset being edited currently, the editor will show a list of available instances.
 
 
 ## 2. Settings
@@ -22,7 +22,7 @@ Settings are represented by Scriptable Object instances that inherit `Zenvin.Set
 ### 2.0 GUID
 The `GUID` provides a unique identifier for each setting. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.
 \
-However the value cannot be empty, and it must be unique among **all** settings. Should that not be the case, the system will reset the `GUID` to its previous value.
+However the value cannot be empty, and it must be unique among **all** settings within the same `SettingsAsset`. Should that not be the case, the system will reset the `GUID` to its previous value.
 
 ### 2.1 Name
 The `Name` is supposed to be the default label for the setting on UI. Is also will show up in the hierarchy of the Settings Editor window.
@@ -45,7 +45,7 @@ When creating UI for your settings, groups can be used to separate them into tab
 ### 3.0 GUID
 The `GUID` provides a unique identifier for each group. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.
 \
-However the value cannot be empty, and it must be unique among **all** groups. Should that not be the case, the system will reset the `GUID` to its previous value.
+However the value cannot be empty, and it must be unique among **all** groups within the same `SettingsAsset`. Should that not be the case, the system will reset the `GUID` to its previous value.
 
 ### 3.2 Name
 The `Name` is supposed to be the default label for the group on UI. Is also will show up in the hierarchy of the Settings Editor window.

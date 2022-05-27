@@ -30,7 +30,7 @@ namespace Zenvin.Settings.Framework {
 		private static readonly Color hierarchyColorA = /*new Color (0.3f, 0.3f, 0.3f)*/new Color (0f, 0f, 0f, 0f);
 		private static readonly Color hierarchyColorB = new Color (0.1f, 0.1f, 0.1f, 0f);
 		private static readonly Color hierarchyColorSelected = new Color (0f, 0.5f, 1.0f, 0.4f);
-		private static readonly Color hierarchyColordragged = new Color (1f, 0.5f, 1f, 0.4f);
+		private static readonly Color hierarchyColorDragged = new Color (1f, 0.5f, 1f, 0.4f);
 		private static readonly Color hierarchyColorHover = new Color (0.3f, 0.3f, 0.3f);
 
 		private static GUIStyle foldoutStyleInternal;
@@ -43,7 +43,8 @@ namespace Zenvin.Settings.Framework {
 
 		[SerializeField, HideInInspector] private List<SettingsGroup> hierarchyState;
 
-		private static SettingsAsset asset;
+		[SerializeField] private SettingsAsset asset;
+		private SettingsAsset[] allAssets = null;
 
 		//private float hierarchyWidth = 200f;
 		private float hierarchyWidth = 300f;
@@ -60,6 +61,7 @@ namespace Zenvin.Settings.Framework {
 		private readonly Dictionary<SettingsGroup, bool> expansionState = new Dictionary<SettingsGroup, bool> ();
 		private Vector2 hierarchyScroll;
 		private Vector2 editorScroll;
+		private Vector2 assetSelectScroll;
 		private Editor editor = null;
 
 		private Type[] viableSettingTypes = null;
@@ -72,39 +74,48 @@ namespace Zenvin.Settings.Framework {
 
 		// Menus
 
-		[MenuItem ("Assets/Create/Scriptable Objects/Zenvin/Settings Asset", priority = -10000)]
-		private static SettingsAsset HandleCreateSettingsAsset () {
-			SettingsAsset asset = FindAsset ();
+		//[MenuItem ("Assets/Create/Scriptable Objects/Zenvin/Settings Asset", priority = -10000)]
+		//private static SettingsAsset HandleCreateSettingsAsset () {
+		//	SettingsAsset asset = FindAsset ();
 
-			if (asset == null) {
-				asset = CreateInstance<SettingsAsset> ();
-				asset.name = "Game Settings";
-				asset.Name = "Game Settings";
+		//	if (asset == null) {
+		//		asset = CreateInstance<SettingsAsset> ();
+		//		asset.name = "Game Settings";
+		//		asset.Name = "Game Settings";
 
-				AssetDatabase.CreateAsset (asset, $"Assets/Game Settings.asset");
+		//		AssetDatabase.CreateAsset (asset, $"Assets/Game Settings.asset");
 
-				AssetDatabase.Refresh ();
-				AssetDatabase.SaveAssets ();
-			} else {
-				Selection.activeObject = asset;
-			}
+		//		AssetDatabase.Refresh ();
+		//		AssetDatabase.SaveAssets ();
+		//	} else {
+		//		Selection.activeObject = asset;
+		//	}
 
-			return asset;
-		}
+		//	return asset;
+		//}
 
 		[MenuItem ("Window/Zenvin/Settings Asset Editor")]
 		private static void Init () {
+			InitWindow ();
+		}
+
+		private static void Init (SettingsAsset edit) {
+			InitWindow ().asset = edit;
+		}
+
+		private static SettingsEditorWindow InitWindow () {
 			SettingsEditorWindow win = GetWindow<SettingsEditorWindow> ();
 			win.titleContent = new GUIContent ("Settings Editor", win.windowIcon);
 			win.minSize = new Vector2 (500f, 200f);
 			win.Show ();
+			return win;
 		}
 
 		[OnOpenAsset]
 		private static bool HandleOpenAsset (int instanceID, int line) {
 			Object obj = EditorUtility.InstanceIDToObject (instanceID);
 			if (obj is SettingsAsset asset) {
-				Init ();
+				Init (asset);
 				return true;
 			}
 			return false;
@@ -129,14 +140,14 @@ namespace Zenvin.Settings.Framework {
 		// GUI methods
 
 		private void OnGUI () {
-			// try to find existing setting asset
-			if (asset == null) {
-				asset = FindAsset ();
+			Event _evt = Event.current;
+			if (_evt.type == EventType.KeyDown && _evt.keyCode == KeyCode.RightShift) {
+				asset = null;
 			}
 
-			// prompt setting asset creation if there is none
+			// prompt setting asset selection if there is none
 			if (asset == null) {
-				DrawCreateAssetButton ();
+				DrawAssetMenu ();
 				Repaint ();
 				return;
 			}
@@ -161,7 +172,7 @@ namespace Zenvin.Settings.Framework {
 				hierarchyWidth + 2f + margin * 2f, margin + topBarRect.height + margin, position.width - hierarchyWidth - 2f - margin * 2f, position.height - margin * 3f - topBarRect.height
 			);
 
-			// draw move-able line between hierarchy and inspector
+			// draw draggable line between hierarchy and inspector
 			////if (!hierarchyWidthLocked) {
 			////	Rect dragRect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
 			////	if (MakeHorizontalDragRect (ref dragRect, 200f, position.width - 300f)) {
@@ -199,16 +210,77 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		private void DrawCreateAssetButton () {
-			Vector2 btnSize = new Vector2 (250f, 50f);
-			float xOffset = (position.width - btnSize.x) * 0.5f;
-			float yOffset = (position.height - btnSize.y) * 0.5f;
+		private void DrawAssetMenu () {
+			//Vector2 btnSize = new Vector2 (250f, 50f);
+			//float xOffset = (position.width - btnSize.x) * 0.5f;
+			//float yOffset = (position.height - btnSize.y) * 0.5f;
 
-			Rect btnRect = new Rect (xOffset, yOffset, btnSize.x, btnSize.y);
+			//Rect btnRect = new Rect (xOffset, yOffset, btnSize.x, btnSize.y);
 
-			if (GUI.Button (btnRect, "Create Settings Asset")) {
-				asset = HandleCreateSettingsAsset ();
+			//if (GUI.Button (btnRect, "Create Settings Asset")) {
+			//	//asset = HandleCreateSettingsAsset ();
+			//}
+
+			const float menuWidth = 450f;
+			const float verticalMargin = 20f;
+			Rect menuRect = new Rect ((position.width - menuWidth) * 0.5f, verticalMargin, menuWidth, position.height - verticalMargin * 2f);
+
+			GUILayout.BeginArea (menuRect);
+
+			GUILayout.Label ("Select Settings Asset", EditorStyles.boldLabel);
+			assetSelectScroll = GUILayout.BeginScrollView (assetSelectScroll, false, false);
+
+			if (allAssets == null || allAssets.Length == 0) {
+				LoadSettingsAssets ();
 			}
+
+			for (int i = 0; i < allAssets.Length; i++) {
+				// create the rect for this hierarchy item
+				Rect rect = EditorGUILayout.GetControlRect ();
+				//rect.x -= 2f;
+				//rect.width += 4;
+				//rect.y -= 2f;
+				//rect.height += 2f;
+
+				// draw coloured background
+				Color col = rect.Contains (Event.current.mousePosition) ? hierarchyColorHover : hierarchyColorA;
+				EditorGUI.DrawRect (rect, col);
+
+				// draw select button
+				if (GUI.Button (rect, allAssets[i].name, EditorStyles.label)) {
+					asset = allAssets[i];
+					GUILayout.EndScrollView ();
+					GUILayout.EndArea ();
+					return;
+				}
+			}
+
+			GUILayout.FlexibleSpace ();
+
+			// draw refresh button
+			if (GUILayout.Button ("Refresh")) {
+				LoadSettingsAssets ();
+			}
+
+			GUILayout.Space (10);
+
+			// draw create asset button
+			if (GUILayout.Button ("Create new Asset")) {
+				string path = EditorUtility.SaveFilePanelInProject ("Create Settings Asset", "New Settings", "asset", "");
+				if (string.IsNullOrEmpty (path)) {
+					GUILayout.EndArea ();
+					return;
+				}
+				asset = CreateInstance<SettingsAsset> ();
+				AssetDatabase.CreateAsset (asset, path);
+				AssetDatabase.SaveAssetIfDirty (asset);
+				AssetDatabase.Refresh ();
+				return;
+			}
+
+
+			GUILayout.EndScrollView ();
+			GUILayout.EndArea ();
 		}
 
 		private void DrawTopBar (Rect rect) {
@@ -1121,7 +1193,7 @@ namespace Zenvin.Settings.Framework {
 
 		private Color GetHierarchyColor (ScriptableObject obj, int index, bool hovered) {
 			if (obj == dragged) {
-				return hierarchyColordragged;
+				return hierarchyColorDragged;
 			} else if (obj == selected) {
 				return hierarchyColorSelected;
 			} else if (hovered) {
@@ -1174,6 +1246,19 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			return val.TrimEnd ('_');
+		}
+
+		private void LoadSettingsAssets () {
+			List<SettingsAsset> assets = new List<SettingsAsset> (10);
+			Type assetType = typeof (SettingsAsset);
+
+			foreach (var guid in AssetDatabase.FindAssets ($"t:{assetType.FullName}")) {
+				if (AssetDatabase.LoadAssetAtPath (AssetDatabase.GUIDToAssetPath (guid), assetType) is SettingsAsset a) {
+					assets.Add (a);
+				}
+			}
+
+			allAssets = assets.ToArray ();
 		}
 
 		// Hierarchy Serialization

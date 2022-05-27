@@ -8,6 +8,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// <see cref="ScriptableObject"/> that contains all Settings and Settings Groups.
 	/// </summary>
+	[CreateAssetMenu (menuName = "Scriptable Objects/Zenvin/Settings Asset", fileName = "New Settings")]
 	public sealed class SettingsAsset : SettingsGroup {
 
 		public delegate void SettingsAssetEvt (SettingsAsset asset);
