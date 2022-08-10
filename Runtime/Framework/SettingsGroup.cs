@@ -6,6 +6,10 @@ using System;
 namespace Zenvin.Settings.Framework {
 	public class SettingsGroup : FrameworkObject {
 
+		public delegate bool SettingBaseFilter (SettingBase setting);
+		public delegate bool SettingsGroupFilter (SettingsGroup group);
+
+
 		[NonSerialized] private readonly List<SettingBase> externalSettings = new List<SettingBase> ();
 		[NonSerialized] private readonly List<SettingsGroup> externalGroups = new List<SettingsGroup> ();
 
@@ -47,6 +51,9 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		public static T CreateInstanceWithValues<T> (StringValuePair[] values = null) where T : SettingsGroup {
 			if (!Application.isPlaying) {
+				return null;
+			}
+			if (typeof (T) == typeof (SettingsAsset)) {
 				return null;
 			}
 
@@ -211,7 +218,7 @@ namespace Zenvin.Settings.Framework {
 		/// Gets all direct child Settings.
 		/// </summary>
 		public List<SettingBase> GetSettings (bool sorted = false) {
-			List<SettingBase> settingsList = new List<SettingBase> ();
+			List<SettingBase> settingsList = new List<SettingBase> (settings?.Count ?? 0);
 
 			if (settings != null) {
 				settingsList.AddRange (settings);
@@ -236,6 +243,42 @@ namespace Zenvin.Settings.Framework {
 				settings.Sort ();
 			}
 			return settings;
+		}
+
+		/// <summary>
+		/// Gets all direct child Settings that are deemed valid.
+		/// </summary>
+		public virtual List<SettingBase> GetFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
+			List<SettingBase> settingsList = new List<SettingBase> (settings?.Count ?? 0);
+
+			if (settings != null) {
+				for (int i = 0; i < settings.Count; i++) {
+					if (isValid.Invoke (settings[i])) {
+						settingsList.Add (settings[i]);
+					}
+				}
+			}
+			for (int i = 0; i < externalSettings.Count; i++) {
+				if (isValid.Invoke (externalSettings[i])) {
+					settingsList.Add (externalSettings[i]);
+				}
+			}
+
+			if (sorted) {
+				settingsList.Sort ();
+			}
+
+			return settingsList;
+		}
+
+		public virtual List<SettingBase> GetAllFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
+			List<SettingBase> settingsList = new List<SettingBase> (settings.Count);
+			GetSettingsRecursively (this, settingsList);
+
+			if (sorted) {
+				settingsList.Sort ();
+			}
+			return settingsList;
 		}
 
 		internal void AddSetting (SettingBase setting) {
@@ -296,16 +339,33 @@ namespace Zenvin.Settings.Framework {
 			settings.Remove (setting);
 		}
 
-		private void GetSettingsRecursively (SettingsGroup group, List<SettingBase> settingsList) {
+		private void GetSettingsRecursively (SettingsGroup group, List<SettingBase> settingsList, SettingBaseFilter isValid = null) {
 			if (group == null) {
 				return;
 			}
 
-			if (group.settings != null) {
-				settingsList.AddRange (group.settings);
-			}
-			if (group.externalSettings != null) {
-				settingsList.AddRange (group.externalSettings);
+			if (isValid == null) {
+				if (group.settings != null) {
+					settingsList.AddRange (group.settings);
+				}
+				if (group.externalSettings != null) {
+					settingsList.AddRange (group.externalSettings);
+				}
+			} else {
+				if (settings != null) {
+					for (int i = 0; i < settings.Count; i++) {
+						if (isValid.Invoke (settings[i])) {
+							settingsList.Add (settings[i]);
+						}
+					}
+				}
+				if (externalSettings != null) {
+					for (int i = 0; i < externalSettings.Count; i++) {
+						if (isValid.Invoke (externalSettings[i])) {
+							settingsList.Add (externalSettings[i]);
+						}
+					}
+				}
 			}
 
 			if (group.groups != null) {
