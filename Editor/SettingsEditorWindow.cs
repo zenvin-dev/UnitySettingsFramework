@@ -46,8 +46,8 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField] private SettingsAsset asset;
 		private SettingsAsset[] allAssets = null;
 
-		//private float hierarchyWidth = 200f;
 		private float hierarchyWidth = 300f;
+		private bool returnToList = false;
 
 		[NonSerialized] private string searchString = string.Empty;
 		private List<SettingBase> searchResults = null;
@@ -73,26 +73,6 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Menus
-
-		//[MenuItem ("Assets/Create/Scriptable Objects/Zenvin/Settings Asset", priority = -10000)]
-		//private static SettingsAsset HandleCreateSettingsAsset () {
-		//	SettingsAsset asset = FindAsset ();
-
-		//	if (asset == null) {
-		//		asset = CreateInstance<SettingsAsset> ();
-		//		asset.name = "Game Settings";
-		//		asset.Name = "Game Settings";
-
-		//		AssetDatabase.CreateAsset (asset, $"Assets/Game Settings.asset");
-
-		//		AssetDatabase.Refresh ();
-		//		AssetDatabase.SaveAssets ();
-		//	} else {
-		//		Selection.activeObject = asset;
-		//	}
-
-		//	return asset;
-		//}
 
 		[MenuItem ("Window/Zenvin/Settings Asset Editor")]
 		private static void Init () {
@@ -141,9 +121,6 @@ namespace Zenvin.Settings.Framework {
 
 		private void OnGUI () {
 			Event _evt = Event.current;
-			if (_evt.type == EventType.KeyDown && _evt.keyCode == KeyCode.RightShift) {
-				asset = null;
-			}
 
 			// prompt setting asset selection if there is none
 			if (asset == null) {
@@ -206,7 +183,13 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 
-			EditorUtility.SetDirty (asset);
+			if (asset != null) {
+				EditorUtility.SetDirty (asset);
+			}
+			if (returnToList) {
+				returnToList = false;
+				asset = null;
+			}
 		}
 
 
@@ -304,8 +287,7 @@ namespace Zenvin.Settings.Framework {
 
 			GUI.enabled = canAdd;
 			Rect addGroupBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
-			if (GUI.Button (addGroupBtnRect, "Add Group"/*, GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight)*/) && !Application.isPlaying) {
-				//CreateGroupAsChildOfGroup (selected);
+			if (GUI.Button (addGroupBtnRect, "Add Group") && !Application.isPlaying) {
 				GenericMenu gm = new GenericMenu ();
 				PopulateGroupsTypeMenu (gm, selGroup, false);
 				gm.DropDown (addGroupBtnRect);
@@ -321,6 +303,21 @@ namespace Zenvin.Settings.Framework {
 
 			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
 				Selection.activeObject = asset;
+			}
+
+			//GUI.enabled = !Application.isPlaying;
+			//if (GUILayout.Button (
+			//	new GUIContent ("Check for Issues", "Checks if any objects referenced in the currently selected asset are missing a script, and deletes those that are."),
+			//	GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150)
+			//)) {
+			//	FixSettings ();
+			//}
+			//GUI.enabled = true;
+
+			GUILayout.FlexibleSpace ();
+
+			if (GUILayout.Button (new GUIContent ("Asset List"), GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150))) {
+				returnToList = true;
 			}
 
 			GUILayout.EndHorizontal ();
@@ -355,8 +352,6 @@ namespace Zenvin.Settings.Framework {
 			if (dragPreview != null) {
 				EditorGUI.DrawRect (dragPreview.Value, Color.blue);
 			}
-
-			EditorGUILayout.LabelField (hierarchyWidth + " | " + (position.width - hierarchyWidth));
 
 			GUILayout.EndArea ();
 		}
@@ -1260,6 +1255,61 @@ namespace Zenvin.Settings.Framework {
 
 			allAssets = assets.ToArray ();
 		}
+
+
+		// Fix Settings
+
+		private void FixSettings () {
+			if (asset == null) {
+				return;
+			}
+
+			Debug.Log ("[Settings Framework] Fixing Settings...");
+
+			var allHierarchyGroups = new List<ScriptableObject> (asset.GetAllGroups ());
+			allHierarchyGroups.Remove (asset);
+
+			var allHierarchySettings = new List<ScriptableObject> (asset.GetAllSettings (false));
+
+			var allHierarchyChildren = new List<ScriptableObject> ();
+			allHierarchyChildren.AddRange (allHierarchyGroups);
+			allHierarchyChildren.AddRange (allHierarchySettings);
+
+			//for (int i = allHierarchyChildren.Count - 1; i >= 0; i--) {
+			//	EditorUtility.DisplayProgressBar ("Fixing Settings...", $"Eliminating objects with broken scripts ({i} / {allHierarchyChildren.Count})", i / (float)allHierarchyChildren.Count);
+
+			//	if (allHierarchyChildren[i] == null) {
+			//		allHierarchyChildren.RemoveAt (i);
+			//		i--;
+			//		continue;
+			//	}
+
+			//	var ms = MonoScript.FromScriptableObject (allHierarchyChildren[i]);
+			//	if (ms == null) {
+			//		DestroyImmediate (allHierarchyChildren[i], true);
+			//		AssetDatabase.Refresh ();
+			//		AssetDatabase.SaveAssets ();
+			//	}
+			//}
+
+			//for (int i = allHierarchyChildren.Count - 1; i >= 0; i--) {
+				
+			//}
+
+			var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath (AssetDatabase.GetAssetPath (asset));
+			foreach (var sub in subAssets) {
+				var so = sub as ScriptableObject;
+				if (so == null || MonoScript.FromScriptableObject (so) == null) {
+					DestroyImmediate (sub);
+					AssetDatabase.Refresh ();
+					//AssetDatabase.SaveAssets ();
+				}
+			}
+
+			EditorUtility.ClearProgressBar ();
+			Repaint ();
+		}
+
 
 		// Hierarchy Serialization
 
