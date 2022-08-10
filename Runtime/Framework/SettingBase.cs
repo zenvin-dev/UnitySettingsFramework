@@ -269,4 +269,18 @@ namespace Zenvin.Settings.Framework {
 		public string GUID { get; set; }
 		public byte[] Data { get; set; }
 	}
+
+	[Serializable]
+	internal class SettingDataJson {
+		public string GUID;
+		public string Value;
+
+
+		public SettingDataJson () { }
+
+		public SettingDataJson (string guid, string value) {
+			GUID = guid;
+			Value = value;
+		}
+	}
 }
