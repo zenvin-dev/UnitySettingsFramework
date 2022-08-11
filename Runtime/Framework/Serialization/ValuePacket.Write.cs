@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace Zenvin.Settings.Framework.Serialization {
 	public partial class ValuePacket {
@@ -44,6 +45,18 @@ namespace Zenvin.Settings.Framework.Serialization {
 		}
 
 		public bool Write (string key, bool value, bool allowOverwrite = false) {
+			return Write (key, BitConverter.GetBytes (value), allowOverwrite);
+		}
+
+		public bool Write (string key, string value, Encoding encoding = null, bool allowOverwrite = false) {
+			if (value == null) {
+				return false;
+			}
+			encoding = encoding ?? Encoding.UTF8;
+			return Write (key, encoding.GetBytes (value), allowOverwrite);
+		}
+
+		public bool Write (string key, char value, bool allowOverwrite = false) {
 			return Write (key, BitConverter.GetBytes (value), allowOverwrite);
 		}
 

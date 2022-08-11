@@ -12,9 +12,30 @@ namespace Zenvin.Settings.Framework.Serialization {
 		private readonly Dictionary<string, byte[]> data = new Dictionary<string, byte[]> ();
 
 
+		public ValuePacket () { }
+
+		public ValuePacket (byte[] byteData) {
+			FromArray (byteData);
+		}
+
+
+		private void FromArray (byte[] byteData) {
+			using MemoryStream stream = new MemoryStream (byteData);
+			using BinaryReader reader = new BinaryReader (stream);
+
+			int count = reader.ReadInt32 ();
+			for (int i = 0; i < count; i++) {
+				string key = reader.ReadString ();
+				byte[] value = reader.ReadArray ();
+				data[key] = value;
+			}
+		}
+
 		public byte[] ToArray () {
 			using MemoryStream stream = new MemoryStream ();
 			using BinaryWriter writer = new BinaryWriter(stream);
+
+			writer.Write (data.Count);
 
 			foreach (var val in data) {
 				writer.Write (val.Key);
