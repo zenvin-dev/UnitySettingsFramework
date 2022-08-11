@@ -27,6 +27,9 @@ namespace Zenvin.Settings.Framework {
 		public abstract bool IsDirty { get; private protected set; }
 		/// <summary> The sorting order this Setting will have, relative to its group. Assigned automatically on internal groups, can be assigned manually on external ones. </summary>
 		public abstract int OrderInGroup { get; internal set; }
+		/// <summary> The <see cref="SettingsAsset"/> at the root of this Setting's hierarchy. </summary>
+		public SettingsAsset Asset => asset;
+
 
 		internal virtual void Initialize () { }
 
