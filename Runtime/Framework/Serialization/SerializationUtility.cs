@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Zenvin.Settings.Utility {
+namespace Zenvin.Settings.Framework.Serialization {
 	public static class SerializationUtility {
 
 		public static void WriteArray (this BinaryWriter writer, byte[] array) {

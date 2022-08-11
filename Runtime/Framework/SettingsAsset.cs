@@ -3,6 +3,7 @@ using Zenvin.Settings.Utility;
 using UnityEngine;
 using System.IO;
 using System;
+using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
