@@ -16,8 +16,8 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] internal Sprite groupIcon;
 
 		[SerializeField, HideInInspector] private SettingsGroup parent;
-		[SerializeField, HideInInspector] private List<SettingsGroup> groups;
-		[SerializeField, HideInInspector] private List<SettingBase> settings;
+		[SerializeField, HideInInspector] internal List<SettingsGroup> groups;
+		[SerializeField, HideInInspector] internal List<SettingBase> settings;
 
 
 		/// <summary> The icon assigned in the inspector. </summary>
@@ -42,7 +42,7 @@ namespace Zenvin.Settings.Framework {
 		/// <summary> The Group's parent Group. </summary>
 		public SettingsGroup Parent {
 			get => parent;
-			private set => parent = value;
+			internal set => parent = value;
 		}
 
 

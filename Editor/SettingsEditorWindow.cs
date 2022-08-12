@@ -44,6 +44,8 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] private List<SettingsGroup> hierarchyState;
 
 		[SerializeField] private SettingsAsset asset;
+		private SerializedObject assetObj;
+
 		private SettingsAsset[] allAssets = null;
 
 		private float hierarchyWidth = 300f;
@@ -70,6 +72,19 @@ namespace Zenvin.Settings.Framework {
 
 		private HierarchyFilter CurrentFilter => Application.isPlaying ? searchFilter : HierarchyFilter.All;
 		private bool AllowDrag => searchResults == null;
+		private SettingsAsset Asset {
+			get {
+				return asset;
+			}
+			set {
+				if (value == asset) {
+					return;
+				}
+				asset = value;
+				assetObj = new SerializedObject (asset);
+			}
+		}
+		private SerializedObject AssetObject => assetObj ?? (asset == null ? null : new SerializedObject (asset));
 
 
 		// Menus
@@ -80,7 +95,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private static void Init (SettingsAsset edit) {
-			InitWindow ().asset = edit;
+			InitWindow ().Asset = edit;
 		}
 
 		private static SettingsEditorWindow InitWindow () {
@@ -123,7 +138,7 @@ namespace Zenvin.Settings.Framework {
 			Event _evt = Event.current;
 
 			// prompt setting asset selection if there is none
-			if (asset == null) {
+			if (Asset == null) {
 				DrawAssetMenu ();
 				Repaint ();
 				return;
@@ -134,8 +149,8 @@ namespace Zenvin.Settings.Framework {
 				SetupStyles ();
 			}
 
-			if (asset.ChildGroupCount == 0 && asset.SettingCount == 0) {
-				Select (asset);
+			if (Asset.ChildGroupCount == 0 && Asset.SettingCount == 0) {
+				Select (Asset);
 			}
 
 			// create rects for windows partitions
@@ -183,12 +198,13 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 
-			if (asset != null) {
-				EditorUtility.SetDirty (asset);
+			if (Asset != null) {
+				AssetObject?.ApplyModifiedProperties ();
+				EditorUtility.SetDirty (Asset);
 			}
 			if (returnToList) {
 				returnToList = false;
-				asset = null;
+				Asset = null;
 			}
 		}
 
@@ -231,7 +247,7 @@ namespace Zenvin.Settings.Framework {
 
 				// draw select button
 				if (GUI.Button (rect, allAssets[i].name, EditorStyles.label)) {
-					asset = allAssets[i];
+					Asset = allAssets[i];
 					GUILayout.EndScrollView ();
 					GUILayout.EndArea ();
 					return;
@@ -254,9 +270,9 @@ namespace Zenvin.Settings.Framework {
 					GUILayout.EndArea ();
 					return;
 				}
-				asset = CreateInstance<SettingsAsset> ();
-				AssetDatabase.CreateAsset (asset, path);
-				AssetDatabase.SaveAssetIfDirty (asset);
+				Asset = CreateInstance<SettingsAsset> ();
+				AssetDatabase.CreateAsset (Asset, path);
+				AssetDatabase.SaveAssetIfDirty (Asset);
 				AssetDatabase.Refresh ();
 				return;
 			}
@@ -302,17 +318,22 @@ namespace Zenvin.Settings.Framework {
 			GUI.enabled = true;
 
 			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
-				Selection.activeObject = asset;
+				Selection.activeObject = Asset;
 			}
 
-			//GUI.enabled = !Application.isPlaying;
-			//if (GUILayout.Button (
-			//	new GUIContent ("Check for Issues", "Checks if any objects referenced in the currently selected asset are missing a script, and deletes those that are."),
-			//	GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150)
-			//)) {
-			//	FixSettings ();
-			//}
-			//GUI.enabled = true;
+			GUI.enabled = !Application.isPlaying;
+			if (GUILayout.Button (
+				new GUIContent (
+					"Verify Asset integrity",
+					"Checks if any objects referenced in the currently selected asset are missing a script, and deletes those that are." +
+					"\nWill also re-assign lost group references and clean null references."
+				),
+				GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150)
+			)) {
+				//FixSettings ();
+				ReferenceFixUtility.FixAsset (AssetObject);
+			}
+			GUI.enabled = true;
 
 			GUILayout.FlexibleSpace ();
 
@@ -336,7 +357,7 @@ namespace Zenvin.Settings.Framework {
 			// display normal hierarchy
 			if (searchResults == null) {
 				int index = 0;
-				DrawSettingsGroup (asset, 0, ref index);
+				DrawSettingsGroup (Asset, 0, ref index);
 
 				// display hierarchy based on search results
 			} else {
@@ -366,7 +387,7 @@ namespace Zenvin.Settings.Framework {
 			// make read-only while in play mode
 			EditorGUI.BeginDisabledGroup (Application.isPlaying);
 
-			if (editor.target == asset) {
+			if (editor.target == Asset) {
 				EditorGUILayout.LabelField ("GUID", "None (Root)");
 			} else {
 				DrawGuidField (editor.serializedObject, true);
@@ -442,11 +463,11 @@ namespace Zenvin.Settings.Framework {
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupIcon)), new GUIContent ("Icon"));
 
 			// display runtime information on root asset
-			if (group == asset && Application.isPlaying) {
+			if (group == Asset && Application.isPlaying) {
 				GUILayout.Space (10);
-				EditorGUILayout.LabelField ("Registered Groups", asset.RegisteredGroupsCount.ToString (), EditorStyles.textField);
-				EditorGUILayout.LabelField ("Registered Settings", asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
-				EditorGUILayout.LabelField ("Dirty Settings", asset.DirtySettingsCount.ToString (), EditorStyles.textField);
+				EditorGUILayout.LabelField ("Registered Groups", Asset.RegisteredGroupsCount.ToString (), EditorStyles.textField);
+				EditorGUILayout.LabelField ("Registered Settings", Asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
+				EditorGUILayout.LabelField ("Dirty Settings", Asset.DirtySettingsCount.ToString (), EditorStyles.textField);
 			}
 
 			if (!Application.isPlaying) {
@@ -493,7 +514,7 @@ namespace Zenvin.Settings.Framework {
 			// update search results if search string has changed
 			if (search != searchString) {
 				Select (null);
-				var settings = asset.GetAllSettings ();
+				var settings = Asset.GetAllSettings ();
 				searchResults = new List<SettingBase> ();
 				foreach (var s in settings) {
 					if (s.Name.ToUpperInvariant ().Contains (searchString.ToUpperInvariant ())) {
@@ -522,7 +543,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			// validate GUID
-			if (!asset.Editor_IsValidGUID (newVal, group)) {
+			if (!Asset.Editor_IsValidGUID (newVal, group)) {
 				newVal = val;
 			}
 
@@ -621,7 +642,7 @@ namespace Zenvin.Settings.Framework {
 					case EventType.MouseDrag:
 						if (AllowDrag && e.button == 0) {
 							Select (null);
-							if (dragged == null && group != asset) {
+							if (dragged == null && group != Asset) {
 								e.Use ();
 								dragged = group;
 							}
@@ -815,7 +836,7 @@ namespace Zenvin.Settings.Framework {
 			// dragging group onto group
 			if (dGroup != null && hGroup != null) {
 				if (below) {
-					MoveGroup (dGroup, hGroup.Parent ?? asset, index);
+					MoveGroup (dGroup, hGroup.Parent ?? Asset, index);
 				} else {
 					MoveGroup (dGroup, hGroup, 0);
 				}
@@ -848,7 +869,7 @@ namespace Zenvin.Settings.Framework {
 				//gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
 				PopulateGroupsTypeMenu (gm, group);
 
-				if (group != asset) {
+				if (group != Asset) {
 					gm.AddSeparator ("");
 					gm.AddItem (new GUIContent ("Delete Group"), false, DeleteGroup, group);
 				}
@@ -857,9 +878,9 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			gm.AddItem (new GUIContent ("Collapse/All"), false, () => {
-				Select (asset);
+				Select (Asset);
 				expansionState.Clear ();
-				expansionState[asset] = true;
+				expansionState[Asset] = true;
 			});
 			gm.AddItem (new GUIContent ("Collapse/To This"), false, () => { ExpandToSelection (true); });
 
@@ -940,9 +961,9 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			gm.AddItem (new GUIContent ("Collapse/All"), false, () => {
-				Select (asset);
+				Select (Asset);
 				expansionState.Clear ();
-				expansionState[asset] = true;
+				expansionState[Asset] = true;
 			});
 			gm.AddItem (new GUIContent ("Collapse/To This"), false, () => { ExpandToSelection (true); });
 
@@ -960,11 +981,11 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			SettingBase setting = AssetUtility.CreateAsPartOf<SettingBase> (asset, d.SettingType, s => {
+			SettingBase setting = AssetUtility.CreateAsPartOf<SettingBase> (Asset, d.SettingType, s => {
 				s.name = "New Setting";
 				s.Name = "New Setting";
 				s.GUID = Guid.NewGuid ().ToString ();
-				s.asset = asset;
+				s.asset = Asset;
 			});
 
 			d.Group.AddSetting (setting);
@@ -993,7 +1014,7 @@ namespace Zenvin.Settings.Framework {
 			switch (group) {
 				case SettingsGroup g:
 					parentGroup = g;
-					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
+					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (Asset, g => {
 						g.name = "New Group";
 						g.Name = "New Group";
 						g.GUID = Guid.NewGuid ().ToString ();
@@ -1005,7 +1026,7 @@ namespace Zenvin.Settings.Framework {
 					break;
 				case NewSettingData nsd:
 					parentGroup = nsd.Group;
-					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, nsd.SettingType, g => {
+					newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (Asset, nsd.SettingType, g => {
 						g.name = "New Group";
 						g.Name = "New Group";
 						g.GUID = Guid.NewGuid ().ToString ();
@@ -1028,7 +1049,7 @@ namespace Zenvin.Settings.Framework {
 			SettingBase newSetting = Instantiate (set);
 			newSetting.GUID = Guid.NewGuid ().ToString ();
 
-			AssetDatabase.AddObjectToAsset (newSetting, asset);
+			AssetDatabase.AddObjectToAsset (newSetting, Asset);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
@@ -1044,10 +1065,10 @@ namespace Zenvin.Settings.Framework {
 				}
 
 				for (int i = g.ChildGroupCount - 1; i >= 0; i--) {
-					asset.AddChildGroup (g.GetGroupAt (i));
+					Asset.AddChildGroup (g.GetGroupAt (i));
 				}
 				for (int i = g.SettingCount - 1; i >= 0; i--) {
-					asset.AddSetting (g.GetSettingAt (i));
+					Asset.AddSetting (g.GetSettingAt (i));
 				}
 				expansionState.Remove (g);
 				if (g.Parent != null) {
@@ -1260,16 +1281,16 @@ namespace Zenvin.Settings.Framework {
 		// Fix Settings
 
 		private void FixSettings () {
-			if (asset == null) {
+			if (Asset == null) {
 				return;
 			}
 
 			Debug.Log ("[Settings Framework] Fixing Settings...");
 
-			var allHierarchyGroups = new List<ScriptableObject> (asset.GetAllGroups ());
-			allHierarchyGroups.Remove (asset);
+			var allHierarchyGroups = new List<ScriptableObject> (Asset.GetAllGroups ());
+			allHierarchyGroups.Remove (Asset);
 
-			var allHierarchySettings = new List<ScriptableObject> (asset.GetAllSettings (false));
+			var allHierarchySettings = new List<ScriptableObject> (Asset.GetAllSettings (false));
 
 			var allHierarchyChildren = new List<ScriptableObject> ();
 			allHierarchyChildren.AddRange (allHierarchyGroups);
@@ -1296,7 +1317,7 @@ namespace Zenvin.Settings.Framework {
 				
 			//}
 
-			var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath (AssetDatabase.GetAssetPath (asset));
+			var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath (AssetDatabase.GetAssetPath (Asset));
 			foreach (var sub in subAssets) {
 				var so = sub as ScriptableObject;
 				if (so == null || MonoScript.FromScriptableObject (so) == null) {
