@@ -210,16 +210,6 @@ namespace Zenvin.Settings.Framework {
 
 
 		private void DrawAssetMenu () {
-			//Vector2 btnSize = new Vector2 (250f, 50f);
-			//float xOffset = (position.width - btnSize.x) * 0.5f;
-			//float yOffset = (position.height - btnSize.y) * 0.5f;
-
-			//Rect btnRect = new Rect (xOffset, yOffset, btnSize.x, btnSize.y);
-
-			//if (GUI.Button (btnRect, "Create Settings Asset")) {
-			//	//asset = HandleCreateSettingsAsset ();
-			//}
-
 			const float menuWidth = 450f;
 			const float verticalMargin = 20f;
 			Rect menuRect = new Rect ((position.width - menuWidth) * 0.5f, verticalMargin, menuWidth, position.height - verticalMargin * 2f);

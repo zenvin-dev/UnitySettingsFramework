@@ -102,7 +102,7 @@ namespace Zenvin.Settings.Framework {
 
 		[NonSerialized] private int orderInGroup;
 
-		[SerializeField] private T defaultValue;
+		[SerializeField, DefaultValue] private T defaultValue;
 
 
 		/// <summary> The default value of this setting. </summary>
@@ -210,12 +210,19 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		protected virtual void OnInitialize () { }
 
+		/// <summary>
+		/// Called during initialization. Override to change how the initial default value is set.
+		/// </summary>
+		protected virtual T OnSetupInitialDefaultValue () {
+			T value = defaultValue;
+			ProcessValue (ref value);
+			return value;
+		}
 
 		internal sealed override void Initialize () {
 			OnInitialize ();
 
-			T value = defaultValue;
-			ProcessValue (ref value);
+			T value = OnSetupInitialDefaultValue ();
 
 			currentValue = value;
 			cachedValue = value;
