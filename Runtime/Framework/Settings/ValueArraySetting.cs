@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
@@ -6,7 +8,7 @@ namespace Zenvin.Settings.Framework {
 	/// Non-generic base class for a Setting that contains a fixed array of values.<br></br>
 	/// The Setting's actual value represents the index used to retrieve values from that array.
 	/// </summary>
-	public abstract class ValueArraySetting : IntSetting {
+	public abstract class ValueArraySetting : SettingBase<int>, IEnumerable<object> {
 		private protected object[] values;
 
 
@@ -50,9 +52,18 @@ namespace Zenvin.Settings.Framework {
 				value = 0;
 			}
 		}
+
+
+		public IEnumerator<object> GetEnumerator () {
+			return ((IEnumerable<object>)values).GetEnumerator ();
+		}
+		
+		IEnumerator IEnumerable.GetEnumerator () {
+			return values.GetEnumerator ();
+		}
 	}
 
-	public abstract class ValueArraySetting<T> : ValueArraySetting {
+	public abstract class ValueArraySetting<T> : ValueArraySetting, IEnumerable<T> {
 
 		[SerializeField] private T typedDefaultValue;
 
@@ -65,6 +76,13 @@ namespace Zenvin.Settings.Framework {
 
 		protected override int OnSetupInitialDefaultValue () {
 			return Array.IndexOf (values, typedDefaultValue);
+		}
+
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator () {
+			for (int i = 0; i < Length; i++) {
+				yield return this[i];
+			}
 		}
 	}
 }
