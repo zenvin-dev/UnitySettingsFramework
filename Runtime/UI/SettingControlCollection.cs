@@ -24,13 +24,30 @@ namespace Zenvin.Settings.UI {
 		/// </summary>
 		/// <param name="type"> The <see cref="Type"/> of <see cref="SettingControl"/> to retrieve. </param>
 		/// <param name="control"> The found <see cref="SettingControl"/>, if any. </param>
-		public bool TryGetControl (Type type, out SettingControl control) {
+		/// <param name="allowRecursion">Whether to allow recursive searches for valid controls. Slower the first time, but may yield more accurate results. Enabled by default.</param>
+		public bool TryGetControl (Type type, out SettingControl control, bool allowRecursion = true) {
 			if (type == null) {
 				control = null;
 				return false;
 			}
 			InitDict ();
-			return controlDict.TryGetValue (type, out control);
+			bool success = controlDict.TryGetValue (type, out control);
+
+			if (!success && allowRecursion) {
+				Type _type = type;
+				Type baseType = typeof (SettingBase<>);
+
+				do {
+					_type = _type.BaseType;
+					if (controlDict.TryGetValue (_type, out control)) {
+						controlDict[type] = control;
+						break;
+					}
+				} while (_type != null && (!type.IsConstructedGenericType || type.GetGenericTypeDefinition () != baseType));
+				return control != null;
+			}
+
+			return success;
 		}
 
 		/// <summary>
@@ -79,7 +96,7 @@ namespace Zenvin.Settings.UI {
 		}
 
 		private void SetupBaseTypeKeys () {
-			Type baseType = typeof (SettingBase);
+			Type baseType = typeof (SettingBase<>);
 
 			var coll = new List<Type> (controlDict.Keys);
 			foreach (var type in coll) {
@@ -88,7 +105,7 @@ namespace Zenvin.Settings.UI {
 					_type = type.BaseType;
 					controlDict[_type] = controlDict[type];
 
-				} while (_type != baseType && !controlDict.ContainsKey (_type));
+				} while (_type != baseType && (!_type.IsConstructedGenericType || _type.GetGenericTypeDefinition() == baseType) && !controlDict.ContainsKey (_type));
 			}
 		}
 
