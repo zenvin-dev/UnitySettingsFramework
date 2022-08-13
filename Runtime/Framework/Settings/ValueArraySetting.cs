@@ -20,12 +20,27 @@ namespace Zenvin.Settings.Framework {
 		/// <summary>
 		/// Returns one of the Setting's values at a given index.
 		/// </summary>
+		/// <exception cref="IndexOutOfRangeException"/>
 		public object GetValue (int index) {
 			if (index < 0 || index >= Length) {
 				throw new IndexOutOfRangeException (nameof (index));
 			}
 			return values[index];
 		}
+
+		/// <summary>
+		/// Should return a formatted string that represents the Setting's value at the given index.<br></br>
+		/// Will return <c>GetValue(index).ToString()</c> by default (or <see cref="string.Empty"/>, if <c>GetValue(index)</c> happens to return <see langword="null"/>).
+		/// </summary>
+		/// <exception cref="IndexOutOfRangeException"/>
+		public virtual string GetValueString (int index) {
+			var value = GetValue (index);
+			if (value == null) {
+				return string.Empty;
+			}
+			return value.ToString ();
+		}
+
 
 		/// <summary>
 		/// Called during initialization. Should contain the list of values managed by this Setting.
@@ -72,16 +87,6 @@ namespace Zenvin.Settings.Framework {
 		public T CurrentValueTyped => values.Length == 0 ? default : (T)values[CurrentValue];
 
 		public T this[int index] => index < 0 || index >= Length ? throw new IndexOutOfRangeException (nameof (index)) : (T)values[index];
-
-
-		/// <summary>
-		/// Should return a formatted string that represents the Setting's value at the given index.<br></br>
-		/// Will return <c>this[index].ToString()</c> by default.
-		/// </summary>
-		/// <exception cref="IndexOutOfRangeException"/>
-		public virtual string GetValueString (int index) {
-			return this[index].ToString ();
-		}
 
 
 		protected override int OnSetupInitialDefaultValue () {
