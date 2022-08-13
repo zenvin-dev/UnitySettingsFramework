@@ -234,7 +234,7 @@ namespace Zenvin.Settings.Framework {
 		/// The asset needs to be initialized before Settings can be saved.
 		/// </summary>
 		/// <param name="stream"> The <see cref="Stream"/> the method will write to. </param>
-		public int SaveAllSettings (Stream stream) {
+		public int SaveAllSettings (Stream stream, SettingsGroupFilter filter = null) {
 			if (stream == null || !Initialized) {
 				return -1;
 			}
@@ -243,8 +243,10 @@ namespace Zenvin.Settings.Framework {
 				List<SettingData> data = new List<SettingData> (settingsDict.Count);
 
 				foreach (SettingBase set in settingsDict.Values) {
-					if (set != null && set.TrySerialize (out SettingData sd)) {
-						data.Add (sd);
+					if (filter == null || filter (set.group)) {
+						if (set != null && set.TrySerialize (out SettingData sd)) {
+							data.Add (sd);
+						}
 					}
 				}
 
