@@ -31,6 +31,9 @@ namespace Zenvin.Settings.Framework.Serialization {
 			}
 		}
 
+		/// <summary>
+		/// Returns the contents of the packet as a byte array.
+		/// </summary>
 		public byte[] ToArray () {
 			using MemoryStream stream = new MemoryStream ();
 			using BinaryWriter writer = new BinaryWriter(stream);

@@ -74,6 +74,16 @@ namespace Zenvin.Settings.Framework {
 		public T this[int index] => index < 0 || index >= Length ? throw new IndexOutOfRangeException (nameof (index)) : (T)values[index];
 
 
+		/// <summary>
+		/// Should return a formatted string that represents the Setting's value at the given index.<br></br>
+		/// Will return <c>this[index].ToString()</c> by default.
+		/// </summary>
+		/// <exception cref="IndexOutOfRangeException"/>
+		public virtual string GetValueString (int index) {
+			return this[index].ToString ();
+		}
+
+
 		protected override int OnSetupInitialDefaultValue () {
 			return Array.IndexOf (values, typedDefaultValue);
 		}
