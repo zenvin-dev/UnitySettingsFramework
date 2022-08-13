@@ -81,7 +81,11 @@ namespace Zenvin.Settings.Framework {
 					return;
 				}
 				asset = value;
-				assetObj = new SerializedObject (asset);
+				if (asset != null) {
+					assetObj = new SerializedObject (asset);
+				} else {
+					assetObj = null;
+				}
 			}
 		}
 		private SerializedObject AssetObject => assetObj ?? (asset == null ? null : new SerializedObject (asset));
@@ -139,6 +143,7 @@ namespace Zenvin.Settings.Framework {
 
 			// prompt setting asset selection if there is none
 			if (Asset == null) {
+				assetObj = null;
 				DrawAssetMenu ();
 				Repaint ();
 				return;
