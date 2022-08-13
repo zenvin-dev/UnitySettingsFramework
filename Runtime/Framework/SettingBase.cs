@@ -8,6 +8,7 @@ namespace Zenvin.Settings.Framework {
 	public abstract class SettingBase : FrameworkObject, IComparable<SettingBase> {
 
 		public enum ValueChangeMode {
+			Initialize,
 			Set,
 			Reset,
 			Revert,
@@ -226,6 +227,9 @@ namespace Zenvin.Settings.Framework {
 
 			currentValue = value;
 			cachedValue = value;
+
+			OnValueChanged (ValueChangeMode.Initialize);
+			ValueChanged?.Invoke (ValueChangeMode.Initialize);
 		}
 
 
