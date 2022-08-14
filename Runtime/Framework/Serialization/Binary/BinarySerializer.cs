@@ -7,13 +7,10 @@ namespace Zenvin.Settings.Framework.Serialization {
 		private readonly Dictionary<string, byte[]> data = new Dictionary<string, byte[]> ();
 
 
-		public static BinarySerializer ReadFromFile (FileInfo file) {
+		public bool ReadFromFile (FileInfo file) {
 			if (file == null || !file.Exists) {
-				return null;
+				return false;
 			}
-
-			// create new BinarySerializer instance
-			var obj = new BinarySerializer ();
 
 			// open save file
 			using FileStream stream = file.OpenRead ();
@@ -27,19 +24,19 @@ namespace Zenvin.Settings.Framework.Serialization {
 				string guid = reader.ReadString ();
 
 				// read saved data
-				byte[] data = reader.ReadArray ();
+				byte[] binData = reader.ReadArray ();
 
 				// associate data with guid
-				obj.data[guid] = data;
+				data[guid] = binData;
 			}
 
 			// return filled instance
-			return obj;
+			return true;
 		}
 
-		public void WriteToFile (FileInfo file) {
+		public bool WriteToFile (FileInfo file) {
 			if (file == null) {
-				return;
+				return false;
 			}
 
 			// create save file
@@ -59,6 +56,7 @@ namespace Zenvin.Settings.Framework.Serialization {
 
 			// save changes to disk
 			stream.Flush ();
+			return true;
 		}
 
 

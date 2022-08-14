@@ -17,22 +17,24 @@ namespace Zenvin.Settings.Framework.Serialization {
 			SaveFile = file;
 		}
 
-		public static BinaryFileSerializer CreateFromFile (FileInfo file) {
-			BinaryFileSerializer serializer = ReadFromFile (file) as BinaryFileSerializer;
-			if (serializer != null) {
-				serializer.SaveFile = file;
-			}
-			return serializer;
+		public bool ReadFromFile () {
+			return ReadFromFile (SaveFile);
+		}
+
+		public bool WriteToFile () {
+			return WriteToFile (SaveFile);
 		}
 
 
 		void ISerializerCallbackReceiver.FinalizeSerialization () {
-			WriteToFile (SaveFile);
+			WriteToFile ();
+		}
+
+		void ISerializerCallbackReceiver.InitializeDeserialization () {
+			ReadFromFile ();
 		}
 
 		void ISerializerCallbackReceiver.FinalizeDeserialization () { }
-
-		void ISerializerCallbackReceiver.InitializeDeserialization () { }
 
 		void ISerializerCallbackReceiver.InitializeSerialization () { }
 

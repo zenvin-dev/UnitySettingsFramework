@@ -14,12 +14,10 @@ namespace Zenvin.Settings.Framework.Serialization {
 		}
 
 
-		public static JsonSerializer ReadFromFile (FileInfo file) {
+		public bool ReadFromFile (FileInfo file) {
 			if (file == null || !file.Exists) {
-				return null;
+				return false;
 			}
-
-			JsonSerializer obj = new JsonSerializer ();
 
 			// prepare json reader
 			using FileStream stream = file.OpenRead ();
@@ -27,20 +25,21 @@ namespace Zenvin.Settings.Framework.Serialization {
 			using JsonTextReader jsonReader = new JsonTextReader (reader);
 
 			// read json data
-			JObject data = JToken.ReadFrom (jsonReader) as JObject;
-			obj.data = data;
+			JObject jData = JToken.ReadFrom (jsonReader) as JObject;
+			data = jData;
 
-			// return serializer instance of reading data was successful
-			return data == null ? null : obj;
+			// return whether reading data was successful
+			return data != null;
 		}
 
-		public void WriteToFile (FileInfo file, Formatting formatting = Formatting.Indented, params JsonConverter[] converters) {
+		public bool WriteToFile (FileInfo file, Formatting formatting = Formatting.Indented, params JsonConverter[] converters) {
 			if (file == null) {
-				return;
+				return false;
 			}
 
 			string json = JsonConvert.SerializeObject (data, formatting, converters);
 			File.WriteAllText (file.FullName, json);
+			return true;
 		}
 
 
