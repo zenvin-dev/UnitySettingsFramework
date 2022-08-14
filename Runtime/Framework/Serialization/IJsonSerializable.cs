@@ -1,6 +1,8 @@
+using Newtonsoft.Json.Linq;
+
 namespace Zenvin.Settings.Framework.Serialization {
 	public interface IJsonSerializable {
-		void OnDeserializeJson (string data);
-		string OnSerializeJson ();
+		void OnDeserializeJson (JObject data);
+		void OnSerializeJson (JObject data);
 	}
 }

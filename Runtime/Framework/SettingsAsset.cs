@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using Zenvin.Settings.Framework.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -307,7 +308,9 @@ namespace Zenvin.Settings.Framework {
 			foreach (var setting in settingsDict.Values) {
 				if (setting is IJsonSerializable jSerializable) {
 					if (filter == null || filter (setting.group)) {
-						data.Add (new SettingDataJson (setting.GUID, jSerializable.OnSerializeJson ()));
+						JObject jObject = new JObject ();
+						jSerializable.OnSerializeJson (jObject);
+						data.Add (new SettingDataJson (setting.GUID, jObject.ToString()));
 					}
 				}
 			}
@@ -342,7 +345,13 @@ namespace Zenvin.Settings.Framework {
 			for (int i = 0; i < data.Count; i++) {
 				if (data[i] != null) {
 					if (settingsDict.TryGetValue (data[i].GUID, out SettingBase setting) && setting is IJsonSerializable jSerializable) {
-						jSerializable.OnDeserializeJson (data[i].Value);
+						JObject jObject;
+						try {
+							jObject = JObject.Parse (data[i].Value);
+						} catch {
+							continue;
+						}
+						jSerializable.OnDeserializeJson (jObject);
 						loaded++;
 					}
 				}
