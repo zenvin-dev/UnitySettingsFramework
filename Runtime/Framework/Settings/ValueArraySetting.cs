@@ -1,9 +1,7 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -85,8 +83,10 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField] private T typedDefaultValue;
 
 
-		public T CachedValueTyped => values.Length == 0 ? default : (T)values[CachedValue];
-		public T CurrentValueTyped => values.Length == 0 ? default : (T)values[CurrentValue];
+		/// <summary> The value at the index of CachedValue, cast to <see cref="T"/>. </summary>
+		public T CachedValueTyped => CachedValue < 0 || CachedValue >= values.Length ? default : (T)values[CachedValue];
+		/// <summary> The value at the index of CurrentValue, cast to <see cref="T"/>. </summary>
+		public T CurrentValueTyped => CurrentValue < 0 || CurrentValue >= values.Length ? default : (T)values[CurrentValue];
 
 		public T this[int index] => index < 0 || index >= Length ? throw new IndexOutOfRangeException (nameof (index)) : (T)values[index];
 

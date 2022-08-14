@@ -8,6 +8,7 @@ namespace Zenvin.Settings.Framework.Serialization {
 	public sealed class JsonFileSerializer : JsonSerializer, ISerializerCallbackReceiver {
 
 		public FileInfo SaveFile { get; private set; }
+		public Formatting OutputFormatting { get; set; } = Formatting.Indented;
 		public JsonConverter[] Converters { get; set; }
 
 
@@ -29,7 +30,7 @@ namespace Zenvin.Settings.Framework.Serialization {
 
 
 		void ISerializerCallbackReceiver.FinalizeSerialization () {
-			WriteToFile (SaveFile, Converters);
+			WriteToFile (SaveFile, OutputFormatting, Converters);
 		}
 
 		void ISerializerCallbackReceiver.FinalizeDeserialization () { }

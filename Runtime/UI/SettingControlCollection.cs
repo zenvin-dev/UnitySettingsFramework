@@ -10,7 +10,7 @@ namespace Zenvin.Settings.UI {
 	[Serializable]
 	public class SettingControlCollection {
 
-		private readonly Dictionary<Type, SettingControl> controlDict = new Dictionary<Type, SettingControl>();
+		private readonly Dictionary<Type, SettingControl> controlDict = new Dictionary<Type, SettingControl> ();
 
 		[SerializeField] private bool assignBaseTypes = true;
 		[SerializeField] private SettingControl[] controls;
@@ -37,13 +37,13 @@ namespace Zenvin.Settings.UI {
 				Type _type = type;
 				Type baseType = typeof (SettingBase<>);
 
-				do {
+				while (_type != null && (!type.IsConstructedGenericType || type.GetGenericTypeDefinition () != baseType)) {
 					_type = _type.BaseType;
 					if (controlDict.TryGetValue (_type, out control)) {
 						controlDict[type] = control;
 						break;
 					}
-				} while (_type != null && (!type.IsConstructedGenericType || type.GetGenericTypeDefinition () != baseType));
+				}
 				return control != null;
 			}
 
@@ -73,7 +73,7 @@ namespace Zenvin.Settings.UI {
 		/// Returns either the last <see cref="SettingControl"/> matching the given <see cref="Type"/>, or <c>null</c>.
 		/// </summary>
 		public SettingControl GetControl<T> () where T : SettingBase {
-			if (TryGetControl (typeof(T), out SettingControl control)) {
+			if (TryGetControl (typeof (T), out SettingControl control)) {
 				return control;
 			}
 			return null;
@@ -105,7 +105,7 @@ namespace Zenvin.Settings.UI {
 					_type = type.BaseType;
 					controlDict[_type] = controlDict[type];
 
-				} while (_type != baseType && (!_type.IsConstructedGenericType || _type.GetGenericTypeDefinition() == baseType) && !controlDict.ContainsKey (_type));
+				} while (_type != baseType && (!_type.IsConstructedGenericType || _type.GetGenericTypeDefinition () == baseType) && !controlDict.ContainsKey (_type));
 			}
 		}
 

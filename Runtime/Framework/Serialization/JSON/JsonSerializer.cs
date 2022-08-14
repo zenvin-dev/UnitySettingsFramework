@@ -34,19 +34,13 @@ namespace Zenvin.Settings.Framework.Serialization {
 			return data == null ? null : obj;
 		}
 
-		public void WriteToFile (FileInfo file, params JsonConverter[] converters) {
+		public void WriteToFile (FileInfo file, Formatting formatting = Formatting.Indented, params JsonConverter[] converters) {
 			if (file == null) {
 				return;
 			}
 
-			// prepare json writer
-			using StreamWriter stream = file.CreateText ();
-			using JsonTextWriter writer = new JsonTextWriter (stream);
-
-			// write json to stream
-			data.WriteTo (writer, converters);
-			// save changes to disk
-			stream.Flush ();
+			string json = JsonConvert.SerializeObject (data, formatting, converters);
+			File.WriteAllText (file.FullName, json);
 		}
 
 
