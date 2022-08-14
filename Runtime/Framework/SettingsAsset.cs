@@ -231,126 +231,74 @@ namespace Zenvin.Settings.Framework {
 		// Saving & Loading
 
 		/// <summary>
-		/// Saves all Settings to a <see cref="Stream"/>.<br></br>
-		/// Returns the number of saved Settings, or -1 if there was an error.<br></br>
-		/// The asset needs to be initialized before Settings can be saved.
+		/// Saves all Settings using a provided <see cref="ISerializer{T}"/>.<br></br>
+		/// Returns <see langword="true"/> if serialization was successful.<br></br>
+		/// The <see cref="SettingsAsset"/> needs to be initialized before saving can take place.
 		/// </summary>
-		/// <param name="stream"> The <see cref="Stream"/> the method will write to. </param>
-		public int SaveAllSettings (Stream stream, SettingsGroupFilter filter = null) {
-			if (stream == null || !Initialized) {
-				return -1;
+		/// <typeparam name="T">The type of object used to manage save data.</typeparam>
+		/// <param name="serializer">The serializer used to save data.</param>
+		/// <param name="filter">Filter for deciding which settings should be considered for saving. Leave at <see langword="null"/> to save all.</param>
+		public bool SaveSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
+			if (!Initialized || serializer == null) {
+				return false;
 			}
 
-			using (BinaryWriter writer = new BinaryWriter (stream)) {
-				List<SettingData> data = new List<SettingData> (settingsDict.Count);
-
-				foreach (SettingBase set in settingsDict.Values) {
-					if (filter == null || filter (set.group)) {
-						if (set != null && set.TrySerialize (out SettingData sd)) {
-							data.Add (sd);
-						}
-					}
-				}
-
-				writer.Write (data.Count);
-				for (int i = 0; i < data.Count; i++) {
-					writer.Write (data[i].GUID);
-					writer.WriteArray (data[i].Data);
-				}
-
-				return data.Count;
+			var advSer = serializer as ISerializerCallbackReceiver;
+			if (advSer != null) {
+				advSer.InitializeSerialization ();
 			}
+
+			foreach (SettingBase setting in settingsDict.Values) {
+				if (filter != null && !filter (setting)) {
+					continue;
+				}
+
+				if (setting is ISerializable<T> serializable) {
+					T obj = new T ();
+					serializable.OnSerialize (obj);
+					serializer.Serialize (setting.GUID, obj);
+				}
+			}
+
+			if (advSer != null) {
+				advSer.FinalizeSerialization ();
+			}
+			return true;
 		}
 
 		/// <summary>
-		/// Loads all Settings from a <see cref="Stream"/>.<br></br>
-		/// Returns the number of loaded Settings, or -1 if there was an error.<br></br>
-		/// The asset needs to be initialized before Settings can be loaded.
+		/// Loads Setting values using a provided <see cref="ISerializer{T}"/>.<br></br>
+		/// Returns <see langword="true"/> if serialization was successful.<br></br>
+		/// The <see cref="SettingsAsset"/> needs to be initialized before saving can take place.
 		/// </summary>
-		/// <param name="reader"> The <see cref="Stream"/> the method will read from. </param>	
-		public int LoadAllSettings (Stream stream) {
-			if (!Initialized || stream == null || stream.Length - stream.Position == 0) {
-				return -1;
+		/// <typeparam name="T">The type of object used to manage load data.</typeparam>
+		/// <param name="serializer">The serializer used to load data.</param>
+		/// <param name="filter">Filter for deciding which settings should be considered for loading. Leave at <see langword="null"/> to load all.</param>
+		public bool LoadSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
+			if (!Initialized || serializer == null) {
+				return false;
 			}
 
-			using (BinaryReader reader = new BinaryReader (stream)) {
-				int loaded = 0;
-
-				int count = reader.ReadInt32 ();
-				for (int i = 0; i < count; i++) {
-					string guid = reader.ReadString ();
-					byte[] data = reader.ReadArray ();
-
-					if (settingsDict.TryGetValue (guid, out SettingBase setting)) {
-						setting.Deserialize (data);
-						loaded++;
-					}
-				}
-
-				return loaded;
-			}
-		}
-
-
-		/// <summary>
-		/// Compiles a JSON string from the values of all Settings implementing the <see cref="IJsonSerializable"/> interface.<br></br>
-		/// Returns the number of saved Settings, of -1 if there was an error.
-		/// </summary>
-		/// <param name="json">The full JSON string produced by the method.</param>
-		/// <param name="filter">Can be used to save only Settings from specific Groups. Leave empty to save all Settings.</param>
-		public int SaveAllSettingsJson (out string json, SettingsGroupFilter filter = null) {
-			if (!Initialized) {
-				json = string.Empty;
-				return -1;
+			var advSer = serializer as ISerializerCallbackReceiver;
+			if (advSer != null) {
+				advSer.InitializeDeserialization ();
 			}
 
-			JObject data = new JObject ();
 
-			foreach (var setting in settingsDict.Values) {
-				if (setting is IJsonSerializable jSerializable) {
-					if (filter == null || filter (setting.group)) {
-						JObject jObject = new JObject ();
-						jSerializable.OnSerializeJson (jObject);
-						data.Add (setting.GUID, jObject);
+			var enumerator = serializer.GetSerializedData ();
+			if (enumerator != null) {
+				foreach (var data in enumerator) {
+					if (settingsDict.TryGetValue (data.Key, out SettingBase setting) && (filter == null || filter (setting)) && setting is ISerializable<T> serializable) {
+						serializable.OnDeserialize (data.Value);
 					}
 				}
 			}
 
-			json = data.ToString ();
-			return data.Count;
-		}
 
-		/// <summary>
-		/// Loads all Settings from a JSON string.<br></br>
-		/// Returns the number of loaded Settings, or -1 if there was an error.<br></br>
-		/// The asset needs to be initialized before Settings can be saved.
-		/// </summary>
-		/// <param name="json">The JSON string containing Settings' save data.</param>
-		public int LoadAllSettingsJson (string json) {
-			if (!Initialized) {
-				return -1;
+			if (advSer != null) {
+				advSer.FinalizeDeserialization ();
 			}
-			if (json == null) {
-				return -1;
-			}
-
-			JObject data;
-			try {
-				data = JObject.Parse (json);
-			} catch {
-				return -1;
-			}
-
-			int loaded = 0;
-
-			foreach (var settingData in data) {
-				if (settingsDict.TryGetValue (settingData.Key, out SettingBase setting) && setting is IJsonSerializable jSerializable && settingData.Value is JObject jObj) {
-					jSerializable.OnDeserializeJson (jObj);
-					loaded++;
-				}
-			}
-
-			return loaded;
+			return true;
 		}
 
 

@@ -751,7 +751,7 @@ MonoBehaviour:
       NameLocalizationKey: 
       Description: 
       DescriptionLocalizationKey: 
-      ParentGroupGUID: graphics
+      ParentGroupGUID: abb7bfd6-d036-4993-b17e-ef04e58cb962
       Values:
       - Key: 
         Value: Disabled
@@ -791,8 +791,8 @@ MonoBehaviour:
     },\n        {\n            \"GUID\": \"anti_aliasing\",\n            \"Type\":
     \"dropdown\",\n            \"Name\": \"Anti-Aliasing\",\n            \"NameLocalizationKey\":
     \"\",\n            \"Description\": \"\",\n            \"DescriptionLocalizationKey\":
-    \"\",\n            \"ParentGroupGUID\": \"graphics\",\n            \"Values\":
-    [\n                {\n                    \"Key\": \"\",\n                   
+    \"\",\n            \"ParentGroupGUID\": \"abb7bfd6-d036-4993-b17e-ef04e58cb962\",\n           
+    \"Values\": [\n                {\n                    \"Key\": \"\",\n                   
     \"Value\": \"Disabled\"\n                },\n                {\n                   
     \"Key\": \"\",\n                    \"Value\": \"2x Multisampling\"\n               
     },\n                {\n                    \"Key\": \"\",\n                   

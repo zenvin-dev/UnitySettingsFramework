@@ -1,14 +1,29 @@
-using System;
+using Newtonsoft.Json.Linq;
+using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
-	public class BoolSetting : SettingBase<bool> {
+	public class BoolSetting : SettingBase<bool>, ISerializable<JObject>, ISerializable<ValuePacket> {
 
-		protected override bool OnDeserialize (byte[] data) {
-			return BitConverter.ToBoolean (data, 0);
+		void ISerializable<JObject>.OnDeserialize (JObject data) {
+			if (data.TryGetValue ("value", out JToken token)) {
+				SetValue ((bool)token);
+				ApplyValue ();
+			}
 		}
 
-		protected override byte[] OnSerialize () {
-			return BitConverter.GetBytes (CurrentValue);
+		void ISerializable<ValuePacket>.OnDeserialize (ValuePacket value) {
+			if (value.TryRead ("value", out bool val)) {
+				SetValue (val);
+				ApplyValue ();
+			}
+		}
+
+		void ISerializable<JObject>.OnSerialize (JObject data) {
+			data.Add ("value", CurrentValue);
+		}
+
+		void ISerializable<ValuePacket>.OnSerialize (ValuePacket value) {
+			value.Write ("value", CurrentValue);
 		}
 
 	}

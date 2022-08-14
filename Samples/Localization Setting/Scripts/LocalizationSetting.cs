@@ -1,12 +1,13 @@
-using UnityEngine.Localization.Settings;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using Zenvin.Settings.Framework;
-using UnityEngine.Localization;
 using UnityEngine;
-using System;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Samples {
-	public class LocalizationSetting : SettingBase<int> {
+	public class LocalizationSetting : SettingBase<int>, ISerializable<JObject>, ISerializable<ValuePacket> {
 
 		private List<Locale> locales;
 
@@ -42,12 +43,26 @@ namespace Zenvin.Settings.Samples {
 		}
 
 
-		protected override byte[] OnSerialize () {
-			return BitConverter.GetBytes (CurrentValue);
+		void ISerializable<JObject>.OnDeserialize (JObject value) {
+			if (value.TryGetValue ("value", out JToken token)) {
+				SetValue ((int)token);
+				ApplyValue ();
+			}
 		}
 
-		protected override int OnDeserialize (byte[] data) {
-			return BitConverter.ToInt32 (data, 0);
+		void ISerializable<ValuePacket>.OnDeserialize (ValuePacket value) {
+			if (value.TryRead ("value", out int val)) {
+				SetValue (val);
+				ApplyValue ();
+			}
+		}
+
+		void ISerializable<JObject>.OnSerialize (JObject value) {
+			value.Add ("value", CurrentValue);
+		}
+
+		void ISerializable<ValuePacket>.OnSerialize (ValuePacket value) {
+			value.Write ("value", CurrentValue);
 		}
 
 	}

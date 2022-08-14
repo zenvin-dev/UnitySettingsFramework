@@ -2,6 +2,7 @@ using Zenvin.Settings.UI;
 using UnityEngine;
 
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Samples {
 	public class SettingsMenu : MonoBehaviour {
@@ -11,6 +12,8 @@ namespace Zenvin.Settings.Samples {
 		[SerializeField] private RectTransform settingHeaderPrefab;
 		[SerializeField] private SettingControlCollection controlPrefabs;
 		[SerializeField] private TabView tabView;
+
+		private JsonSerializer serializer;
 
 
 		private void Start () {
@@ -88,6 +91,10 @@ namespace Zenvin.Settings.Samples {
 
 		public void ResetAllSettings () {
 			asset.ResetAllSettings (true);
+		}
+
+		public void Save () {
+			asset.SaveSettings (serializer);
 		}
 
 	}

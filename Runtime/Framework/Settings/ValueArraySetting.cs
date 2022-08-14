@@ -1,7 +1,9 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenvin.Settings.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>

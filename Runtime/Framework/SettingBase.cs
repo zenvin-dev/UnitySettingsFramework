@@ -62,20 +62,6 @@ namespace Zenvin.Settings.Framework {
 		private protected abstract bool OnReset (bool apply);
 
 
-		internal bool TrySerialize (out SettingData data) {
-			byte[] valueData = SerializeInternal ();
-			data = valueData == null ? null : new SettingData () { GUID = GUID, Data = valueData };
-			return data != null;
-		}
-
-		private protected abstract byte[] SerializeInternal ();
-
-
-		internal void Deserialize (byte[] data) => DeserializeInternal (data);
-
-		private protected abstract void DeserializeInternal (byte[] data);
-
-
 		public override string ToString () {
 			return $"Setting '{Name}' ('{GUID}')";
 		}
@@ -194,19 +180,6 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void OnValueChanged (ValueChangeMode mode) { }
 
 		/// <summary>
-		/// Called when the setting should be saved.<br></br>
-		/// Should return <see cref="CurrentValue"/> as <c>byte[]</c>.
-		/// </summary>
-		protected abstract byte[] OnSerialize ();
-
-		/// <summary>
-		/// Called when the setting should is loaded.<br></br>
-		/// Should convert the given <c>byte[]</c> to <see cref="T"/>, so it can be applied to the setting.
-		/// </summary>
-		/// <param name="data"> The loaded data. </param>
-		protected abstract T OnDeserialize (byte[] data);
-
-		/// <summary>
 		/// Called after the setting has been registered in the Settings Asset.
 		/// Use this to set up necessary values.
 		/// </summary>
@@ -265,16 +238,6 @@ namespace Zenvin.Settings.Framework {
 			OnValueChanged (ValueChangeMode.Reset);
 			ValueChanged?.Invoke (ValueChangeMode.Reset);
 			return true;
-		}
-
-		private protected sealed override byte[] SerializeInternal () {
-			return OnSerialize ();
-		}
-
-		private protected sealed override void DeserializeInternal (byte[] data) {
-			T value = OnDeserialize (data);
-			SetValue (value);
-			ApplyValue ();
 		}
 
 	}
