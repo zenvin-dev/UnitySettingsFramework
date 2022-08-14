@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using Zenvin.Settings.Framework.Serialization;
 using Newtonsoft.Json.Linq;
+using Assets.UnitySettingsFramework.Runtime.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -303,19 +304,19 @@ namespace Zenvin.Settings.Framework {
 				return -1;
 			}
 
-			List<SettingDataJson> data = new List<SettingDataJson> ();
+			JObject data = new JObject ();
 
 			foreach (var setting in settingsDict.Values) {
 				if (setting is IJsonSerializable jSerializable) {
 					if (filter == null || filter (setting.group)) {
 						JObject jObject = new JObject ();
 						jSerializable.OnSerializeJson (jObject);
-						data.Add (new SettingDataJson (setting.GUID, jObject.ToString()));
+						data.Add (setting.GUID, jObject);
 					}
 				}
 			}
 
-			json = JsonUtility.ToJson (data);
+			json = data.ToString ();
 			return data.Count;
 		}
 
@@ -333,27 +334,19 @@ namespace Zenvin.Settings.Framework {
 				return -1;
 			}
 
-			List<SettingDataJson> data;
+			JObject data;
 			try {
-				data = JsonUtility.FromJson<List<SettingDataJson>> (json);
+				data = JObject.Parse (json);
 			} catch {
 				return -1;
 			}
 
 			int loaded = 0;
 
-			for (int i = 0; i < data.Count; i++) {
-				if (data[i] != null) {
-					if (settingsDict.TryGetValue (data[i].GUID, out SettingBase setting) && setting is IJsonSerializable jSerializable) {
-						JObject jObject;
-						try {
-							jObject = JObject.Parse (data[i].Value);
-						} catch {
-							continue;
-						}
-						jSerializable.OnDeserializeJson (jObject);
-						loaded++;
-					}
+			foreach (var settingData in data) {
+				if (settingsDict.TryGetValue (settingData.Key, out SettingBase setting) && setting is IJsonSerializable jSerializable && settingData.Value is JObject jObj) {
+					jSerializable.OnDeserializeJson (jObj);
+					loaded++;
 				}
 			}
 

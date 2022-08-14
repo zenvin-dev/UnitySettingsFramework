@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using Assets.UnitySettingsFramework.Runtime.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -276,25 +277,5 @@ namespace Zenvin.Settings.Framework {
 			ApplyValue ();
 		}
 
-	}
-
-	[Serializable]
-	internal class SettingData {
-		public string GUID { get; set; }
-		public byte[] Data { get; set; }
-	}
-
-	[Serializable]
-	internal class SettingDataJson {
-		public string GUID;
-		public string Value;
-
-
-		public SettingDataJson () { }
-
-		public SettingDataJson (string guid, string value) {
-			GUID = guid;
-			Value = value;
-		}
 	}
 }
