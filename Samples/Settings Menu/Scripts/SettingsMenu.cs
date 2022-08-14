@@ -3,6 +3,7 @@ using UnityEngine;
 
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using System.IO;
 
 namespace Zenvin.Settings.Samples {
 	public class SettingsMenu : MonoBehaviour {
@@ -13,7 +14,7 @@ namespace Zenvin.Settings.Samples {
 		[SerializeField] private SettingControlCollection controlPrefabs;
 		[SerializeField] private TabView tabView;
 
-		private JsonSerializer serializer;
+		private JsonSerializer serializer = new JsonSerializer();
 
 
 		private void Start () {
@@ -94,7 +95,9 @@ namespace Zenvin.Settings.Samples {
 		}
 
 		public void Save () {
-			asset.SaveSettings (serializer);
+			asset.SerializeSettings (serializer);
+			Debug.Log (serializer.ToString ());
+			serializer.WriteToFile (new FileInfo (Path.Combine (Application.dataPath, "settings.json")));
 		}
 
 	}

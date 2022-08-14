@@ -238,7 +238,7 @@ namespace Zenvin.Settings.Framework {
 		/// <typeparam name="T">The type of object used to manage save data.</typeparam>
 		/// <param name="serializer">The serializer used to save data.</param>
 		/// <param name="filter">Filter for deciding which settings should be considered for saving. Leave at <see langword="null"/> to save all.</param>
-		public bool SaveSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
+		public bool SerializeSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
 			if (!Initialized || serializer == null) {
 				return false;
 			}
@@ -274,7 +274,7 @@ namespace Zenvin.Settings.Framework {
 		/// <typeparam name="T">The type of object used to manage load data.</typeparam>
 		/// <param name="serializer">The serializer used to load data.</param>
 		/// <param name="filter">Filter for deciding which settings should be considered for loading. Leave at <see langword="null"/> to load all.</param>
-		public bool LoadSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
+		public bool DeserializeSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
 			if (!Initialized || serializer == null) {
 				return false;
 			}

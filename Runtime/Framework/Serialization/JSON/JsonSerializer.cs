@@ -62,5 +62,10 @@ namespace Zenvin.Settings.Framework.Serialization {
 			data[guid] = value;
 		}
 
+
+		public override string ToString () {
+			return data.ToString ();
+		}
+
 	}
 }
