@@ -113,7 +113,11 @@ From that point on, it is the serializer's task to store this information.
 Deserializing Settings starts with a call to `SettingsAsset.DeserializeSettings`. This method needs to be passed an `ISerializer<T>` instance. \
 That instance then has to provide a collection of all saved [`GUID`s](#20-guid), along with their associated data in the form of an instance of `T`, via `ISerializer<T>.GetSerializedData()`. \
 Subsequently, that collection will be iterated and any Setting whose GUID was found in the data and that implements a fitting `ISerializable<T>` will receive the respective data to read from. This again means that **any Settings that do not implement `ISerializable` of the required type will be ignored during the deserialization process.** \
-Just with serialization, the specific way of deserialization will have to be implemented by the consumer, using `ISerializable<T>.OnDeserialize`.
+Just with serialization, the specific way of deserialization will have to be implemented by the consumer, using `ISerializable<T>.OnDeserialize`. \
+\
+**Important** \
+Due to the generic nature of the deserialization process, Settings' values cannot automatically be assigned to the loaded data. This means that calling `SettingBase<T>.SetValue` manually is required at the end of the `ISerializable<T>.OnDeserialize` method, if that method is supposed to fulfil its function. \
+The Framework will however automatically call `ApplyValue` on each deserialized Setting.
 
 ### Hooking into the Serialization/Deserialization process
 Sometimes, the serialized or deserialized data might need to be processed, such as loading data from a file before deserialization, or writing it to a file after serialization. \
@@ -126,7 +130,7 @@ This interface implements the following four methods, which can be used to respo
 
 See [JSON File Serializer](./Runtime/Framework/Serialization/JSON/JsonFileSerializer.cs) or [Binary File Serializer](./Runtime/Framework/Serialization/Binary/BinaryFileSerializer.cs) for examples on how to implement the interface.
 
-Note that none of the above methods will be invoked, if the serialization/deserialization fails instantly, due to the executing `SettingsAsset` not being initialized. \
+Note that none of the above methods will be invoked, if the serialization/deserialization fails instantly, due to the executing `SettingsAsset` not being initialized.
 
 ## 7. Loading external Settings
 The Framework allows loading one or multiple Settings and Setting Groups from one or several JSON strings.
