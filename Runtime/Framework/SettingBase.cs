@@ -8,12 +8,30 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase : FrameworkObject, IComparable<SettingBase> {
 
+		/// <summary>
+		/// Enum used in <see cref="SettingBase{T}.ValueChanged"/>, to convey how the Setting's value was changed.
+		/// </summary>
 		public enum ValueChangeMode {
+			/// <summary> The Setting was initialized by <see cref="SettingsAsset.Initialize"/>. </summary>
 			Initialize,
+			/// <summary> The Setting's value was set by <see cref="SettingBase{T}.SetValue(T)"/>. </summary>
 			Set,
+			/// <summary>
+			/// The Setting's value was reset to its default by <see cref="ResetValue(bool)"/>.<br></br>
+			/// <see cref="IsDirty"/> will be <see langword="true"/>.
+			/// </summary>
 			Reset,
+			/// <summary> The Setting's cached value was reverted to its previously applied state by <see cref="RevertValue"/> </summary>
 			Revert,
-			Apply
+			/// <summary>
+			/// The Setting's cached value was applied by <see cref="ApplyValue"/>.<br></br>
+			/// <see cref="SettingBase{T}.CachedValue"/> and <see cref="SettingBase{T}.CurrentValue"/> will be the same.
+			/// </summary>
+			Apply,
+			/// <summary>
+			/// The Setting's value was changed due to deserialization by <see cref="SettingsAsset.DeserializeSettings{T}(Serialization.ISerializer{T}, SettingsGroup.SettingBaseFilter)"/>.
+			/// </summary>
+			Deserialize,
 		}
 
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
@@ -53,6 +71,7 @@ namespace Zenvin.Settings.Framework {
 
 		private protected abstract bool OnRevert ();
 
+
 		/// <summary>
 		/// Resets the setting to its default value.
 		/// </summary>
@@ -60,6 +79,9 @@ namespace Zenvin.Settings.Framework {
 		public bool ResetValue (bool apply) => OnReset (apply);
 
 		private protected abstract bool OnReset (bool apply);
+
+
+		internal abstract void OnAfterDeserialize ();
 
 
 		public override string ToString () {
@@ -194,6 +216,7 @@ namespace Zenvin.Settings.Framework {
 			return value;
 		}
 
+
 		internal sealed override void Initialize () {
 			OnInitialize ();
 
@@ -204,6 +227,11 @@ namespace Zenvin.Settings.Framework {
 
 			OnValueChanged (ValueChangeMode.Initialize);
 			ValueChanged?.Invoke (ValueChangeMode.Initialize);
+		}
+
+		internal sealed override void OnAfterDeserialize () {
+			OnValueChanged (ValueChangeMode.Deserialize);
+			ValueChanged?.Invoke (ValueChangeMode.Deserialize);
 		}
 
 

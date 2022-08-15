@@ -231,13 +231,13 @@ namespace Zenvin.Settings.Framework {
 		// Saving & Loading
 
 		/// <summary>
-		/// Saves all Settings using a provided <see cref="ISerializer{T}"/>.<br></br>
+		/// Serializes all Settings to the provided <see cref="ISerializer{T}"/>.<br></br>
 		/// Returns <see langword="true"/> if serialization was successful.<br></br>
-		/// The <see cref="SettingsAsset"/> needs to be initialized before saving can take place.
+		/// The <see cref="SettingsAsset"/> needs to be initialized before serialization can take place.
 		/// </summary>
-		/// <typeparam name="T">The type of object used to manage save data.</typeparam>
-		/// <param name="serializer">The serializer used to save data.</param>
-		/// <param name="filter">Filter for deciding which settings should be considered for saving. Leave at <see langword="null"/> to save all.</param>
+		/// <typeparam name="T">The type of object used to manage serialized data.</typeparam>
+		/// <param name="serializer">The serializer used to serialize data.</param>
+		/// <param name="filter">Filter for deciding which settings should be considered for serialization. Leave at <see langword="null"/> to not filter any.</param>
 		public bool SerializeSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
 			if (!Initialized || serializer == null) {
 				return false;
@@ -267,13 +267,14 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Loads Setting values using a provided <see cref="ISerializer{T}"/>.<br></br>
-		/// Returns <see langword="true"/> if serialization was successful.<br></br>
-		/// The <see cref="SettingsAsset"/> needs to be initialized before saving can take place.
+		/// Deserializes Setting values from the provided <see cref="ISerializer{T}"/>.<br></br>
+		/// Returns <see langword="true"/> if deserialization was successful.<br></br>
+		/// The <see cref="SettingsAsset"/> needs to be initialized before deserialization can take place.
+		/// <see cref="SettingBase.ApplyValue"/> will automatically be called on any successfully deserialized Setting.<br></br>
 		/// </summary>
-		/// <typeparam name="T">The type of object used to manage load data.</typeparam>
-		/// <param name="serializer">The serializer used to load data.</param>
-		/// <param name="filter">Filter for deciding which settings should be considered for loading. Leave at <see langword="null"/> to load all.</param>
+		/// <typeparam name="T">The type of object used to manage deserialize data.</typeparam>
+		/// <param name="serializer">The serializer used to deserialize data.</param>
+		/// <param name="filter">Filter for deciding which settings should be considered for deserialization. Leave at <see langword="null"/> to not filter any.</param>
 		public bool DeserializeSettings<T> (ISerializer<T> serializer, SettingBaseFilter filter = null) where T : class, new() {
 			if (!Initialized || serializer == null) {
 				return false;
@@ -290,6 +291,8 @@ namespace Zenvin.Settings.Framework {
 				foreach (var data in enumerator) {
 					if (settingsDict.TryGetValue (data.Key, out SettingBase setting) && (filter == null || filter (setting)) && setting is ISerializable<T> serializable) {
 						serializable.OnDeserialize (data.Value);
+						setting.ApplyValue ();
+						setting.OnAfterDeserialize ();
 					}
 				}
 			}
