@@ -17,36 +17,4 @@ namespace Zenvin.Settings.Framework.Serialization {
 		/// </summary>
 		IEnumerable<KeyValuePair<string, T>> GetSerializedData ();
 	}
-
-	/// <summary>
-	/// Interface for hooking into the Setting serialization process.<br></br>
-	/// Meant to be attached to types that already implement <see cref="ISerializer{T}"/>.
-	/// </summary>
-	public interface ISerializerCallbackReceiver {
-		/// <summary>
-		/// Called before any Settings are serialized.
-		/// </summary>
-		void InitializeSerialization ();
-		/// <summary>
-		/// Called after all Settings have been serialized.
-		/// </summary>
-		void FinalizeSerialization ();
-		/// <summary>
-		/// Called before any Settings are deserialized.
-		/// </summary>
-		void InitializeDeserialization ();
-		/// <summary>
-		/// Called after all Settings have been deserialized.
-		/// </summary>
-		void FinalizeDeserialization ();
-	}
-
-	/// <summary>
-	/// Interface to allow a <see cref="SettingBase"/> to be serialized using a <see cref="ISerializer{T}"/>.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public interface ISerializable<T> where T : class, new() {
-		void OnSerialize (T value);
-		void OnDeserialize (T value);
-	}
 }
