@@ -19,7 +19,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private bool GetIsValueVisible (SerializedProperty prop) {
-			return prop?.serializedObject?.targetObject?.GetType ()?.GetCustomAttribute<HasDeviatingDefaultValueAttribute> () == null;
+			return prop?.serializedObject?.targetObject?.GetType ()?.GetCustomAttribute<HasDeviatingDefaultValueAttribute> (true) == null;
 		}
 
 	}

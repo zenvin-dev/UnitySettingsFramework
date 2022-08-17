@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// Non-generic base class for a Setting that contains a fixed array of values.<br></br>
 	/// The Setting's actual value represents the index used to retrieve values from that array.
 	/// </summary>
+	[HasDeviatingDefaultValue]
 	public abstract class ValueArraySetting : SettingBase<int>, IEnumerable<object> {
 		private protected object[] values;
 
