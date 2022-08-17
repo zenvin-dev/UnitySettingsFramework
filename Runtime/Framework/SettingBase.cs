@@ -49,6 +49,8 @@ namespace Zenvin.Settings.Framework {
 		public abstract int OrderInGroup { get; internal set; }
 		/// <summary> The <see cref="SettingsAsset"/> at the root of this Setting's hierarchy. </summary>
 		public SettingsAsset Asset => asset;
+		/// <summary> The <see cref="SettingsGroup"/> which this Setting is a child of. May be the same as <see cref="Asset"/>. </summary>
+		public SettingsGroup Group => group;
 
 
 		internal virtual void Initialize () { }

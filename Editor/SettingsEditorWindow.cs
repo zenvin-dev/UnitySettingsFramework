@@ -38,6 +38,8 @@ namespace Zenvin.Settings.Framework {
 		private static GUIStyle labelStyleInternal;
 		private static GUIStyle labelStyleExternal;
 
+		private static GUIContent dropdownArrowContent;
+
 
 		[SerializeField] private Texture windowIcon;
 
@@ -89,6 +91,7 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 		private SerializedObject AssetObject => assetObj ?? (asset == null ? null : new SerializedObject (asset));
+		private GUIContent DropdownArrowContent => dropdownArrowContent == null ? (dropdownArrowContent = EditorGUIUtility.IconContent ("icon dropdown")) : dropdownArrowContent;
 
 
 		// Menus
@@ -378,18 +381,21 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
+
 			GUILayout.BeginArea (rect);
 			// make read-only while in play mode
 			EditorGUI.BeginDisabledGroup (Application.isPlaying);
 
+			bool isGroupAsset = editor.target is SettingsGroup;
+
 			if (editor.target == Asset) {
 				EditorGUILayout.LabelField ("GUID", "None (Root)");
 			} else {
-				DrawGuidField (editor.serializedObject, true);
+				DrawGuidField (editor.serializedObject, isGroupAsset);
 			}
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-			DrawPropertyField (editor.serializedObject.FindProperty ("label"), new GUIContent ("Name"));
+			DrawNameField (editor.serializedObject.FindProperty ("label"), editor.serializedObject.FindProperty ("guid"), editor.target == Asset, isGroupAsset);
 			DrawPropertyField (editor.serializedObject.FindProperty ("labelLocalizationKey"), new GUIContent ("Name Loc. Key"));
 
 			GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
@@ -537,14 +543,89 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			// validate GUID
-			if (!Asset.Editor_IsValidGUID (newVal, group)) {
-				newVal = val;
+			TrySetGuid (guidProp, newVal, group);
+		}
+
+		private void DrawNameField (SerializedProperty nameProp, SerializedProperty guidProp, bool dontRename, bool isGroup) {
+			if (nameProp == null) {
+				return;
 			}
 
-			// update GUID value
-			guidProp.stringValue = newVal;
-			obj.ApplyModifiedPropertiesWithoutUndo ();
+			if (guidProp == null) {
+				DrawPropertyField (editor.serializedObject.FindProperty ("label"), new GUIContent ("Name"));
+				return;
+			}
+
+			GUILayout.BeginHorizontal ();
+			string nameCache = nameProp.stringValue;
+			Rect nameFieldRect = EditorGUILayout.GetControlRect (false);
+			EditorGUI.DelayedTextField (nameFieldRect, nameProp, new GUIContent ("Name"));
+			nameProp.serializedObject.ApplyModifiedProperties ();
+
+
+			GUI.enabled = !string.IsNullOrEmpty (nameProp.stringValue);
+			if (GUILayout.Button ("Copy to GUID", EditorStyles.miniButtonLeft, GUILayout.Width (150))) {
+				TrySetGuid (guidProp, nameProp.stringValue, isGroup);
+			}
+
+			Rect copyMenuRect = GUILayoutUtility.GetLastRect ();
+			FrameworkObject frObj = nameProp.serializedObject.targetObject as FrameworkObject;
+
+			if (GUILayout.Button (DropdownArrowContent, EditorStyles.miniButtonRight, GUILayout.Width (EditorGUIUtility.singleLineHeight))) {
+				GenericMenu copyToGuidMenu = new GenericMenu ();
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy/Name only"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, false), isGroup)
+				);
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy/With parent name"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, false), isGroup)
+				);
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy/With parent GUID"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, false), isGroup)
+				);
+
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy Formatted/Name only"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, true), isGroup)
+				);
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy Formatted/With parent name"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, true), isGroup)
+				);
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Copy Formatted/With parent GUID"),
+					false,
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, true), isGroup)
+				);
+
+				copyToGuidMenu.AddSeparator ("");
+
+				copyToGuidMenu.AddItem (
+					new GUIContent ("Generate new GUID"),
+					false,
+					() => TrySetGuid (guidProp, Guid.NewGuid().ToString (), isGroup)
+				);
+				copyToGuidMenu.DropDown (copyMenuRect);
+			}
+			GUI.enabled = true;
+
+			GUILayout.EndHorizontal ();
+
+			if (!dontRename) {
+				if (nameProp.stringValue != nameCache) {
+					var obj = nameProp.serializedObject.targetObject;
+					obj.name = nameProp.stringValue;
+					AssetDatabase.SaveAssets ();
+					AssetDatabase.ImportAsset (AssetDatabase.GetAssetPath (Asset), ImportAssetOptions.ForceUpdate);
+				}
+			}
 		}
 
 		private void DrawPropertyField (SerializedProperty property, GUIContent label) {
@@ -1270,6 +1351,48 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			allAssets = assets.ToArray ();
+		}
+
+		private bool TrySetGuid (SerializedProperty target, string guid, bool isGroup, bool verbose = true) {
+			if (Application.isPlaying) {
+				if (verbose) {
+					Debug.LogError ("Cannot set GUID while game is running.");
+				}
+				return false;
+			}
+
+			if (!Asset.Editor_IsValidGUID (guid, isGroup)) {
+				if (verbose) {
+					Debug.LogError ("Could not copy Name to GUID. Either this would have resulted in a duplicate GUID, or the value was invalid.");
+				}
+				return false;
+			}
+
+			target.stringValue = guid;
+			target.serializedObject.ApplyModifiedPropertiesWithoutUndo ();
+			return true;
+		}
+
+		private string GetGuidFormattedName (FrameworkObject obj, bool includeParentGuid, bool includeParentName, bool format) {
+			string name = obj.Name;
+			if (includeParentGuid ^ includeParentName) {
+				switch (obj) {
+					case SettingsGroup group:
+						if (group.Parent != null) {
+							name = $"{(includeParentName ? group.Parent.Name : group.Parent.GUID)}/{name}";
+						}
+						break;
+					case SettingBase setting:
+						name = $"{(includeParentName ? setting.Group.Name : setting.Group.GUID)}/{name}";
+						break;
+				}
+			}
+
+			if (format) {
+				name = name.ToLower ().Replace (' ', '-');
+			}
+
+			return name;
 		}
 
 
