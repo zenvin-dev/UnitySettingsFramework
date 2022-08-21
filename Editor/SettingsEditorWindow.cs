@@ -222,6 +222,7 @@ namespace Zenvin.Settings.Framework {
 			if (returnToList) {
 				returnToList = false;
 				Asset = null;
+				Select (null);
 			}
 		}
 
@@ -572,7 +573,7 @@ namespace Zenvin.Settings.Framework {
 			nameProp.serializedObject.ApplyModifiedProperties ();
 
 
-			GUI.enabled = !string.IsNullOrEmpty (nameProp.stringValue);
+			GUI.enabled = !string.IsNullOrEmpty (nameProp.stringValue) && !dontRename;
 			if (GUILayout.Button ("Copy to GUID", EditorStyles.miniButtonLeft, GUILayout.Width (150))) {
 				TrySetGuid (guidProp, nameProp.stringValue, isGroup);
 			}
@@ -1402,60 +1403,6 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			return name;
-		}
-
-
-		// Fix Settings
-
-		private void FixSettings () {
-			if (Asset == null) {
-				return;
-			}
-
-			Debug.Log ("[Settings Framework] Fixing Settings...");
-
-			var allHierarchyGroups = new List<ScriptableObject> (Asset.GetAllGroups ());
-			allHierarchyGroups.Remove (Asset);
-
-			var allHierarchySettings = new List<ScriptableObject> (Asset.GetAllSettings (false));
-
-			var allHierarchyChildren = new List<ScriptableObject> ();
-			allHierarchyChildren.AddRange (allHierarchyGroups);
-			allHierarchyChildren.AddRange (allHierarchySettings);
-
-			//for (int i = allHierarchyChildren.Count - 1; i >= 0; i--) {
-			//	EditorUtility.DisplayProgressBar ("Fixing Settings...", $"Eliminating objects with broken scripts ({i} / {allHierarchyChildren.Count})", i / (float)allHierarchyChildren.Count);
-
-			//	if (allHierarchyChildren[i] == null) {
-			//		allHierarchyChildren.RemoveAt (i);
-			//		i--;
-			//		continue;
-			//	}
-
-			//	var ms = MonoScript.FromScriptableObject (allHierarchyChildren[i]);
-			//	if (ms == null) {
-			//		DestroyImmediate (allHierarchyChildren[i], true);
-			//		AssetDatabase.Refresh ();
-			//		AssetDatabase.SaveAssets ();
-			//	}
-			//}
-
-			//for (int i = allHierarchyChildren.Count - 1; i >= 0; i--) {
-				
-			//}
-
-			var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath (AssetDatabase.GetAssetPath (Asset));
-			foreach (var sub in subAssets) {
-				var so = sub as ScriptableObject;
-				if (so == null || MonoScript.FromScriptableObject (so) == null) {
-					DestroyImmediate (sub);
-					AssetDatabase.Refresh ();
-					//AssetDatabase.SaveAssets ();
-				}
-			}
-
-			EditorUtility.ClearProgressBar ();
-			Repaint ();
 		}
 
 
