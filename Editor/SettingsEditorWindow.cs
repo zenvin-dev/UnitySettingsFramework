@@ -105,6 +105,15 @@ namespace Zenvin.Settings.Framework {
 			InitWindow ().Asset = edit;
 		}
 
+		internal static void Open (SettingBase setting) {
+			if (setting == null || setting.asset == null) {
+				return;
+			}
+			var win = InitWindow ();
+			win.Asset = setting.Asset;
+			win.Select (setting);
+		}
+
 		private static SettingsEditorWindow InitWindow () {
 			SettingsEditorWindow win = GetWindow<SettingsEditorWindow> ();
 			win.titleContent = new GUIContent ("Settings Editor", win.windowIcon);
