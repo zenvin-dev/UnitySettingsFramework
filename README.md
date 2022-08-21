@@ -1,6 +1,6 @@
 ![# Unity Settings Framework Logo](/.GitHubResources/Banner.png)
 
-This package aims to provide a comprehensive, simple and expandable way of creating in-game settings for any Unity game.
+This package aims to provide a comprehensible and expandable way of creating in-game settings for any Unity game.
 \
 To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html) and [generics](https://docs.microsoft.com/en-us/dotnet/standard/generics/), the latter of which Unity can serialize since version [2020.1](https://forum.unity.com/threads/generics-serialization.746300/).
 \
@@ -99,7 +99,7 @@ In some cases, it is necessary that your Setting value adheres to specific rules
 
 
 ## 6. Saving and Loading Setting values
-Settings can be serialized in any number of ways. The Framework uses the included `ISerializer<T>` and `ISerializable<T>` interfaces to facilitate a most abstract approach to this. You can have a look at the included [JSON](./Runtime/Framework/Serialization/JSON/) and [binary](./Runtime/Framework/Serialization/Binary/) serializers to get an idea of how to implement `ISerializer<T>`, and check out any of the [built-in Setting types](./Runtime/Framework/Settings/) to see, how `ISerializable<T>` may be implemented. \
+Settings can be serialized in any number of ways. The Framework uses the `ISerializer<T>` and `ISerializable<T>` interfaces to facilitate a most abstract approach to this. You can have a look at the included [JSON](./Runtime/Framework/Serialization/JSON/) and [binary](./Runtime/Framework/Serialization/Binary/) serializers to get an idea of how to implement `ISerializer<T>`, and check out any of the [built-in Setting types](./Runtime/Framework/Settings/) to see, how `ISerializable<T>` may be implemented. \
 See below for a more in-depth explanation.
 
 ### Serialization
