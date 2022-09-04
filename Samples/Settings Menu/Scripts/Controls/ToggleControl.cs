@@ -1,8 +1,9 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
-using UnityEngine.UI;
-using UnityEngine;
-using TMPro;
 
 namespace Zenvin.Settings.Samples {
 	public class ToggleControl : SettingControl<BoolSetting, bool> {
@@ -18,6 +19,12 @@ namespace Zenvin.Settings.Samples {
 
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			toggle?.SetIsOnWithoutNotify (Setting.CachedValue);
+		}
+
+		protected override void OnVisibilityChanged () {
+			SettingVisibility vis = Setting.GetVisibilityInHierarchy ();
+			toggle.interactable = vis == SettingVisibility.Visible;
+			gameObject.SetActive (vis != SettingVisibility.Hidden);
 		}
 
 	}

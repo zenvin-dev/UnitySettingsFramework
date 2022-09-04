@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
+using Zenvin.Settings.Framework;
 using Zenvin.Settings.Samples;
 using Zenvin.Settings.UI;
-using Zenvin.Settings.Framework;
 
 namespace Zenvin {
 	public class DropdownControl : SettingControl<DropdownSetting, int> {
@@ -22,6 +22,12 @@ namespace Zenvin {
 
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			dropdown?.SetValueWithoutNotify (Setting.CachedValue);
+		}
+
+		protected override void OnVisibilityChanged () {
+			SettingVisibility vis = Setting.GetVisibilityInHierarchy ();
+			dropdown.interactable = vis == SettingVisibility.Visible;
+			gameObject.SetActive (vis != SettingVisibility.Hidden);
 		}
 
 	}

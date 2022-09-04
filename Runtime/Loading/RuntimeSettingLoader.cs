@@ -125,6 +125,8 @@ namespace Zenvin.Settings.Loading {
 					obj.Description = g.Description;
 					obj.DescriptionLocalizationKey = g.DescriptionLocalizationKey;
 
+					obj.SetVisibilityWithoutNotify (g.InitialVisibility);
+
 					groups.Add (g.GUID, obj);
 					desiredParents[g.GUID] = g.ParentGroupGUID;
 				}
@@ -168,6 +170,8 @@ namespace Zenvin.Settings.Loading {
 
 							obj.Description = s.Description;
 							obj.DescriptionLocalizationKey = s.DescriptionLocalizationKey;
+
+							obj.SetVisibilityWithoutNotify (s.InitialVisibility);
 
 							parent.IntegrateSetting (obj);
 

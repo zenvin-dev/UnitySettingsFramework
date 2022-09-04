@@ -1,9 +1,9 @@
-using Zenvin.Settings.Utility;
-using Zenvin.Settings.UI;
-using UnityEngine.UI;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.UI;
 
 namespace Zenvin.Settings.Samples {
 	public class SliderControl : SettingControl<SliderSetting, float> {
@@ -34,6 +34,12 @@ namespace Zenvin.Settings.Samples {
 		
 		protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {
 			UpdateSlider ();
+		}
+
+		protected override void OnVisibilityChanged () {
+			SettingVisibility vis = Setting.GetVisibilityInHierarchy ();
+			slider.interactable = vis == SettingVisibility.Visible;
+			gameObject.SetActive (vis != SettingVisibility.Hidden);
 		}
 
 

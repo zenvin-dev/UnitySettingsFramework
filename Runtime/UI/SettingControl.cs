@@ -51,7 +51,7 @@ namespace Zenvin.Settings.UI {
 		public sealed override Type ControlType => typeof (TControlType);
 
 		/// <summary> The <see cref="SettingBase{T}"/> assigned to this Control. </summary>
-		public TControlType Setting { get; internal set; }
+		public TControlType Setting { get; private set; }
 
 
 		/// <summary>
@@ -76,6 +76,14 @@ namespace Zenvin.Settings.UI {
 		/// <param name="mode"> In what way the value was changed. </param>
 		protected virtual void OnSettingValueChanged (SettingBase.ValueChangeMode mode) { }
 
+		/// <summary>
+		/// Called when the visible state of the <see cref="Setting"/> or one of its parent groups was changed. <br></br>
+		/// Equivalent of subscribing to <see cref="FrameworkObject.VisibilityChanged"/>. <br></br>
+		/// Also called while the control is being set up.
+		/// </summary>
+		protected virtual void OnVisibilityChanged () { }
+
+
 		private protected sealed override bool CanAssignTo (SettingBase setting) {
 			return setting is TControlType;
 		}
@@ -83,12 +91,15 @@ namespace Zenvin.Settings.UI {
 		private protected override sealed void OnSetupInternal () {
 			Setting = SettingRaw as TControlType;
 			Setting.ValueChanged += OnSettingValueChanged;
+			Setting.VisibilityChanged += OnVisibilityChanged;
 			OnSetup ();
+			OnVisibilityChanged ();
 		}
 
 		private void OnDestroy () {
 			if (Setting != null) {
 				Setting.ValueChanged -= OnSettingValueChanged;
+				Setting.VisibilityChanged -= OnVisibilityChanged;
 			}
 		}
 

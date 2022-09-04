@@ -90,6 +90,14 @@ namespace Zenvin.Settings.Framework {
 			return $"Setting '{Name}' ('{GUID}')";
 		}
 
+		public sealed override SettingVisibility GetVisibilityInHierarchy () {
+			SettingVisibility vis = Group.GetVisibilityInHierarchy ();
+			if ((int)vis > (int)Visibility) {
+				return vis;
+			}
+			return Visibility;
+		}
+
 		int IComparable<SettingBase>.CompareTo (SettingBase other) {
 			int def = OrderInGroup.CompareTo (other.OrderInGroup);
 			if (def != 0) {

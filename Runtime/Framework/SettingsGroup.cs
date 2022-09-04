@@ -417,6 +417,52 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		/// <inheritdoc/>
+		public sealed override SettingVisibility GetVisibilityInHierarchy () {
+			SettingVisibility vis = Visibility;
+			SettingsGroup obj = this;
+			while (obj != null && obj.Parent != null) {
+				if ((int)obj.Visibility < (int)obj.Parent.Visibility) {
+					vis = obj.Parent.Visibility;
+				}
+				if (vis == SettingVisibility.Hidden) {
+					return vis;
+				}
+				obj = obj.Parent;
+			}
+			return vis;
+		}
+
+		private protected sealed override void OnSetVisibilityInternal (SettingVisibility visibility) {
+			PropagateVisiblityEvent (this);
+		}
+
+		private static void PropagateVisiblityEvent (SettingsGroup group) {
+			if (group == null) {
+				return;
+			}
+			group.SetVisibility (group.Visibility, false);
+
+			foreach (var g in group.Groups) {
+				PropagateVisiblityEvent (g);
+			}
+			if (group.ExternalGroups != null) {
+				foreach (var g in group.ExternalGroups) {
+					PropagateVisiblityEvent (g);
+				}
+			}
+
+			foreach (var s in group.Settings) {
+				s.SetVisibility (s.Visibility, false);
+			}
+			if (group.ExternalSettings != null) {
+				foreach (var s in group.ExternalSettings) {
+					s.SetVisibility (s.Visibility, false);
+				}
+			}
+		}
+
+
 		public override string ToString () {
 			return $"Group '{Name}' ('{GUID}')";
 		}

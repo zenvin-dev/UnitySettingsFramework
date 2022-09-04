@@ -1,4 +1,5 @@
 using System;
+using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
 	[Serializable]
@@ -19,6 +20,8 @@ namespace Zenvin.Settings.Loading {
 		public string DescriptionLocalizationKey;
 
 		public string ParentGroupGUID;
+
+		public SettingVisibility InitialVisibility;
 
 		public StringValuePair[] Values;
 	}
