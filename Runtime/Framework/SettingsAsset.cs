@@ -28,6 +28,7 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private bool initialized = false;
 
 		[SerializeField, Min (0)] private int orderStep = 100;
+		[SerializeField] private bool enableDebugLogging = false;
 
 		/// <summary> Whether the asset has been initialized. </summary>
 		public bool Initialized => initialized;
@@ -222,6 +223,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="apply"> Apply each Setting after reset? </param>
 		public void ResetAllSettings (bool apply) {
+			Log ($"Resetting all Settings (Initialized: {Initialized}, Registered: {settingsDict.Count}, Apply: {apply})");
 			foreach (var s in settingsDict.Values) {
 				s.ResetValue (apply);
 			}
@@ -372,6 +374,12 @@ namespace Zenvin.Settings.Framework {
 				return false;
 			}
 			return isGroup ? !groupsDict.ContainsKey (guid) : !settingsDict.ContainsKey (guid);
+		}
+
+		internal void Log (string message) {
+			if (enableDebugLogging) {
+				Debug.Log (message);
+			}
 		}
 
 	}

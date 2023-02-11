@@ -13,6 +13,7 @@ namespace Zenvin.Settings.Samples {
 
 		[SerializeField] private InitMode mode = InitMode.Start;
 		[SerializeField] private SettingsAsset settings;
+		[SerializeField] private bool resetToDefaults = true;
 		[Space, SerializeField] private bool loadDynamicSettings = true;
 		[SerializeField] private SettingsImportData dynamicSettings;
 		[SerializeField, TextArea (25, 35), Space (20)] private string dynamicSettingsJsonOutput = "";
@@ -37,6 +38,9 @@ namespace Zenvin.Settings.Samples {
 			}
 			if (settings != null) {
 				settings.Initialize ();
+				if (resetToDefaults) {
+					settings.ResetAllSettings (true);
+				}
 			}
 		}
 

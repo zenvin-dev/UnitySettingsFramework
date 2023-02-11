@@ -14,7 +14,7 @@ namespace Zenvin.Settings.Samples {
 		[SerializeField] private SettingControlCollection controlPrefabs;
 		[SerializeField] private TabView tabView;
 
-		private JsonSerializer serializer = new JsonSerializer();
+		private JsonSerializer serializer;
 
 
 		private void Start () {
@@ -22,6 +22,8 @@ namespace Zenvin.Settings.Samples {
 				return;
 			}
 			SpawnMenu ();
+
+			serializer = new JsonFileSerializer (Path.Combine (Application.dataPath, "settings_test.json"));
 		}
 		
 		private void SpawnMenu () {
@@ -96,8 +98,6 @@ namespace Zenvin.Settings.Samples {
 
 		public void Save () {
 			asset.SerializeSettings (serializer);
-			Debug.Log (serializer.ToString ());
-			serializer.WriteToFile (new FileInfo (Path.Combine (Application.dataPath, "settings.json")));
 		}
 
 	}

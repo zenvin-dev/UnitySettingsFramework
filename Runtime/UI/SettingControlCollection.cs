@@ -12,7 +12,7 @@ namespace Zenvin.Settings.UI {
 
 		private readonly Dictionary<Type, SettingControl> controlDict = new Dictionary<Type, SettingControl> ();
 
-		[SerializeField] private bool assignBaseTypes = true;
+		[field: SerializeField] public bool AssignBaseTypes { get; private set; } = true;
 		[SerializeField] private SettingControl[] controls;
 
 
@@ -90,7 +90,7 @@ namespace Zenvin.Settings.UI {
 					controlDict[sc.ControlType] = sc;
 				}
 			}
-			if (assignBaseTypes) {
+			if (AssignBaseTypes) {
 				SetupBaseTypeKeys ();
 			}
 		}

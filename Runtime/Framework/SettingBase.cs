@@ -87,7 +87,7 @@ namespace Zenvin.Settings.Framework {
 
 
 		public override string ToString () {
-			return $"Setting '{Name}' ('{GUID}')";
+			return $"Setting '{Name}' (GUID: '{GUID}')";
 		}
 
 		public sealed override SettingVisibility GetVisibilityInHierarchy () {
@@ -185,6 +185,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
 		public void SetValue (T value) {
+			Asset?.Log ($"Setting Value of {ToString ()} to '{value}'");
 			ProcessValue (ref value);
 
 			if (!cachedValue.Equals (value)) {
@@ -212,8 +213,9 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void OnValueChanged (ValueChangeMode mode) { }
 
 		/// <summary>
-		/// Called after the setting has been registered in the Settings Asset.
-		/// Use this to set up necessary values.
+		/// Called after the setting has been registered in the Settings Asset. <br></br>
+		/// Use this to set up necessary values. <br></br>
+		/// Assignment of the default value will happen immediately after.
 		/// </summary>
 		protected virtual void OnInitialize () { }
 
@@ -228,27 +230,34 @@ namespace Zenvin.Settings.Framework {
 
 
 		internal sealed override void Initialize () {
+			Asset?.Log ($"Initializing {ToString ()}");
 			OnInitialize ();
 
 			T value = OnSetupInitialDefaultValue ();
 
 			currentValue = value;
 			cachedValue = value;
+			isDirty = false;
 
 			OnValueChanged (ValueChangeMode.Initialize);
 			ValueChanged?.Invoke (ValueChangeMode.Initialize);
+
+			Asset?.Log ($"Initialized {ToString ()}. Current Value: '{currentValue}', Cached Value: '{cachedValue}', Default Value: '{defaultValue}'");
 		}
 
 		internal sealed override void OnAfterDeserialize () {
 			OnValueChanged (ValueChangeMode.Deserialize);
 			ValueChanged?.Invoke (ValueChangeMode.Deserialize);
+			Asset?.Log ($"Deserialized {ToString ()}");
 		}
 
 
 		private protected sealed override bool OnApply () {
 			if (!IsDirty) {
+				Asset?.Log ($"Did not apply value on {ToString ()} because it was not dirty.");
 				return false;
 			}
+			Asset?.Log ($"Applying value '{cachedValue}' on {ToString ()}.");
 			currentValue = cachedValue;
 			IsDirty = false;
 			OnValueChanged (ValueChangeMode.Apply);
@@ -258,8 +267,10 @@ namespace Zenvin.Settings.Framework {
 
 		private protected sealed override bool OnRevert () {
 			if (!IsDirty) {
+				Asset?.Log ($"Did not revert value on {ToString ()} because it was not dirty.");
 				return false;
 			}
+			Asset?.Log ($"Applying value of {ToString ()}.");
 			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
@@ -269,6 +280,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private protected sealed override bool OnReset (bool apply) {
+			Asset?.Log ($"Resetting {ToString ()} [apply: {apply}]");
 			SetValue (defaultValue);
 			if (apply) {
 				ApplyValue ();
