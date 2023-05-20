@@ -139,7 +139,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Gets the groupwith the associated GUID.
+		/// Gets the group with the associated GUID.
 		/// </summary>
 		/// <param name="guid"> The GUID of the group to get. </param>
 		/// <param name="group"> Contains the found group, if any. Otherwise null. </param>
