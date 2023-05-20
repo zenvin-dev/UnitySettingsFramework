@@ -5,6 +5,8 @@ namespace Zenvin.Settings.Framework {
 	[CustomPropertyDrawer (typeof (SettingBase), true)]
 	public class SettingBasePropertyDrawer : PropertyDrawer {
 
+		private const string PrefKey = "Zenvin.Settings.DisablePropertyDrawer";
+
 		private static GUIContent openSettingContent;
 		private static GUIContent OpenSettingContent {
 			get {
@@ -36,7 +38,20 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+
+		[MenuItem ("Tools/Zenvin/Toggle Settings Drawer")]
+		private static void ToggleDrawer () {
+			EditorPrefs.SetBool (PrefKey, !EditorPrefs.GetBool (PrefKey, false));
+		}
+
+
 		public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
+			if (EditorPrefs.GetBool (PrefKey, false)) {
+				EditorGUI.PropertyField (position, property, label);
+				property.serializedObject.ApplyModifiedProperties ();
+				return;
+			}
+
 			SettingBase setting = property.objectReferenceValue as SettingBase;
 
 			position = EditorGUI.PrefixLabel (position, label);
@@ -74,7 +89,7 @@ namespace Zenvin.Settings.Framework {
 
 					int k = j;
 					gm.AddItem (
-						new GUIContent (assets[i].Name + "/" + GetSettingName(settings[k], false)),
+						new GUIContent (assets[i].Name + "/" + GetSettingName (settings[k], false)),
 						settings[k] == setting,
 						(s) => {
 							property.objectReferenceValue = s as SettingBase;
