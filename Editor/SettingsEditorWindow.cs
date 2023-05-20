@@ -329,20 +329,6 @@ namespace Zenvin.Settings.Framework {
 				Selection.activeObject = Asset;
 			}
 
-			GUI.enabled = !Application.isPlaying;
-			if (GUILayout.Button (
-				new GUIContent (
-					"Verify Asset integrity",
-					"Checks if any objects referenced in the currently selected asset are missing a script, and deletes those that are." +
-					"\nWill also re-assign lost group references and clean null references."
-				),
-				GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150)
-			)) {
-				//FixSettings ();
-				ReferenceFixUtility.FixAsset (AssetObject);
-			}
-			GUI.enabled = true;
-
 			GUILayout.FlexibleSpace ();
 
 			if (GUILayout.Button (new GUIContent ("Asset List"), GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150))) {
