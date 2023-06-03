@@ -606,7 +606,7 @@ namespace Zenvin.Settings.Framework {
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Generate new GUID"),
 					false,
-					() => TrySetGuid (guidProp, Guid.NewGuid().ToString (), isGroup)
+					() => TrySetGuid (guidProp, Guid.NewGuid ().ToString (), isGroup)
 				);
 				copyToGuidMenu.DropDown (copyMenuRect);
 			}
@@ -1058,28 +1058,14 @@ namespace Zenvin.Settings.Framework {
 				s.Name = "New Setting";
 				s.GUID = Guid.NewGuid ().ToString ();
 				s.asset = Asset;
+				d.Group.AddSetting (s);
 			});
 
-			d.Group.AddSetting (setting);
 			Select (setting);
 			ExpandToSelection (false);
 		}
 
 		private void CreateGroupAsChildOfGroup (object group) {
-			//if (!(group is SettingsGroup g)) {
-			//	return;
-			//}
-
-			//SettingsGroup newGroup = AssetUtility.CreateAsPartOf<SettingsGroup> (asset, g => {
-			//	g.name = "New Group";
-			//	g.Name = "New Group";
-			//	g.GUID = Guid.NewGuid ().ToString ();
-			//});
-
-			//g.AddChildGroup (newGroup);
-			//Select (newGroup);
-			//ExpandToSelection (false);
-
 			SettingsGroup parentGroup;
 			SettingsGroup newGroup;
 
@@ -1090,6 +1076,7 @@ namespace Zenvin.Settings.Framework {
 						g.name = "New Group";
 						g.Name = "New Group";
 						g.GUID = Guid.NewGuid ().ToString ();
+						parentGroup.AddChildGroup (g);
 					});
 
 					g.AddChildGroup (newGroup);
@@ -1102,13 +1089,13 @@ namespace Zenvin.Settings.Framework {
 						g.name = "New Group";
 						g.Name = "New Group";
 						g.GUID = Guid.NewGuid ().ToString ();
+						parentGroup.AddChildGroup (g);
 					});
 					break;
 				default:
 					return;
 			}
 
-			parentGroup.AddChildGroup (newGroup);
 			Select (newGroup);
 			ExpandToSelection (false);
 		}
@@ -1120,13 +1107,14 @@ namespace Zenvin.Settings.Framework {
 
 			SettingBase newSetting = Instantiate (set);
 			newSetting.GUID = Guid.NewGuid ().ToString ();
+			newSetting.group = null;
+			set.group.AddSetting (newSetting);
 
 			AssetDatabase.AddObjectToAsset (newSetting, Asset);
+			DirtyAsset ();
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
-			newSetting.group = null;
-			set.group.AddSetting (newSetting);
 			Select (newSetting);
 		}
 
@@ -1147,6 +1135,7 @@ namespace Zenvin.Settings.Framework {
 					g.Parent.RemoveChildGroup (g);
 				}
 				DestroyImmediate (g, true);
+				DirtyAsset ();
 				AssetDatabase.Refresh ();
 				AssetDatabase.SaveAssets ();
 				Repaint ();
@@ -1158,6 +1147,7 @@ namespace Zenvin.Settings.Framework {
 				s.group.RemoveSetting (s);
 
 				DestroyImmediate (s, true);
+				DirtyAsset ();
 				AssetDatabase.Refresh ();
 				AssetDatabase.SaveAssets ();
 				Repaint ();
@@ -1367,6 +1357,12 @@ namespace Zenvin.Settings.Framework {
 			target.stringValue = guid;
 			target.serializedObject.ApplyModifiedPropertiesWithoutUndo ();
 			return true;
+		}
+
+		private void DirtyAsset () {
+			if (asset != null) {
+				EditorUtility.SetDirty (asset);
+			}
 		}
 
 		private string GetGuidFormattedName (FrameworkObject obj, bool includeParentGuid, bool includeParentName, bool format) {

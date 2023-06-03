@@ -20,6 +20,7 @@ namespace Zenvin.Settings.Framework {
 				Undo.RecordObject (asset, "Add sub-asset");
 			}
 			AssetDatabase.AddObjectToAsset (instance, asset);
+			EditorUtility.SetDirty (asset);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
@@ -42,6 +43,7 @@ namespace Zenvin.Settings.Framework {
 				Undo.RecordObject (asset, "Add sub-asset");
 			}
 			AssetDatabase.AddObjectToAsset (instance, asset);
+			EditorUtility.SetDirty (asset);
 			AssetDatabase.SaveAssets ();
 			AssetDatabase.Refresh ();
 
