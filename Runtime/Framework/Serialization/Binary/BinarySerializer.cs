@@ -60,7 +60,7 @@ namespace Zenvin.Settings.Framework.Serialization {
 		}
 
 
-		IEnumerable<KeyValuePair<string, ValuePacket>> ISerializer<ValuePacket>.GetSerializedData () {
+		IEnumerator<KeyValuePair<string, ValuePacket>> ISerializer<ValuePacket>.GetSerializedData () {
 			foreach (var kvp in data) {
 				yield return new KeyValuePair<string, ValuePacket> (kvp.Key, new ValuePacket (kvp.Value));
 			}

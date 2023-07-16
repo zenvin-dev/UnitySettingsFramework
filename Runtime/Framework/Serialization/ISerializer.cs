@@ -15,6 +15,6 @@ namespace Zenvin.Settings.Framework.Serialization {
 		/// <summary>
 		/// Called during deserialization. Should return all saved GUIDs, along with the associated data.
 		/// </summary>
-		IEnumerable<KeyValuePair<string, T>> GetSerializedData ();
+		IEnumerator<KeyValuePair<string, T>> GetSerializedData ();
 	}
 }

@@ -280,7 +280,9 @@ namespace Zenvin.Settings.Framework {
 
 			var enumerator = serializer.GetSerializedData ();
 			if (enumerator != null) {
-				foreach (var data in enumerator) {
+				while (enumerator.MoveNext()) {
+					var data = enumerator.Current;
+
 					if (settingsDict.TryGetValue (data.Key, out SettingBase setting) && (filter == null || filter (setting)) && setting is ISerializable<T> serializable) {
 						serializable.OnDeserialize (data.Value);
 						setting.ApplyValue ();

@@ -43,7 +43,7 @@ namespace Zenvin.Settings.Framework.Serialization {
 		}
 
 
-		IEnumerable<KeyValuePair<string, JObject>> ISerializer<JObject>.GetSerializedData () {
+		IEnumerator<KeyValuePair<string, JObject>> ISerializer<JObject>.GetSerializedData () {
 			foreach (var item in data) {
 				if (item.Value is JObject jObject) {
 					yield return new KeyValuePair<string, JObject> (item.Key, jObject);
