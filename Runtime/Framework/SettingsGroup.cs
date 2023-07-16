@@ -27,7 +27,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private int InternalChildGroupCount => groups?.Count ?? 0;
-		/// <summary> The total count of child Groups, including both internal and external Groups. </summary>
+		/// <summary> The total count of direct child Groups, including both internal and external Groups. </summary>
 		public int ChildGroupCount => InternalChildGroupCount + externalGroups.Count;
 
 		private int InternalSettingCount => settings?.Count ?? 0;
@@ -84,7 +84,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Gets all direct child Groups.
+		/// Gets a read-only collection of all direct child Groups.
 		/// </summary>
 		public ReadOnlyCollection<SettingsGroup> GetGroups () {
 			List<SettingsGroup> groupsList = new List<SettingsGroup> ();
@@ -96,7 +96,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Recursively gets all child Groups.
+		/// Recursively gets a read-only collection of all child Groups.
 		/// </summary>
 		public ReadOnlyCollection<SettingsGroup> GetAllGroups () {
 			List<SettingsGroup> groups = new List<SettingsGroup> ();
@@ -246,9 +246,9 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Gets all direct child Settings that are deemed valid.
+		/// Gets all direct child Settings that are deemed valid by the given filter.
 		/// </summary>
-		public virtual List<SettingBase> GetFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
+		public virtual ReadOnlyCollection<SettingBase> GetFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
 			List<SettingBase> settingsList = new List<SettingBase> (settings?.Count ?? 0);
 
 			if (settings != null) {
@@ -268,17 +268,20 @@ namespace Zenvin.Settings.Framework {
 				settingsList.Sort ();
 			}
 
-			return settingsList;
+			return settingsList.AsReadOnly ();
 		}
-
-		public virtual List<SettingBase> GetAllFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
+		
+		/// <summary>
+		/// Gets all child Settings that are deemed valid by the given filter.
+		/// </summary>
+		public virtual ReadOnlyCollection<SettingBase> GetAllFilteredSettings (SettingBaseFilter isValid, bool sorted = false) {
 			List<SettingBase> settingsList = new List<SettingBase> (settings.Count);
 			GetSettingsRecursively (this, settingsList);
 
 			if (sorted) {
 				settingsList.Sort ();
 			}
-			return settingsList;
+			return settingsList.AsReadOnly();
 		}
 
 		internal void AddSetting (SettingBase setting) {

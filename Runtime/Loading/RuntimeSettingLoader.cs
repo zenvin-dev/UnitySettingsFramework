@@ -3,6 +3,9 @@ using Zenvin.Settings.Framework;
 using UnityEngine;
 
 namespace Zenvin.Settings.Loading {
+	/// <summary>
+	/// Utility class for loading additional Settings and Setting Groups into <see cref="SettingsAsset"/>s during runtime.
+	/// </summary>
 	public static class RuntimeSettingLoader {
 
 		// allocate resources
@@ -13,6 +16,16 @@ namespace Zenvin.Settings.Loading {
 		private static readonly List<(SettingsGroup parent, SettingsGroup group)> rootGroups = new List<(SettingsGroup parent, SettingsGroup group)> ();
 
 
+		/// <summary>
+		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.
+		/// </summary>
+		/// <param name="asset"> The <see cref="SettingsAsset"/> to load the additional Settings and Setting Groups into. </param>
+		/// <param name="json"> Information about the new Settings and Setting Groups. </param>
+		/// <param name="iconLoader"> Object for loading Setting Group icons. May be <see langword="null"/>. </param>
+		/// <param name="factories"> An arbitrary number of <see cref="IGroupFactory"/> and <see cref="ISettingFactory"/> instances, along with their names. </param>
+		/// <remarks>
+		/// Can only be used while the game is running.
+		/// </remarks>
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (string.IsNullOrWhiteSpace (json)) {
 				return false;
@@ -29,6 +42,16 @@ namespace Zenvin.Settings.Loading {
 			return LoadSettingsIntoAsset (asset, data, iconLoader, factories);
 		}
 
+		/// <summary>
+		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.<br></br>
+		/// </summary>
+		/// <param name="asset"> The <see cref="SettingsAsset"/> to load the additional Settings and Setting Groups into. </param>
+		/// <param name="data"> Information about the new Settings and Setting Groups. </param>
+		/// <param name="iconLoader"> Object for loading Setting Group icons. May be <see langword="null"/>. </param>
+		/// <param name="factories"> An arbitrary number of <see cref="IGroupFactory"/> and <see cref="ISettingFactory"/> instances, along with their names. </param>
+		/// <remarks>
+		/// Can only be used while the game is running.
+		/// </remarks>
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (!Application.isPlaying) {
 				return false;
@@ -41,13 +64,6 @@ namespace Zenvin.Settings.Loading {
 			if (data.Settings == null || data.Settings.Length == 0 || data.Groups == null) {
 				return false;
 			}
-
-			// reset loader state
-			sfDict.Clear ();
-			gfDict.Clear ();
-			desiredParents.Clear ();
-			groups.Clear ();
-			rootGroups.Clear ();
 
 			// initialize factories
 			PopulateFactoryDict (factories);
@@ -67,8 +83,11 @@ namespace Zenvin.Settings.Loading {
 			// integrate created root groups into asset
 			IntegrateRootGroups (asset);
 
+			// run post-integration event
+			asset.ProcessRuntimeSettingsIntegration ();
 
-			asset.RuntimeSettingsIntegrated ();
+			// reset loader state
+			ResetLoaderState ();
 
 			return true;
 		}
@@ -187,6 +206,14 @@ namespace Zenvin.Settings.Loading {
 					g.parent.IntegrateChildGroup (g.group);
 				}
 			}
+		}
+
+		private static void ResetLoaderState () {
+			sfDict.Clear ();
+			gfDict.Clear ();
+			desiredParents.Clear ();
+			groups.Clear ();
+			rootGroups.Clear ();
 		}
 
 

@@ -85,11 +85,14 @@ namespace Zenvin.Settings.Framework {
 
 		internal abstract void OnAfterDeserialize ();
 
-
+		/// <summary>
+		/// Returns the name and GUID of the Setting.
+		/// </summary>
 		public override string ToString () {
 			return $"Setting '{Name}' (GUID: '{GUID}')";
 		}
 
+		/// <inheritdoc/>
 		public sealed override SettingVisibility GetVisibilityInHierarchy () {
 			SettingVisibility vis = Group.GetVisibilityInHierarchy ();
 			if ((int)vis > (int)Visibility) {

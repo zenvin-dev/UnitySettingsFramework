@@ -36,12 +36,11 @@ namespace Zenvin.Settings.Framework {
 		public int RegisteredSettingsCount => settingsDict.Count;
 		/// <summary> The number of Groups registered in the asset. Returns 0 if the asset is not initialized. </summary>
 		public int RegisteredGroupsCount => groupsDict.Count;
-		/// <summary> The number of Settings registered in the asset, which have been changed bot not applied yet. </summary>
+		/// <summary> The number of Settings registered in the asset, which have been changed but not applied yet. </summary>
 		public int DirtySettingsCount => dirtySettings.Count;
 
 
 		// Initialization
-
 		/// <summary>
 		/// Initializes the asset.
 		/// </summary>
@@ -182,7 +181,6 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Dirtying settings
-
 		internal void SetDirty (SettingBase setting, bool dirty) {
 			if (setting == null) {
 				return;
@@ -231,7 +229,6 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Saving & Loading
-
 		/// <summary>
 		/// Serializes all Settings to the provided <see cref="ISerializer{T}"/>.<br></br>
 		/// Returns <see langword="true"/> if serialization was successful.<br></br>
@@ -246,9 +243,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			var advSer = serializer as ISerializerCallbackReceiver;
-			if (advSer != null) {
-				advSer.InitializeSerialization ();
-			}
+			advSer?.InitializeSerialization ();
 
 			foreach (SettingBase setting in settingsDict.Values) {
 				if (filter != null && !filter (setting)) {
@@ -262,9 +257,7 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 
-			if (advSer != null) {
-				advSer.FinalizeSerialization ();
-			}
+			advSer?.FinalizeSerialization ();
 			return true;
 		}
 
@@ -283,10 +276,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			var advSer = serializer as ISerializerCallbackReceiver;
-			if (advSer != null) {
-				advSer.InitializeDeserialization ();
-			}
-
+			advSer?.InitializeDeserialization ();
 
 			var enumerator = serializer.GetSerializedData ();
 			if (enumerator != null) {
@@ -300,15 +290,12 @@ namespace Zenvin.Settings.Framework {
 			}
 
 
-			if (advSer != null) {
-				advSer.FinalizeDeserialization ();
-			}
+			advSer?.FinalizeDeserialization ();
 			return true;
 		}
 
 
 		// Integrating runtime settings post-initialization
-
 		private protected override void OnIntegratedChildGroup (SettingsGroup group) {
 			if (!initialized) {
 				return;
@@ -327,7 +314,7 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
-		internal void RuntimeSettingsIntegrated () {
+		internal void ProcessRuntimeSettingsIntegration () {
 			if (initialized) {
 				OnRuntimeSettingsLoaded?.Invoke (this);
 			}
@@ -335,7 +322,6 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Utility
-
 		internal bool Editor_IsValidGUID (string guid, bool isGroup) {
 			if (Initialized) {
 				return false;
