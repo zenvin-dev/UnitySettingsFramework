@@ -105,6 +105,18 @@ namespace Zenvin.Settings.Framework {
 			}
 			return External.CompareTo (other.External);
 		}
+
+
+		[ContextMenu ("Force Delete Setting")]
+		private void ForceDelete () {
+			Debug.Log ($"Deleting {ToString()}");
+
+			if (Group != null) {
+				Group.RemoveSetting (this);
+			}
+
+			DestroyImmediate (this, true);
+		}
 	}
 
 	/// <summary>
