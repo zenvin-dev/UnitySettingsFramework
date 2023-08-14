@@ -280,7 +280,13 @@ namespace Zenvin.Settings.Framework {
 				}
 				Asset = CreateInstance<SettingsAsset> ();
 				AssetDatabase.CreateAsset (Asset, path);
+
+#if UNITY_2021_1_OR_NEWER
 				AssetDatabase.SaveAssetIfDirty (Asset);
+#else
+				AssetDatabase.SaveAssets ();
+#endif
+
 				AssetDatabase.Refresh ();
 				return;
 			}
