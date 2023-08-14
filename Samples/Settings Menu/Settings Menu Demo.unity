@@ -712,7 +712,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mode: 0
   settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
-  loadDynamicSettings: 1
+  resetToDefaults: 0
+  loadDynamicSettings: 0
   dynamicSettings:
     Groups:
     - GUID: _new_group
@@ -943,7 +944,7 @@ MonoBehaviour:
   sortSettings: 1
   settingHeaderPrefab: {fileID: 2719730696371570477, guid: 64568e354908bce42bb6cccd47335488, type: 3}
   controlPrefabs:
-    assignBaseTypes: 1
+    <AssignBaseTypes>k__BackingField: 1
     controls:
     - {fileID: 228375907464600107, guid: 755c3dab683e5af48aca1961f036a904, type: 3}
     - {fileID: 3343890958718214053, guid: 94280cc4c5815d147a24070d834c82e0, type: 3}
