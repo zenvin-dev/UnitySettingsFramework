@@ -6,10 +6,6 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 \
 **The package will not work properly in pre-2020.1 versions!**
 
-### _NOTICE_
-_There have been major and minor changes all over the code base recently, so this README might not be fully up-to-date anymore.
-Most notably, the [Saving and Loading](#6-saving-and-loading-setting-values) functionality has been overhauled completely. Check the corresponding section to learn more!_
-
 ## Using the Package
 
 ### 1. Setup
