@@ -1,6 +1,7 @@
+using System;
 using System.Collections.Generic;
-using Zenvin.Settings.Framework;
 using UnityEngine;
+using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
 	/// <summary>
@@ -9,8 +10,6 @@ namespace Zenvin.Settings.Loading {
 	public static class RuntimeSettingLoader {
 
 		// allocate resources
-		private static readonly Dictionary<string, ISettingFactory> sfDict = new Dictionary<string, ISettingFactory> ();
-		private static readonly Dictionary<string, IGroupFactory> gfDict = new Dictionary<string, IGroupFactory> ();
 		private static readonly Dictionary<string, string> desiredParents = new Dictionary<string, string> ();
 		private static readonly Dictionary<string, SettingsGroup> groups = new Dictionary<string, SettingsGroup> ();
 		private static readonly List<(SettingsGroup parent, SettingsGroup group)> rootGroups = new List<(SettingsGroup parent, SettingsGroup group)> ();
@@ -65,26 +64,47 @@ namespace Zenvin.Settings.Loading {
 				return false;
 			}
 
-			// initialize factories
-			PopulateFactoryDict (factories);
+			var options = new SettingLoaderOptions (asset)
+				.WithData (data)
+				.WithTypeFactories (factories)
+				.WithDefaultGroupType<SettingsGroup>()
+				.WithIconLoader(iconLoader);
+
+			return LoadSettingsIntoAsset (options);
+		}
+
+		/// <summary>
+		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.<br></br>
+		/// </summary>
+		/// <remarks>
+		/// Can only be used while the game is running.
+		/// </remarks>
+		public static bool LoadSettingsIntoAsset (SettingLoaderOptions options) {
+			if (!Application.isPlaying) {
+				return false;
+			}
+
+			if (options == null || !options.IsValid) {
+				return false;
+			}
 
 			// create group instances from parsed data
-			PopulateGroupDict (asset, data.Groups, iconLoader);
+			PopulateGroupDict (options.Asset, options.Data.Groups, options.IconLoader, options.GroupFactories, options.DefaultGroupType);
 
 			// link group instances in hierarchy & store groups that will be integrated directly
-			EstablishGroupRelationships (asset);
+			EstablishGroupRelationships (options.Asset);
 
 			// clear relationship dictionary for reuse with settings
 			desiredParents.Clear ();
 
 			// create settings instances from parsed data
-			IntegrateSettings (asset, data.Settings);
+			IntegrateSettings (options.Asset, options.Data.Settings, options.SettingFactories);
 
 			// integrate created root groups into asset
-			IntegrateRootGroups (asset);
+			IntegrateRootGroups ();
 
 			// run post-integration event
-			asset.ProcessRuntimeSettingsIntegration ();
+			options.Asset.ProcessRuntimeSettingsIntegration ();
 
 			// reset loader state
 			ResetLoaderState ();
@@ -92,46 +112,21 @@ namespace Zenvin.Settings.Loading {
 			return true;
 		}
 
-		private static void PopulateFactoryDict (TypeFactoryWrapper[] factories) {
-			foreach (var f in factories) {
-				string fType = f.Type;
-
-				if (f.IsGroupFactory) {
-					if (f.GroupFactory != null) {
-						if (string.IsNullOrEmpty (fType)) {
-							fType = f.GroupFactory.GetDefaultValidType ();
-						}
-
-						if (!string.IsNullOrEmpty (fType)) {
-							gfDict[fType] = f.GroupFactory;
-						}
-					}
-				} else {
-					if (f.SettingFactory != null) {
-						if (string.IsNullOrEmpty (fType)) {
-							fType = f.SettingFactory.GetDefaultValidType ();
-						}
-
-						if (!string.IsNullOrEmpty (fType)) {
-							sfDict[fType] = f.SettingFactory;
-						}
-					}
-				}
-			}
-		}
-
-		private static void PopulateGroupDict (SettingsAsset asset, GroupData[] groupsData, IGroupIconLoader loader) {
+		private static void PopulateGroupDict (SettingsAsset asset, GroupData[] groupsData, IGroupIconLoader loader, Dictionary<string, IGroupFactory> groupFactories, Type groupDefault) {
 			foreach (var g in groupsData) {
 				if (asset.IsValidGuid (g.GUID, true) && !groups.ContainsKey (g.GUID)) {
 					SettingsGroup obj;
-					if (!string.IsNullOrEmpty (g.Type) && gfDict.TryGetValue (g.Type, out IGroupFactory fact)) {
+					if (!string.IsNullOrEmpty (g.Type) && groupFactories.TryGetValue (g.Type, out IGroupFactory fact)) {
 						obj = fact.CreateGroupFromType (g.Values);
 					} else {
-						obj = ScriptableObject.CreateInstance<SettingsGroup> ();
+						if (groupDefault == null) {
+							continue;
+						}
+						obj = ScriptableObject.CreateInstance (groupDefault) as SettingsGroup;
 						obj.External = true;
 					}
 
-					if (!obj.External) {
+					if (obj == null || !obj.External) {
 						continue;
 					}
 
@@ -155,9 +150,8 @@ namespace Zenvin.Settings.Loading {
 		private static void EstablishGroupRelationships (SettingsAsset asset) {
 			foreach (var _rel in desiredParents) {
 				SettingsGroup child = groups[_rel.Key];
-				SettingsGroup g;
 
-				if (groups.TryGetValue (_rel.Value, out g)) {
+				if (groups.TryGetValue (_rel.Value, out SettingsGroup g)) {
 					if (g != child) {
 						g.IntegrateChildGroup (child);
 					}
@@ -167,12 +161,10 @@ namespace Zenvin.Settings.Loading {
 			}
 		}
 
-		private static void IntegrateSettings (SettingsAsset asset, SettingData[] settingsData) {
+		private static void IntegrateSettings (SettingsAsset asset, SettingData[] settingsData, Dictionary<string, ISettingFactory> settingFactories) {
 			foreach (var s in settingsData) {
-				if (sfDict.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
-					SettingsGroup parent;
-
-					if (!groups.TryGetValue (s.ParentGroupGUID, out parent)) {
+				if (settingFactories.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
+					if (!groups.TryGetValue (s.ParentGroupGUID, out SettingsGroup parent)) {
 						asset.TryGetGroupByGUID (s.ParentGroupGUID, out parent);
 					}
 
@@ -200,7 +192,7 @@ namespace Zenvin.Settings.Loading {
 			}
 		}
 
-		private static void IntegrateRootGroups (SettingsAsset asset) {
+		private static void IntegrateRootGroups () {
 			foreach (var g in rootGroups) {
 				if (g.group.ChildGroupCount > 0 || g.group.SettingCount > 0) {
 					g.parent.IntegrateChildGroup (g.group);
@@ -209,8 +201,6 @@ namespace Zenvin.Settings.Loading {
 		}
 
 		private static void ResetLoaderState () {
-			sfDict.Clear ();
-			gfDict.Clear ();
 			desiredParents.Clear ();
 			groups.Clear ();
 			rootGroups.Clear ();
