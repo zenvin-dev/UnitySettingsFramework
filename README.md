@@ -6,6 +6,12 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 \
 **The package will not work properly in pre-2020.1 versions!**
 
+
+**NOTICE** \
+As of package version 2.5.0, an alternative syntax for loading settings at runtime has been introduced. \
+The example below, as well as the relevant sample script have been updated accordingly.
+
+
 ## Using the Package
 
 ### 1. Setup
@@ -16,77 +22,70 @@ Once you have created the `SettingsAsset`, you can use the **Settings Editor Win
 If there is no asset being edited currently, the editor will show a list of available instances.
 
 
-## 2. Settings
-Settings are represented by Scriptable Object instances that inherit `Zenvin.Settings.Framework.SettingBase<T>`. They each contain a number of properties by default (see below), but can be extended to contain further fields by creating own classes inheriting the aforementioned base class.
+## 2. Settings and Setting Groups
+Settings are represented by Scriptable Object instances that inherit `Zenvin.Settings.Framework.SettingBase<T>`. They each contain a number of properties by default, but can be extended to contain further members by creating own classes inheriting the aforementioned base class.
 
-### 2.0 GUID
-The `GUID` provides a unique identifier for each Setting. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.
-\
-However the value cannot be empty, and it must be unique among **all** Settings within the same `SettingsAsset`. Should that not be the case, the system will reset the `GUID` to its previous value.
-
-### 2.1 Name
-The `Name` is supposed to be the default label for the Setting on UI. Is also will show up in the hierarchy of the Settings Editor window.
-\
-Setting names do not need to be unique.
-
-### 2.2 Localization Key
-The `NameLocalizationKey` can be used to add localization to your Settings menus. Just as the `Name`, it can have any value.
-
-### 2.3 Default Value
-The `DefaultValue` is a generically typed value, and will be assigned to the Setting by default during runtime initialization.
-
-
-## 3 Settings Groups
-As the name suggests, Settings Groups can be used to group Settings together. Just like Settings, they are Scriptable Objects (inheriting `Zenvin.Settings.Framework.SettingsGroup`) that contain several values (see below).
-Just like with Settings, it is possible to extend the pre-existing `SettingsGroup` type by inheriting from it.
+Settings Groups can be used to group Settings together. Just like Settings, they are Scriptable Objects (inheriting `Zenvin.Settings.Framework.SettingsGroup`), and it is possible to extend the built-in `SettingsGroup` type by inheriting from it.
 \
 When creating UI for your Settings, Groups can be used to separate them into tabs or sub-headers.
 
-### 3.0 GUID
-The `GUID` provides a unique identifier for each Group. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.
-\
-However the value cannot be empty, and it must be unique among **all** Groups within the same `SettingsAsset`. Should that not be the case, the system will reset the `GUID` to its previous value.
+### Shared serialized Properties
+Below is a list of properties shared between `Zenvin.Settings.Framework.SettingBase` and `Zenvin.Settings.Framework.SettingsGroup`, that show up in the inspector.
 
-### 3.2 Name
-The `Name` is supposed to be the default label for the Group on UI. Is also will show up in the hierarchy of the Settings Editor window.
-\
-Group names do not need to be unique.
-
-### 3.2 Localization Key
-The `NameLocalizationKey` can be used to add localization to your settings menus. Just as the `Name`, it can have any value.
-
-### 3.3 Icon
-The `Icon` is a sprite that can be used to represent the Group on UI, either instead or along with the name.
+| Property | Type | Description |
+|-|-|-|
+| `GUID` | string | The `GUID` provides a unique identifier for each Setting or Group. By default, it will be assigned a pseudo-random, unique hexadecimal string which can be changed through the Setting Editor window.<br>However, the value cannot be empty and it must be unique among **all** Settings/Groups within the same `SettingsAsset`. Should that not be the case, the system will reset the `GUID` to its previous value. |
+| `Name` | string | The `Name` is supposed to be the default label for the Setting on UI. Is also will show up in the hierarchy of the Settings Editor window.<br>Setting names do not need to be unique. |
+| `NameLocalizationKey` | string | The `NameLocalizationKey` can be used to add localization to your Settings menus. Just as the `Name`, it can have an arbitrary value. |
 
 
-## 4. Creating Groups and Settings
+### SettingBase serialized properties
+Below is a list of properties unique to `Zenvin.Settings.Framework.SettingBase<T>`, that show up in the inspector.
+
+| Property | Type | Description |
+|-|-|-|
+| `DefaultValue` | T | The `DefaultValue` is a generically typed value, and will be assigned to the Setting by default during runtime initialization. |
+
+
+### SettingsGroup serialized properties
+Below is a list of properties unique to `Zenvin.Settings.Framework.SettingsGroup`, that show up in the inspector.
+
+| Property | Type | Description |
+|-|-|-|
+| `Icon` | Sprite | The `Icon` is a sprite that can be used to represent the Group on UI, either instead or along with the name. |
+
+
+## 3. Creating Groups and Settings
 Creating new Groups and Settings happens through the Settings Editor window. Simply right-click any existing Group, and you will have the option to create a Group or Setting inside it, or delete the Group in question.
 Settings on the other hand will only allow you to duplicate or delete them.
 \
 Note that changing the Settings' hierarchy is only permitted during edit-time. The popup menus will not appear during runtime.
 
 
-## 5. Using Settings
-Settings can be either referenced directly as a `SettingBase<T>` in the editor, or accessed by its `GUID`, assuming that the SettingsAsset has been initialized.
+## 4. Using Settings
+Generally speaking, there are 3 different ways of referencing Settings:
+- As a `SettingBase<T>` reference that is assigned in the editor or through code.
+- Wrapped in a `SettingReference<T>` instance, whose value is assigned in the editor. This has the advantage that a default value can be given, even if the Setting is `null`.
+- Accessed by its `GUID` using `SettingsAsset.TryGetSettingByGUID(string, out SettingBase)`, assuming that the containing `SettingsAsset` has been initialized.
 
-### 5.0 Initialization
-Upon runtime start, the SettingsAsset needs to be initialized. This happens with a call to the _non-static_ `SettingsAsset.Initialize()` method.
+### 4.0 Initialization
+`SettingsAsset`s needs to be initialized before their Settings can be used properly. Initialization must happen **at runtime**, with a call to the _non-static_ `SettingsAsset.Initialize()` method. 
 \
-During initialization, external Settings can be loaded (see [Loading external Settings](#7-loading-external-settings)).
+For performance reasons, it is recommended to load external Settings (see [Loading external Settings](#6-loading-external-settings)) during initialization, rather than after the fact.
 
-### 5.1 Getting a Setting's value
+### 4.1 Getting a Setting's value
 Each Setting object contains 2 essential values that are managed by the Framework:
 * `CurrentValue`: The value that is currently **applied** to the Setting.
 * `CachedValue`: The value that the Setting will have once applied.
 
 To get a Setting's value, you would usually poll `CurrentValue`. This can be done either continuously, or every time `SettingBase<T>.OnValueApplied` is invoked.
 
-### 5.2 Processing Setting values
+### 4.2 Processing Setting values
 In some cases, it is necessary that your Setting value adheres to specific rules. For example, when your Setting refers to an array using its value.
 \
 `ProcessValue(ref T)` in `SettingBase<T>` is a `virtual void` method allows to process a given value, before the Setting is updated with it. By default, this method does nothing, so it does not _have_ to be overridden if you just want to use the value as-is.
 
-### 5.3 Setting, Applying, Reverting and Resetting values
+### 4.3 Setting, Applying, Reverting and Resetting values
 * When `SetValue(T)` is called on a given `SettingBase<T>`, it will update the Setting's `CachedValue` and mark the Setting as _dirty_.
 * Dirty Settings can be applied with a call to `ApplyValue()`. This will remove the _dirty_ flag, update the Setting's `CurrentValue` with whatever `CachedValue` was set to, and invoke `OnValueApplied`.
 * Reverting a _dirty_ Setting with a call to `RevertValue()` will set its `CachedValue` to its `CurrentValue`.
@@ -94,20 +93,20 @@ In some cases, it is necessary that your Setting value adheres to specific rules
 * Reverting or resetting will invoke `OnValueReverted` or `OnValueReset`, respectively. They will also both mark the Setting as _dirty_.
 
 
-## 6. Saving and Loading Setting values
+## 5. Saving and Loading Setting values
 Settings can be serialized in any number of ways. The Framework uses the `ISerializer<T>` and `ISerializable<T>` interfaces to facilitate a most abstract approach to this. You can have a look at the included [JSON](./Runtime/Framework/Serialization/JSON/) and [binary](./Runtime/Framework/Serialization/Binary/) serializers to get an idea of how to implement `ISerializer<T>`, and check out any of the [built-in Setting types](./Runtime/Framework/Settings/) to see, how `ISerializable<T>` may be implemented. \
 See below for a more in-depth explanation.
 
-### Serialization
+### 5.0 Serialization
 Serializing Settings starts with a call to `SettingsAsset.SerializeSettings`. This method needs to be passed an `ISerializer<T>` instance. \
 That instance is responsible for managing save data for all Settings that implement `ISerializable` with the same `T`. From this follows, that **any Settings that do not implement `ISerializable` of the required type will be ignored during the serialization process.** \
 When Settings are serialized, a new instance of `T` will be created for each Setting and passed to the Setting's implementation of `ISerializable<T>.OnSerialize` to be manipulated (i.e. receive information about the Setting's state).
-After that, it is passed on to the given `ISerializer<T>` instance, along with the currently serialized Setting's [`GUID`](#20-guid) via `ISerializer<T>.Serialize(string, T)`. \
+After that, it is passed on to the given `ISerializer<T>` instance, along with the currently serialized Setting's `GUID` via `ISerializer<T>.Serialize(string, T)`. \
 From that point on, it is the serializer's task to store this information.
 
-### Deserialization
+### 5.1 Deserialization
 Deserializing Settings starts with a call to `SettingsAsset.DeserializeSettings`. This method needs to be passed an `ISerializer<T>` instance. \
-That instance then has to provide a collection of all saved [`GUID`s](#20-guid), along with their associated data in the form of an instance of `T`, via `ISerializer<T>.GetSerializedData()`. \
+That instance then has to provide a collection of all saved `GUID`s, along with their associated data in the form of an instance of `T`, via `ISerializer<T>.GetSerializedData()`. \
 Subsequently, that collection will be iterated and any Setting whose GUID was found in the data and that implements a fitting `ISerializable<T>` will receive the respective data to read from. This again means that **any Settings that do not implement `ISerializable` of the required type will be ignored during the deserialization process.** \
 Just with serialization, the specific way of deserialization will have to be implemented by the consumer, using `ISerializable<T>.OnDeserialize`. \
 \
@@ -115,7 +114,7 @@ Just with serialization, the specific way of deserialization will have to be imp
 Due to the generic nature of the deserialization process, Settings' values cannot automatically be assigned to the loaded data. This means that calling `SettingBase<T>.SetValue` manually is required at the end of the `ISerializable<T>.OnDeserialize` method, if that method is supposed to fulfil its function. \
 The Framework will however automatically call `ApplyValue` on each deserialized Setting.
 
-### Hooking into the Serialization/Deserialization process
+### 5.2 Hooking into the Serialization/Deserialization process
 Sometimes, the serialized or deserialized data might need to be processed, such as loading data from a file before deserialization, or writing it to a file after serialization. \
 For this purpose, any class implementing `ISerializer<T>` may also implement `ISerializerCallbackReceiver` (not to be confused with Unity's [`ISerializationCallbackReceiver`](https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.html)!). \
 This interface implements the following four methods, which can be used to respond to specific steps of the serialization process: 
@@ -128,7 +127,7 @@ See [JSON File Serializer](./Runtime/Framework/Serialization/JSON/JsonFileSerial
 
 Note that none of the above methods will be invoked, if the serialization/deserialization fails instantly, due to the executing `SettingsAsset` not being initialized.
 
-## 7. Loading external Settings
+## 6. Loading external Settings
 The Framework allows loading one or multiple Settings and Setting Groups from one or several JSON strings.
 \
 Loading will ignore all Settings and Groups whose `GUID`s already exist. However, it is possible to load external Settings and Groups as children of existing Groups, as well as loading external Settings as children of external Groups from the same or a previous load process.
@@ -136,19 +135,19 @@ Loading will ignore all Settings and Groups whose `GUID`s already exist. However
 \
 However, loading is only possible during the initialization process of the SettingsAsset. To load, first subscribe to `SettingsAsset.OnInitialize`, then call `SettingsAsset.Initialize()`.
 
-### 7.0 Setting Factories
+### 6.0 Setting Factories
 In order to load external Settings, the `RuntimeSettingLoader` needs to know how to translate the `string` values it gets from the parsed JSON objects into `SettingBase<T>` instances.
 \
 That is where the `ISettingFactory` interface comes into play:
 * `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
 * `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired Setting class.
 
-### 7.1 Group Factories
+### 6.1 Group Factories
 Loading external Groups happens similarly to the way external Settings are loaded, with the main difference being that the `RuntimeSettingLoader` will fall back to the built-in `SettingsGroup` type, if it cannot translate the JSON values into Group instances.
 \
 Translating the values again, is where an interface is used - respectively `IGroupFactory`:
 * `IGroupFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Group object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
-* `IGroupFactory.CreateSettingFromType(StringValuePair[])`: Should return an instance of your desired Group class.
+* `IGroupFactory.CreateGroupFromType(StringValuePair[])`: Should return an instance of your desired Group class.
 
 
 # Examples
@@ -225,17 +224,15 @@ public class SettingsInitializer : MonoBehaviour
     
     private void OnInitialize (SettingsAsset asset)
     {
-        RuntimeSettingLoader.LoadSettingsIntoAsset(
-            asset,                        // the target asset
-            json,                         // the json string to load from
-            null,                         // an IGroupIconLoader object to load Group icons
-            ("bool", new BoolSettingFactory()),         // factories provided by the package. 
-            (null, new IntSettingFactory()),            // override for default type string is null, resulting in the interface value being used.
-            ("float", new FloatSettingFactory()),       // override for default type string is "float", meaning this Setting will be used wherever the json type is "float"
-            
-            ("dropdown", new DropdownSettingFactory()), // the factory we created earlier, along with an override for the type string
-            ...                                         // potential further custom Settings factories
-        );
+        var options = new SettingLoaderOptions (asset)                          // initialize options object with the target asset
+            .WithData (json)                                                    // set the options' data from the json string 
+            .WithSettingFactory ("bool", new BoolSettingFactory ())             // add factories provided by the package
+            .WithSettingFactory ("int", new IntSettingFactory ())               // for the Int and Bool factories, the "type" they are used for will be overwritten
+            .WithSettingFactory (new FloatSettingFactory ())                    // for the Float factory, its default "type" value will be used
+
+            .WithSettingFactory ("dropdown", new DropdownSettingFactory ());    // add the factory we created earlier
+
+        RuntimeSettingLoader.LoadSettingsIntoAsset (options);   // load settings into the asset, using the options created above
     }
 }
 ```
