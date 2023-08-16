@@ -48,14 +48,16 @@ namespace Zenvin.Settings.Samples {
 			if (dynamicSettingsJsonOutput == null || dynamicSettingsJsonOutput.Length == 0) {
 				return;
 			}
-			RuntimeSettingLoader.LoadSettingsIntoAsset (
-				asset, dynamicSettingsJsonOutput, null,
-				("bool", new BoolSettingFactory ()),
-				("int", new IntSettingFactory ()),
-				("float", new FloatSettingFactory ()),
-				("dropdown", new DropdownSettingFactory ()),
-				("slider", new SliderSettingFactory ())
-			);
+
+			var options = new SettingLoaderOptions (asset)
+				.WithData (dynamicSettingsJsonOutput)
+				.WithSettingFactory ("bool", new BoolSettingFactory ())
+				.WithSettingFactory ("int", new IntSettingFactory ())
+				.WithSettingFactory ("float", new FloatSettingFactory ())
+				.WithSettingFactory ("dropdown", new DropdownSettingFactory ())
+				.WithSettingFactory ("slider", new SliderSettingFactory ());
+
+			RuntimeSettingLoader.LoadSettingsIntoAsset (options);
 		}
 
 		private void OnValidate () {
