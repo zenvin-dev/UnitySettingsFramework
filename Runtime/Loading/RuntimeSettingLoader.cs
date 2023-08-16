@@ -25,6 +25,7 @@ namespace Zenvin.Settings.Loading {
 		/// <remarks>
 		/// Can only be used while the game is running.
 		/// </remarks>
+		[Obsolete("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (string.IsNullOrWhiteSpace (json)) {
 				return false;
@@ -51,6 +52,7 @@ namespace Zenvin.Settings.Loading {
 		/// <remarks>
 		/// Can only be used while the game is running.
 		/// </remarks>
+		[Obsolete("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (!Application.isPlaying) {
 				return false;
