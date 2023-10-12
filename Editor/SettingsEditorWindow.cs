@@ -151,8 +151,6 @@ namespace Zenvin.Settings.Framework {
 		// GUI methods
 
 		private void OnGUI () {
-			Event _evt = Event.current;
-
 			// prompt setting asset selection if there is none
 			if (Asset == null) {
 				assetObj = null;
@@ -180,16 +178,6 @@ namespace Zenvin.Settings.Framework {
 			Rect editorRect = new Rect (
 				hierarchyWidth + 2f + margin * 2f, margin + topBarRect.height + margin, position.width - hierarchyWidth - 2f - margin * 2f, position.height - margin * 3f - topBarRect.height
 			);
-
-			// draw draggable line between hierarchy and inspector
-			////if (!hierarchyWidthLocked) {
-			////	Rect dragRect = new Rect (hierarchyWidth, topBarRect.height, 2f, position.height - topBarRect.height);
-			////	if (MakeHorizontalDragRect (ref dragRect, 200f, position.width - 300f)) {
-			////		hierarchyWidth = dragRect.x;
-			////		EditorPrefs.SetFloat ($"{GetType ().FullName}.{nameof (hierarchyWidth)}", hierarchyWidth);
-			////		Repaint ();
-			////	}
-			////}
 
 			Rect separatorRect = new Rect (hierarchyWidth, topBarRect.height, 1f, position.height - topBarRect.height);
 			EditorGUI.DrawRect (separatorRect, new Color (0.1f, 0.1f, 0.1f));

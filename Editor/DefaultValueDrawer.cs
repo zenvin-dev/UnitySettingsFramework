@@ -9,7 +9,6 @@ namespace Zenvin.Settings.Framework {
 
 		public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
 			if (GetIsValueVisible (property)) {
-				//base.OnGUI (position, property, label);
 				EditorGUI.PropertyField (position, property, label);
 			}
 		}
@@ -19,7 +18,10 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private bool GetIsValueVisible (SerializedProperty prop) {
-			return prop?.serializedObject?.targetObject?.GetType ()?.GetCustomAttribute<HasDeviatingDefaultValueAttribute> (true) == null;
+			if (prop.serializedObject.targetObject == null) {
+				return false;
+			}
+			return prop.serializedObject.targetObject.GetType ()?.GetCustomAttribute<HasDeviatingDefaultValueAttribute> (true) == null;
 		}
 
 	}
