@@ -109,6 +109,12 @@ namespace Zenvin.Settings.Framework {
 			return External.CompareTo (other.External);
 		}
 
+		internal void Log (string message) {
+			if (Asset != null) {
+				Asset.Log (message);
+			}
+		}
+
 
 		[ContextMenu ("Force Delete Setting")]
 		private void ForceDelete () {
@@ -200,7 +206,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
 		public void SetValue (T value) {
-			Asset?.Log ($"Setting Value of {ToString ()} to '{value}'");
+			Log ($"Setting Value of {ToString ()} to '{value}'");
 			ProcessValue (ref value);
 
 			if (!cachedValue.Equals (value)) {
@@ -269,10 +275,10 @@ namespace Zenvin.Settings.Framework {
 
 		private protected sealed override bool OnApply () {
 			if (!IsDirty) {
-				Asset?.Log ($"Did not apply value on {ToString ()} because it was not dirty.");
+				Log ($"Did not apply value on {ToString ()} because it was not dirty.");
 				return false;
 			}
-			Asset?.Log ($"Applying value '{cachedValue}' on {ToString ()}.");
+			Log ($"Applying value '{cachedValue}' on {ToString ()}.");
 			currentValue = cachedValue;
 			IsDirty = false;
 			OnValueChanged (ValueChangeMode.Apply);
@@ -282,10 +288,10 @@ namespace Zenvin.Settings.Framework {
 
 		private protected sealed override bool OnRevert () {
 			if (!IsDirty) {
-				Asset?.Log ($"Did not revert value on {ToString ()} because it was not dirty.");
+				Log ($"Did not revert value on {ToString ()} because it was not dirty.");
 				return false;
 			}
-			Asset?.Log ($"Applying value of {ToString ()}.");
+			Log ($"Applying value of {ToString ()}.");
 			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
@@ -295,7 +301,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private protected sealed override bool OnReset (bool apply) {
-			Asset?.Log ($"Resetting {ToString ()} [apply: {apply}]");
+			Log ($"Resetting {ToString ()} [apply: {apply}]");
 			SetValue (defaultValue);
 			if (apply) {
 				ApplyValue ();

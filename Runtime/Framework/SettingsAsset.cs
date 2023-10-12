@@ -1,11 +1,7 @@
-using System.Collections.Generic;
-using Zenvin.Settings.Utility;
-using UnityEngine;
-using System.IO;
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 using Zenvin.Settings.Framework.Serialization;
-using Newtonsoft.Json.Linq;
-using Assets.UnitySettingsFramework.Runtime.Framework.Serialization;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -196,6 +192,7 @@ namespace Zenvin.Settings.Framework {
 		/// Applies all dirty Settings.
 		/// </summary>
 		public void ApplyDirtySettings () {
+			Log ($"Applying all dirty Settings (Initialized: {Initialized}, Registered: {settingsDict.Count}, Dirty: {dirtySettings.Count})");
 			SettingBase[] _dirtySettings = new SettingBase[dirtySettings.Count];
 			dirtySettings.CopyTo (_dirtySettings);
 
@@ -208,6 +205,7 @@ namespace Zenvin.Settings.Framework {
 		/// Reverts all dirty Settings to their current, unapplied values.
 		/// </summary>
 		public void RevertDirtySettings () {
+			Log ($"Reverting all dirty Settings (Initialized: {Initialized}, Registered: {settingsDict.Count}, Dirty: {dirtySettings.Count})");
 			SettingBase[] _dirtySettings = new SettingBase[dirtySettings.Count];
 			dirtySettings.CopyTo (_dirtySettings);
 
@@ -221,7 +219,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="apply"> Apply each Setting after reset? </param>
 		public void ResetAllSettings (bool apply) {
-			Log ($"Resetting all Settings (Initialized: {Initialized}, Registered: {settingsDict.Count}, Apply: {apply})");
+			Log ($"Resetting all Settings (Initialized: {Initialized}, Registered: {settingsDict.Count}, Apply reset values: {apply})");
 			foreach (var s in settingsDict.Values) {
 				s.ResetValue (apply);
 			}
@@ -241,6 +239,8 @@ namespace Zenvin.Settings.Framework {
 			if (!Initialized || serializer == null) {
 				return false;
 			}
+
+			Log ($"Serializing Settings using '{typeof(ISerializer<T>)}' (Target type '{typeof(T)}', Filtered: {filter != null})");
 
 			var advSer = serializer as ISerializerCallbackReceiver;
 			advSer?.InitializeSerialization ();
@@ -274,6 +274,8 @@ namespace Zenvin.Settings.Framework {
 			if (!Initialized || serializer == null) {
 				return false;
 			}
+
+			Log ($"Deserializing Settings using '{typeof(ISerializer<T>)}' (Target type '{typeof(T)}', Filtered: {filter != null})");
 
 			var advSer = serializer as ISerializerCallbackReceiver;
 			advSer?.InitializeDeserialization ();
