@@ -12,6 +12,13 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField] private T fallbackValue = default;
 
 
+		public SettingReference () { }
+
+		public SettingReference (T fallbackValue) {
+			this.fallbackValue = fallbackValue;
+		}
+
+
 		/// <summary> Whether a Setting is referenced. </summary>
 		public bool HasSetting => settingObj != null;
 		/// <summary> The referenced Setting object. </summary>
@@ -20,8 +27,8 @@ namespace Zenvin.Settings.Framework {
 			set => settingObj = value;
 		}
 
-		/// <summary> The Fallback value set in the inspector. </summary>
-		public T Fallback => fallbackValue;
+		/// <summary> The Fallback value, that is used when no valid <see cref="SettingBase{T}"/> is referenced. </summary>
+		public T Fallback { get => fallbackValue; set => fallbackValue = value; }
 		/// <summary> The <see cref="SettingBase{T}.CurrentValue"/> of the referenced Setting. <see cref="Fallback"/> if none. </summary>
 		public T CurrentValue => settingObj == null ? fallbackValue : settingObj.CurrentValue;
 		/// <summary> The <see cref="SettingBase{T}.CachedValue"/> of the referenced Setting. <see cref="Fallback"/> if none. </summary>
