@@ -368,7 +368,7 @@ namespace Zenvin.Settings.Framework {
 
 		internal void Log (string message) {
 			if (enableDebugLogging) {
-				Debug.Log (message);
+				Debug.Log ("[Settings Framework] " + message);
 			}
 		}
 

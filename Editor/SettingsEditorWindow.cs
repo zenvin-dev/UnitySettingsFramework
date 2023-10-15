@@ -1,11 +1,12 @@
-using Object = UnityEngine.Object;
-
-using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
-using UnityEditor;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.Experimental;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Zenvin.Settings.Framework {
 	internal class SettingsEditorWindow : EditorWindow, ISerializationCallbackReceiver {
@@ -322,6 +323,16 @@ namespace Zenvin.Settings.Framework {
 			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
 				Selection.activeObject = Asset;
 			}
+
+			GUI.enabled = !Application.isPlaying;
+			if (GUILayout.Button ("Restore (Experimental)", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+				const string notice = "This function will attempt to detect lost references inside the SettingAsset.\n" +
+									  "If any are found, the .asset file's metadata will be modified directly, in an effort to get Unity to re-serialize it.";
+				if (EditorUtility.DisplayDialog ("Notice", notice, "Proceed", "Cancel")) {
+					Restore (Asset);
+				}
+			}
+			GUI.enabled = true;
 
 			GUILayout.FlexibleSpace ();
 
@@ -1379,6 +1390,50 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			return name;
+		}
+
+		private void Restore (SettingsAsset asset) {
+			if (asset == null) {
+				Debug.LogError ("[Settings Framework] No asset to restore.");
+				return;
+			}
+			if (AllValid (asset)) {
+				Debug.Log ("[Settings Framework] (Experimental) Restoration did not find any missing references.");
+				return;
+			}
+
+			var path = Path.Combine (Application.dataPath, AssetDatabase.GetAssetPath (asset).Substring (7));
+			if (!File.Exists (path)) {
+				Debug.Log ($"[Settings Framework] (Experimental) Restoration could not locate asset file (Searched path: '{path}').");
+				return;
+			}
+
+			AssetDatabase.SaveAssets ();
+			AssetDatabase.ReleaseCachedFileHandles ();
+
+			File.SetLastWriteTime (path, DateTime.Now);
+			File.SetLastWriteTime (path + ".meta", DateTime.Now);
+
+			AssetDatabase.Refresh ();
+			Debug.Log ($"[Settings Framework] (Experimental) Restoration modified '{path}'.");
+
+
+			static bool AllValid (SettingsGroup group) {
+				if (group == null) {
+					return false;
+				}
+				for (int i = 0; i < group.SettingCount; i++) {
+					if (group.settings[i] == null) {
+						return false;
+					}
+				}
+				for (int i = 0; i < (group.groups?.Count ?? 0); i++) {
+					if (!AllValid (group.groups[i])) {
+						return false;
+					}
+				}
+				return true;
+			}
 		}
 
 
