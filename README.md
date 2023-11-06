@@ -160,16 +160,6 @@ using Zenvin.Settings.Framework;
 public class DropdownSetting : SettingBase<int>     // declare custom Setting type
 {
     [SerializeField] private string[] values;       // expose field in the editor to allow assigning dropdown values
-
-    protected override byte[] OnSerialize ()
-    {
-        return BitConverter.GetBytes (CurrentValue);    // serialize the current value
-    }
-    
-    protected override int OnDeserialize (byte[] data)
-    {
-      return BitConverter.ToInt32 (data, 0);            // deserialize the current value
-    }
 }
 ```
 After you let Unity recompile, the new Setting type should show up in your create setting context menu.
@@ -179,7 +169,7 @@ Assume you have the class from **Example 1**, and now you would like to make sur
 \
 All you need to do to achieve this, is `override` the `ProcessValue` method like this:
 ```csharp
-protected void ProcessValue(ref int value)
+protected override void ProcessValue(ref int value)
 {
     value = Mathf.Clamp (value, 0, values.Length - 1);
 }
