@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using Zenvin.EditorUtil;
 using Object = UnityEngine.Object;
 
 namespace Zenvin.Settings.Framework {
@@ -1178,25 +1179,21 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			List<Type> settingTypes = new List<Type> ();
-			Type settingBaseType = typeof (SettingBase);
+			var settingTypes = new List<Type> ();
+			var groupTypes = new List<Type> ();
 
-			List<Type> groupTypes = new List<Type> ();
-			Type groupBaseType = typeof (SettingsGroup);
+			var asmTypes = TypeCache.GetTypesDerivedFrom<SettingBase> ();
+			foreach (var t in asmTypes) {
+				if (!t.IsAbstract && t.BaseType?.IsConstructedGenericType == true) {
+					settingTypes.Add (t);
+				}
+			}
 
-			Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies ();
-			foreach (Assembly asm in assemblies) {
-
-				Type[] asmTypes = asm.GetTypes ();
-				foreach (Type t in asmTypes) {
-
-					if (settingBaseType.IsAssignableFrom (t) && !t.IsAbstract) {
-						settingTypes.Add (t);
-					}
-					if (groupBaseType.IsAssignableFrom (t) && !t.IsAbstract && t != groupBaseType && t != typeof (SettingsAsset)) {
-						groupTypes.Add (t);
-					}
-
+			var groupBaseType = typeof (SettingsGroup);
+			asmTypes = TypeCache.GetTypesDerivedFrom (groupBaseType);
+			foreach (var t in asmTypes) {
+				if (!t.IsAbstract && t != groupBaseType && t != typeof (SettingsAsset)) {
+					groupTypes.Add (t);
 				}
 			}
 
