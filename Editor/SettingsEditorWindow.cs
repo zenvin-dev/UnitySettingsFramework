@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEditor.Experimental;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -326,8 +324,8 @@ namespace Zenvin.Settings.Framework {
 
 			GUI.enabled = !Application.isPlaying;
 			if (GUILayout.Button ("Restore (Experimental)", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
-				const string notice = "This function will attempt to detect lost references inside the SettingAsset.\n" +
-									  "If any are found, the .asset file's metadata will be modified directly, in an effort to get Unity to re-serialize it.";
+				const string notice = "This function will attempt to detect and restore lost references inside the SettingAsset.\n" +
+									  "But it may just as well break the asset. It is recommended to make a backup before proceeding.";
 				if (EditorUtility.DisplayDialog ("Notice", notice, "Proceed", "Cancel")) {
 					Restore (Asset);
 				}
@@ -1397,33 +1395,100 @@ namespace Zenvin.Settings.Framework {
 				Debug.LogError ("[Settings Framework] No asset to restore.");
 				return;
 			}
+
+			Reserialize ();
+
 			if (AllValid (asset)) {
 				Debug.Log ("[Settings Framework] (Experimental) Restoration did not find any missing references.");
 				return;
 			}
 
-			var path = Path.Combine (Application.dataPath, AssetDatabase.GetAssetPath (asset).Substring (7));
-			if (!File.Exists (path)) {
-				Debug.Log ($"[Settings Framework] (Experimental) Restoration could not locate asset file (Searched path: '{path}').");
-				return;
+			var path = AssetDatabase.GetAssetPath (asset);
+			var assets = AssetDatabase.LoadAllAssetsAtPath (path);
+			foreach (var obj in assets) {
+				if (obj is SettingsGroup group) {
+					Debug.Log ($"Trying to restore {group}");
+					RestoreGroup (group);
+					continue;
+				}
+				if (obj is SettingBase setting) {
+					Debug.Log ($"Trying to restore {setting}");
+					RestoreSetting (setting);
+					continue;
+				}
 			}
 
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.ReleaseCachedFileHandles ();
-
-			File.SetLastWriteTime (path, DateTime.Now);
-			File.SetLastWriteTime (path + ".meta", DateTime.Now);
-
+			AssetDatabase.SaveAssetIfDirty (asset);
 			AssetDatabase.Refresh ();
 			Debug.Log ($"[Settings Framework] (Experimental) Restoration modified '{path}'.");
 
+
+			void Reserialize() {
+				Debug.Log ("[Settings Framework] (Experimental) Attempting to reserialize asset. (This sometimes is enough to restore references)");
+
+				EditorUtility.SetDirty (asset);
+				AssetDatabase.SaveAssetIfDirty (asset);
+
+				asset.groups.Add (null);
+
+				EditorUtility.SetDirty (asset);
+				AssetDatabase.SaveAssetIfDirty (asset);
+
+				asset.groups.RemoveAt (asset.groups.Count - 1);
+
+				EditorUtility.SetDirty (asset);
+				AssetDatabase.SaveAssetIfDirty (asset);
+
+				AssetDatabase.Refresh ();
+			}
+
+			void RestoreGroup (SettingsGroup group) {
+				if (group == null) {
+					return;
+				}
+
+				var ms = MonoScript.FromScriptableObject (group);
+				if (ms == null) {
+					AssetDatabase.RemoveObjectFromAsset (group);
+					EditorUtility.SetDirty (asset);
+					DestroyImmediate (group);
+					Debug.Log ($"{group} could not be restored and was deleted.");
+					return;
+				}
+
+				for (int i = group.settings.Count - 1; i >= 0; i--) {
+					if (!IsValid(group.settings[i])) {
+						group.settings.RemoveAt (i);
+					}
+				}
+			}
+
+			void RestoreSetting (SettingBase setting) {
+				if (setting == null) {
+					return;
+				}
+
+				var ms = MonoScript.FromScriptableObject (setting);
+				if (setting.group == null || ms == null) {
+					AssetDatabase.RemoveObjectFromAsset (setting);
+					DestroyImmediate (setting);
+					Debug.Log ($"{setting} could not be restored and was deleted.");
+					return;
+				}
+
+				if (setting.group.settings.Contains (setting)) {
+					return;
+				}
+
+				setting.group.settings.Add (setting);
+			}
 
 			static bool AllValid (SettingsGroup group) {
 				if (group == null) {
 					return false;
 				}
 				for (int i = 0; i < group.SettingCount; i++) {
-					if (group.settings[i] == null) {
+					if (IsValid(group.settings[i])) {
 						return false;
 					}
 				}
@@ -1433,6 +1498,10 @@ namespace Zenvin.Settings.Framework {
 					}
 				}
 				return true;
+			}
+
+			static bool IsValid (ScriptableObject so) {
+				return so != null && MonoScript.FromScriptableObject (so) != null;
 			}
 		}
 
