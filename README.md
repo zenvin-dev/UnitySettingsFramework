@@ -4,25 +4,94 @@ This package aims to provide a comprehensible and expandable way of creating in-
 \
 To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-ScriptableObject.html) and [generics](https://docs.microsoft.com/en-us/dotnet/standard/generics/), the latter of which Unity can serialize since version [2020.1](https://forum.unity.com/threads/generics-serialization.746300/).
 \
-**The package will not work properly in pre-2020.1 versions!**
+**The package will not work in pre-2020.1 versions!**
+
+## Table of contents
+- [Features](#features)
+- [Installation](#installation)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Known Issues](#known-issues)
+- [(Basic) Documentation](#documentation)
+- [Creating your own Setting type](#creating-your-own-setting-types)
+- [Saving and Loading](#saving-and-loading-setting-values)
+- [Loading external settings](#loading-external-settings)
+- [Examples](#examples)
 
 
-**NOTICE** \
-As of package version 2.5.0, an alternative syntax for loading settings at runtime has been introduced. \
-The example below, as well as the relevant sample script have been updated accordingly.
+# Features
+- Flexible and extensible way of setting up game settings
+    - Intuitive editor for creating and managing settings
+    - ScriptableObject-based architecture, no need to manage scene objects
+    - Settings can be grouped together
+    - No code changes or recompilation required for creating or referencing setting instances
+    - Easy creation of custom setting types and setting group types
+    - Type-safety through use of generics
+    - Values of custom settings can easily be validated before they are assigned
+- Staged value changing allows reverting a setting to its previous state before a new value is applied
+- Multiple ways of referencing settings
+    - As a reference in a wrapper class, that also provides a fallback value
+    - With direct references to Settings objects
+    - Through code by their respective ID
+- Utility for automatically creating UI menus from a Settings asset
+    - UI controls can be chosen automatically, based on setting type
+    - UI controls are designed to work with Unity's UI events
+    - Show, hide, or disable individual settings or entire groups in the UI
+- Built to easily adapt to the way you save and load your game
+    - Settings can implement an arbitrary number of serialization methods
+    - Built-in JSON and binary serializers
+- Little memory overhead: Setting objects are **not** cloned during runtime
+- Additional settings can be added during runtime by loading a json string (great for modding support)
 
+# Installation
+This package can be installed through the Unity Package Manager using the following URL:
+```
+https://github.com/xZenvin/UnitySettingsFramework.git
+```
+Or you could download the ZIP Archive, unpack it, and add the contents to your Unity project's "Assets" directory.
 
-## Using the Package
+# Requirements
+- Unity 2020.1 or later
+- Newtonsoft Json 2.0.0 or later
 
-### 1. Setup
-After installing the Package into your project via the UPM (and making sure the assembly definitions are recognized by Unity), create a SettingsAsset through _Create > Scriptable Objects > Zenvin > Settings Asset_. This will serve as a collection of all Settings you may create.
-\
-Once you have created the `SettingsAsset`, you can use the **Settings Editor Window** (_Window > Zenvin > Settings Asset Editor_) to add, delete, move and group Settings. Double-clicking `SettingsAsset`s will open the editor.
-\
+For the "Localization Setting" sample:
+- [Unity Localization](https://docs.unity3d.com/Packages/com.unity.localization@1.4/manual/index.html) package (any version should work)
+
+# Usage
+### 1. Creating a Settings Asset
+A `SettingsAsset` will hold all of your individual Settings and Settings Groups. \
+To create one, simply use the create menu \
+`Create > Scriptable Objects > Zenvin > Settings Asset`
+
+### 2. Editing a Settings Asset
+Once you have created the `SettingsAsset`, you can use the **Settings Editor Window** (`Window > Zenvin > Settings Asset Editor`) to add, delete, move and group Settings. Double-clicking `SettingsAsset`s will open the editor. \
+Note that changing the Settings' hierarchy is only permitted during edit-time. The corresponding popup menus will not appear during runtime. \
 If there is no asset being edited currently, the editor will show a list of available instances.
 
+### 3. Initializing a Settings Asset
+When your game first starts, you will need to initialize any SettingsAsset whose nested settings you intend on using. \
+This is done through the `SettingsAsset.Initialize()` method. (Calling it multiple times will not have any effect) \
+For performance reasons, it is recommended to load external Settings during initialization, rather than afterwards.
 
-## 2. Settings and Setting Groups
+### 4. Using Settings
+Generally speaking, there are 3 different ways of referencing Settings:
+- As a `SettingBase<T>` reference that is assigned in the editor or through code.
+- Wrapped in a `SettingReference<T>` instance, whose value is assigned in the editor. This has the advantage that a default value can be given, even if the Setting is `null`.
+- Accessed by its `GUID` using `SettingsAsset.TryGetSettingByGUID(string, out SettingBase)`, assuming that the containing `SettingsAsset` has been initialized.
+
+Each Setting object contains 2 essential values that are managed by the Framework:
+* `CurrentValue`: The value that is currently **applied** to the Setting.
+* `CachedValue`: The value that the Setting will have once applied.
+
+To get a Setting's value, you would usually poll `CurrentValue`. This can be done either continuously, or every time `SettingBase<T>.OnValueApplied` is invoked.
+
+
+# Known Issues
+- When a project is opened and contains compiler errors, or a package is imported that introduces compiler errors, a SettingsAsset may lose references to any child object whose type is not built into the package. \
+I have attempted to provide a method of solving this, but it may not work in all instances. Using version control is recommended.
+
+
+# Documentation
 Settings are represented by Scriptable Object instances that inherit `Zenvin.Settings.Framework.SettingBase<T>`. They each contain a number of properties by default, but can be extended to contain further members by creating own classes inheriting the aforementioned base class.
 
 Settings Groups can be used to group Settings together. Just like Settings, they are Scriptable Objects (inheriting `Zenvin.Settings.Framework.SettingsGroup`), and it is possible to extend the built-in `SettingsGroup` type by inheriting from it.
@@ -55,37 +124,17 @@ Below is a list of properties unique to `Zenvin.Settings.Framework.SettingsGroup
 | `Icon` | Sprite | The `Icon` is a sprite that can be used to represent the Group on UI, either instead or along with the name. |
 
 
-## 3. Creating Groups and Settings
-Creating new Groups and Settings happens through the Settings Editor window. Simply right-click any existing Group, and you will have the option to create a Group or Setting inside it, or delete the Group in question.
-Settings on the other hand will only allow you to duplicate or delete them.
-\
-Note that changing the Settings' hierarchy is only permitted during edit-time. The popup menus will not appear during runtime.
+# Creating your own Setting types
+There are basic types of settings built into the framework. In case that this is not sufficient for your project, you can easily create your own type of setting by creating a class that inherits `Zenvin.Settings.Framework.SettingBase<T>`.
 
+See below for more info on what you can do in custom settings:
 
-## 4. Using Settings
-Generally speaking, there are 3 different ways of referencing Settings:
-- As a `SettingBase<T>` reference that is assigned in the editor or through code.
-- Wrapped in a `SettingReference<T>` instance, whose value is assigned in the editor. This has the advantage that a default value can be given, even if the Setting is `null`.
-- Accessed by its `GUID` using `SettingsAsset.TryGetSettingByGUID(string, out SettingBase)`, assuming that the containing `SettingsAsset` has been initialized.
-
-### 4.0 Initialization
-`SettingsAsset`s needs to be initialized before their Settings can be used properly. Initialization must happen **at runtime**, with a call to the _non-static_ `SettingsAsset.Initialize()` method. 
-\
-For performance reasons, it is recommended to load external Settings (see [Loading external Settings](#6-loading-external-settings)) during initialization, rather than after the fact.
-
-### 4.1 Getting a Setting's value
-Each Setting object contains 2 essential values that are managed by the Framework:
-* `CurrentValue`: The value that is currently **applied** to the Setting.
-* `CachedValue`: The value that the Setting will have once applied.
-
-To get a Setting's value, you would usually poll `CurrentValue`. This can be done either continuously, or every time `SettingBase<T>.OnValueApplied` is invoked.
-
-### 4.2 Processing Setting values
+### Processing Setting values
 In some cases, it is necessary that your Setting value adheres to specific rules. For example, when your Setting refers to an array using its value.
 \
 `ProcessValue(ref T)` in `SettingBase<T>` is a `virtual void` method allows to process a given value, before the Setting is updated with it. By default, this method does nothing, so it does not _have_ to be overridden if you just want to use the value as-is.
 
-### 4.3 Setting, Applying, Reverting and Resetting values
+### Setting, Applying, Reverting and Resetting values
 * When `SetValue(T)` is called on a given `SettingBase<T>`, it will update the Setting's `CachedValue` and mark the Setting as _dirty_.
 * Dirty Settings can be applied with a call to `ApplyValue()`. This will remove the _dirty_ flag, update the Setting's `CurrentValue` with whatever `CachedValue` was set to, and invoke `OnValueApplied`.
 * Reverting a _dirty_ Setting with a call to `RevertValue()` will set its `CachedValue` to its `CurrentValue`.
@@ -93,18 +142,18 @@ In some cases, it is necessary that your Setting value adheres to specific rules
 * Reverting or resetting will invoke `OnValueReverted` or `OnValueReset`, respectively. They will also both mark the Setting as _dirty_.
 
 
-## 5. Saving and Loading Setting values
+# Saving and Loading Setting values
 Settings can be serialized in any number of ways. The Framework uses the `ISerializer<T>` and `ISerializable<T>` interfaces to facilitate a most abstract approach to this. You can have a look at the included [JSON](./Runtime/Framework/Serialization/JSON/) and [binary](./Runtime/Framework/Serialization/Binary/) serializers to get an idea of how to implement `ISerializer<T>`, and check out any of the [built-in Setting types](./Runtime/Framework/Settings/) to see, how `ISerializable<T>` may be implemented. \
 See below for a more in-depth explanation.
 
-### 5.0 Serialization
+### Serialization
 Serializing Settings starts with a call to `SettingsAsset.SerializeSettings`. This method needs to be passed an `ISerializer<T>` instance. \
 That instance is responsible for managing save data for all Settings that implement `ISerializable` with the same `T`. From this follows, that **any Settings that do not implement `ISerializable` of the required type will be ignored during the serialization process.** \
 When Settings are serialized, a new instance of `T` will be created for each Setting and passed to the Setting's implementation of `ISerializable<T>.OnSerialize` to be manipulated (i.e. receive information about the Setting's state).
 After that, it is passed on to the given `ISerializer<T>` instance, along with the currently serialized Setting's `GUID` via `ISerializer<T>.Serialize(string, T)`. \
 From that point on, it is the serializer's task to store this information.
 
-### 5.1 Deserialization
+### Deserialization
 Deserializing Settings starts with a call to `SettingsAsset.DeserializeSettings`. This method needs to be passed an `ISerializer<T>` instance. \
 That instance then has to provide a collection of all saved `GUID`s, along with their associated data in the form of an instance of `T`, via `ISerializer<T>.GetSerializedData()`. \
 Subsequently, that collection will be iterated and any Setting whose GUID was found in the data and that implements a fitting `ISerializable<T>` will receive the respective data to read from. This again means that **any Settings that do not implement `ISerializable` of the required type will be ignored during the deserialization process.** \
@@ -114,7 +163,7 @@ Just with serialization, the specific way of deserialization will have to be imp
 Due to the generic nature of the deserialization process, Settings' values cannot automatically be assigned to the loaded data. This means that calling `SettingBase<T>.SetValue` manually is required at the end of the `ISerializable<T>.OnDeserialize` method, if that method is supposed to fulfil its function. \
 The Framework will however automatically call `ApplyValue` on each deserialized Setting.
 
-### 5.2 Hooking into the Serialization/Deserialization process
+### Hooking into the Serialization/Deserialization process
 Sometimes, the serialized or deserialized data might need to be processed, such as loading data from a file before deserialization, or writing it to a file after serialization. \
 For this purpose, any class implementing `ISerializer<T>` may also implement `ISerializerCallbackReceiver` (not to be confused with Unity's [`ISerializationCallbackReceiver`](https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.html)!). \
 This interface implements the following four methods, which can be used to respond to specific steps of the serialization process: 
@@ -127,7 +176,7 @@ See [JSON File Serializer](./Runtime/Framework/Serialization/JSON/JsonFileSerial
 
 Note that none of the above methods will be invoked, if the serialization/deserialization fails instantly, due to the executing `SettingsAsset` not being initialized.
 
-## 6. Loading external Settings
+# Loading external Settings
 The Framework allows loading one or multiple Settings and Setting Groups from one or several JSON strings.
 \
 Loading will ignore all Settings and Groups whose `GUID`s already exist. However, it is possible to load external Settings and Groups as children of existing Groups, as well as loading external Settings as children of external Groups from the same or a previous load process.
@@ -135,14 +184,14 @@ Loading will ignore all Settings and Groups whose `GUID`s already exist. However
 \
 However, loading is only possible during the initialization process of the SettingsAsset. To load, first subscribe to `SettingsAsset.OnInitialize`, then call `SettingsAsset.Initialize()`.
 
-### 6.0 Setting Factories
+### Setting Factories
 In order to load external Settings, the `RuntimeSettingLoader` needs to know how to translate the `string` values it gets from the parsed JSON objects into `SettingBase<T>` instances.
 \
 That is where the `ISettingFactory` interface comes into play:
 * `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
 * `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired Setting class.
 
-### 6.1 Group Factories
+### Group Factories
 Loading external Groups happens similarly to the way external Settings are loaded, with the main difference being that the `RuntimeSettingLoader` will fall back to the built-in `SettingsGroup` type, if it cannot translate the JSON values into Group instances.
 \
 Translating the values again, is where an interface is used - respectively `IGroupFactory`:
