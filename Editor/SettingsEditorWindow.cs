@@ -1184,7 +1184,7 @@ namespace Zenvin.Settings.Framework {
 
 			var asmTypes = TypeCache.GetTypesDerivedFrom<SettingBase> ();
 			foreach (var t in asmTypes) {
-				if (!t.IsAbstract && t.BaseType?.IsConstructedGenericType == true) {
+				if (!t.IsAbstract && !t.IsGenericType) {
 					settingTypes.Add (t);
 				}
 			}
