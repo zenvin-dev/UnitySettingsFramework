@@ -231,10 +231,6 @@ namespace Zenvin.Settings.Framework {
 			for (int i = 0; i < allAssets.Length; i++) {
 				// create the rect for this hierarchy item
 				Rect rect = EditorGUILayout.GetControlRect ();
-				//rect.x -= 2f;
-				//rect.width += 4;
-				//rect.y -= 2f;
-				//rect.height += 2f;
 
 				// draw coloured background
 				Color col = rect.Contains (Event.current.mousePosition) ? hierarchyColorHover : hierarchyColorA;
@@ -320,6 +316,7 @@ namespace Zenvin.Settings.Framework {
 
 			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
 				Selection.activeObject = Asset;
+				EditorGUIUtility.PingObject (Asset);
 			}
 
 			GUI.enabled = !Application.isPlaying;
@@ -446,20 +443,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawDefaultEditor (SettingsGroup group) {
-
-			// as long as the selected object is not the root asset
-			//if (group != asset) {
-			//	// draw GUID field
-			//	DrawGuidField (editor.serializedObject, true);
-			//} else {
-			//	EditorGUILayout.LabelField ("GUID", "None (Root)");
-			//}
-
-			//GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-
 			// draw base properties separate from inspector
-			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*nameof (SettingsGroup.groupName)*/"label"), new GUIContent ("Name"));
-			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*nameof (SettingsGroup.groupNameLocKey)*/"labelLocalizationKey"), new GUIContent ("Loc. Key"));
 			EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (nameof (SettingsGroup.groupIcon)), new GUIContent ("Icon"));
 
 			// display runtime information on root asset
@@ -476,16 +460,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		private void DrawDefaultEditor (SettingBase setting) {
-			//DrawGuidField (editor.serializedObject, false);
 
-			//GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-
-			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*"settingName"*/"label"), new GUIContent ("Name"));
-			//EditorGUILayout.PropertyField (editor.serializedObject.FindProperty (/*"settingNameLocKey"*/"labelLocalizationKey"), new GUIContent ("Loc. Key"));
-
-			//if (!Application.isPlaying) {
-			//	editor.serializedObject.ApplyModifiedProperties ();
-			//}
 		}
 
 
@@ -499,7 +474,7 @@ namespace Zenvin.Settings.Framework {
 			searchString = EditorGUILayout.DelayedTextField (searchString, EditorStyles.toolbarSearchField, GUILayout.Width (width ?? 100f));
 
 			// if application is playing, enable setting filtering
-			// during edit-time there are not enough relevant, differentiating properties to warrant filtering.
+			// during edit-time there are not enough relevant differentiating properties to warrant filtering.
 			if (Application.isPlaying) {
 				searchFilter = (HierarchyFilter)EditorGUILayout.EnumFlagsField (searchFilter, GUILayout.Width (150));
 			}
@@ -700,11 +675,6 @@ namespace Zenvin.Settings.Framework {
 				bool below = e.mousePosition.y > (rect.y + rect.height * 0.8f);
 
 				switch (e.type) {
-					//case EventType.ContextClick:
-					//	e.Use ();
-					//	Select (group);
-					//	ShowGroupMenu (group);
-					//	break;
 					case EventType.MouseDown:
 						if (e.button == 1) {
 							Select (group);
@@ -725,40 +695,18 @@ namespace Zenvin.Settings.Framework {
 						break;
 					case EventType.MouseUp:
 						if (AllowDrag) {
-							//HandleEndDrag (group, groupIndex, q);
 							HandleEndDrag (group, groupIndex, below);
 							e.Use ();
 						}
 						break;
 				}
 
-				if (dragged != null && dragged != group/* && q.HasValue*/ && below) {
+				if (dragged != null && dragged != group && below) {
 
 					Rect preview = new Rect (rect);
 					preview.y += rect.height * 0.8f;
 					preview.height = rect.height * 0.2f;
 					EditorGUI.DrawRect (preview, Color.blue);
-
-					//	int _q = q.Value;
-
-					//	float prevHeight = 2f;
-					//	float prevOffset = prevHeight * 0.5f;
-					//	Rect preview = new Rect (rect);
-					//	switch (_q) {
-					//		case -1:
-					//			preview.y -= prevOffset;
-					//			preview.height = prevHeight;
-					//			dragPreview = preview;
-					//			break;
-					//		case 1:
-					//			preview.y += preview.height - prevOffset;
-					//			preview.height = prevHeight;
-					//			dragPreview = preview;
-					//			break;
-					//		default:
-					//			dragPreview = null;
-					//			break;
-					//	}
 				}
 			}
 
@@ -833,11 +781,6 @@ namespace Zenvin.Settings.Framework {
 							ShowSettingMenu (setting);
 						}
 						break;
-					//case EventType.ContextClick:
-					//	e.Use ();
-					//	Select (setting);
-					//	ShowSettingMenu (setting);
-					//	break;
 					case EventType.MouseDrag:
 						if (AllowDrag && e.button == 0) {
 							Select (null);
@@ -941,7 +884,6 @@ namespace Zenvin.Settings.Framework {
 			if (!Application.isPlaying) {
 
 				PopulateSettingTypeMenu (gm, group);
-				//gm.AddItem (new GUIContent ("Add Group"), false, CreateGroupAsChildOfGroup, group);
 				PopulateGroupsTypeMenu (gm, group);
 
 				if (group != Asset) {
@@ -1423,7 +1365,7 @@ namespace Zenvin.Settings.Framework {
 			Debug.Log ($"[Settings Framework] (Experimental) Restoration modified '{path}'.");
 
 
-			void Reserialize() {
+			void Reserialize () {
 				Debug.Log ("[Settings Framework] (Experimental) Attempting to reserialize asset. (This sometimes is enough to restore references)");
 
 				EditorUtility.SetDirty (asset);
@@ -1457,7 +1399,7 @@ namespace Zenvin.Settings.Framework {
 				}
 
 				for (int i = group.settings.Count - 1; i >= 0; i--) {
-					if (!IsValid(group.settings[i])) {
+					if (!IsValid (group.settings[i])) {
 						group.settings.RemoveAt (i);
 					}
 				}
@@ -1488,7 +1430,7 @@ namespace Zenvin.Settings.Framework {
 					return false;
 				}
 				for (int i = 0; i < group.SettingCount; i++) {
-					if (IsValid(group.settings[i])) {
+					if (IsValid (group.settings[i])) {
 						return false;
 					}
 				}
