@@ -71,7 +71,7 @@ namespace Zenvin.Settings.Framework {
 
 		private GUIContent GetDropdownButtonContent (SettingBase setting, bool richText = false) {
 			return new GUIContent (
-				setting == null ? "None" : GetSettingName (setting, richText),
+				setting == null ? "None" : GetSettingName (setting, richText, false),
 				setting == null ? "" : $"Managed Type: {setting.ValueType}"
 			);
 		}
@@ -83,13 +83,14 @@ namespace Zenvin.Settings.Framework {
 			for (int i = 0; i < assets.Length; i++) {
 				var settings = assets[i].GetAllSettings ();
 				for (int j = 0; j < settings.Count; j++) {
-					if (!fieldInfo.FieldType.IsAssignableFrom (settings[j].GetType ())) {
+					var set = settings[j];
+					if (set == null || fieldInfo?.FieldType?.IsAssignableFrom (set.GetType ()) != true) {
 						continue;
 					}
 
 					int k = j;
 					gm.AddItem (
-						new GUIContent (assets[i].Name + "/" + GetSettingName (settings[k], false)),
+						new GUIContent (assets[i].Name + "/" + GetSettingName (settings[k], false, true)),
 						settings[k] == setting,
 						(s) => {
 							property.objectReferenceValue = s as SettingBase;
@@ -113,14 +114,14 @@ namespace Zenvin.Settings.Framework {
 			return assets;
 		}
 
-		private static string GetSettingName (SettingBase setting, bool richText) {
+		private static string GetSettingName (SettingBase setting, bool richText, bool includeGuid) {
 			if (setting == null) {
 				return "";
 			}
 			if (richText) {
-				return $"<b>{setting.Name}</b> ({setting.GUID})";
+				return $"<b>{setting.Name}</b>{(includeGuid ? $" ({setting.GUID})" : "")}";
 			}
-			return $"{setting.Name} ({setting.GUID})";
+			return $"{setting.Name}{(includeGuid ? $" ({setting.GUID})" : "")}";
 		}
 	}
 }
