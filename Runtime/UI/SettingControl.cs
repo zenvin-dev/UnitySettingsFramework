@@ -12,7 +12,7 @@ namespace Zenvin.Settings.UI {
 		public SettingBase SettingRaw { get; internal set; }
 
 
-		private void Setup (SettingBase setting) {
+		private protected void Setup (SettingBase setting) {
 			SettingRaw = setting;
 			OnSetupInternal ();
 		}
@@ -102,6 +102,5 @@ namespace Zenvin.Settings.UI {
 				Setting.VisibilityChanged -= OnVisibilityChanged;
 			}
 		}
-
 	}
 }
