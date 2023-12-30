@@ -1,6 +1,5 @@
-using UnityEngine;
 using System;
-using Assets.UnitySettingsFramework.Runtime.Framework.Serialization;
+using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
@@ -118,7 +117,7 @@ namespace Zenvin.Settings.Framework {
 
 		[ContextMenu ("Force Delete Setting")]
 		private void ForceDelete () {
-			Debug.Log ($"Deleting {ToString()}");
+			Debug.Log ($"Deleting {ToString ()}");
 
 			if (Group != null) {
 				Group.RemoveSetting (this);
@@ -251,7 +250,7 @@ namespace Zenvin.Settings.Framework {
 
 
 		internal sealed override void Initialize () {
-			Asset?.Log ($"Initializing {ToString ()}");
+			Log ($"Initializing {ToString ()}");
 			OnInitialize ();
 
 			T value = OnSetupInitialDefaultValue ();
@@ -263,13 +262,13 @@ namespace Zenvin.Settings.Framework {
 			OnValueChanged (ValueChangeMode.Initialize);
 			ValueChanged?.Invoke (ValueChangeMode.Initialize);
 
-			Asset?.Log ($"Initialized {ToString ()}. Current Value: '{currentValue}', Cached Value: '{cachedValue}', Default Value: '{defaultValue}'");
+			Log ($"Initialized {ToString ()}. Current Value: '{currentValue}', Cached Value: '{cachedValue}', Default Value: '{defaultValue}'");
 		}
 
 		internal sealed override void OnAfterDeserialize () {
 			OnValueChanged (ValueChangeMode.Deserialize);
 			ValueChanged?.Invoke (ValueChangeMode.Deserialize);
-			Asset?.Log ($"Deserialized {ToString ()}");
+			Log ($"Deserialized {ToString ()}");
 		}
 
 
