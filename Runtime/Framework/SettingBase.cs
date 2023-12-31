@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
@@ -31,6 +32,10 @@ namespace Zenvin.Settings.Framework {
 			/// The Setting's value was changed due to deserialization by <see cref="SettingsAsset.DeserializeSettings{T}(Serialization.ISerializer{T}, SettingsGroup.SettingBaseFilter)"/>.
 			/// </summary>
 			Deserialize,
+			/// <summary>
+			/// The Setting's value implements <see cref="INotifyPropertyChanged"/> and triggered its changed event.
+			/// </summary>
+			Notify,
 		}
 
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
@@ -205,15 +210,25 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
 		public void SetValue (T value) {
+			if (!Application.isPlaying) {
+				Log ("Cannot set Setting value during edit-time.");
+				return;
+			}
+
 			Log ($"Setting Value of {ToString ()} to '{value}'");
 			ProcessValue (ref value);
 
-			if (!cachedValue.Equals (value)) {
-				cachedValue = value;
-				IsDirty = true;
-				OnValueChanged (ValueChangeMode.Set);
-				ValueChanged?.Invoke (ValueChangeMode.Set);
+			if (ValuesAreEqual (cachedValue, value)) {
+				return;
 			}
+
+			UnSubscribeNotification (cachedValue);
+			cachedValue = value;
+			IsDirty = true;
+			SubscribeNotification (cachedValue);
+
+			OnValueChanged (ValueChangeMode.Set);
+			ValueChanged?.Invoke (ValueChangeMode.Set);
 		}
 
 		/// <summary>
@@ -259,6 +274,7 @@ namespace Zenvin.Settings.Framework {
 			cachedValue = value;
 			isDirty = false;
 
+			SubscribeNotification (value);
 			OnValueChanged (ValueChangeMode.Initialize);
 			ValueChanged?.Invoke (ValueChangeMode.Initialize);
 
@@ -310,5 +326,36 @@ namespace Zenvin.Settings.Framework {
 			return true;
 		}
 
+
+		private void SubscribeNotification (T value) {
+			if (value != null && value is INotifyPropertyChanged notify) {
+				notify.PropertyChanged += ValuePropertyChangedHandler;
+			}
+		}
+
+		private void UnSubscribeNotification (T value) {
+			if (value != null && value is INotifyPropertyChanged notify) {
+				notify.PropertyChanged -= ValuePropertyChangedHandler;
+			}
+		}
+
+		private bool ValuesAreEqual (T cachedValue, T value) {
+			if (cachedValue == null && value == null) {
+				return true;
+			}
+			if (cachedValue != null && cachedValue.Equals (value)) {
+				return true;
+			}
+			if (value != null && value.Equals (cachedValue)) {
+				return true;
+			}
+			return false;
+		}
+
+
+		private void ValuePropertyChangedHandler (object sender, PropertyChangedEventArgs args) {
+			IsDirty = true;
+			OnValueChanged (ValueChangeMode.Notify);
+		}
 	}
 }
