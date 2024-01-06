@@ -58,3 +58,9 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# Samples folder
+[Ss]amples/*
+[Ss]amples.meta
+
+# Robocopy jobs
+*.rcj
