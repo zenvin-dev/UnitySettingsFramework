@@ -538,7 +538,7 @@ namespace Zenvin.Settings.Framework {
 			nameProp.serializedObject.ApplyModifiedProperties ();
 
 
-			GUI.enabled = !string.IsNullOrEmpty (nameProp.stringValue) && !dontRename;
+			GUI.enabled = !string.IsNullOrEmpty (nameProp.stringValue) && !dontRename && !Application.isPlaying;
 			if (GUILayout.Button ("Copy to GUID", EditorStyles.miniButtonLeft, GUILayout.Width (150))) {
 				TrySetGuid (guidProp, nameProp.stringValue, isGroup);
 			}

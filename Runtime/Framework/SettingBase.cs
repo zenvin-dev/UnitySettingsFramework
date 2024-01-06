@@ -138,8 +138,8 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class SettingBase<T> : SettingBase {
 
-		public delegate void OnValueChangedEvt (ValueChangeMode mode);
-		public event OnValueChangedEvt ValueChanged;
+		public delegate void ValueChangedEvent (ValueChangeMode mode);
+		public event ValueChangedEvent ValueChanged;
 
 		[NonSerialized] private T cachedValue;
 		[NonSerialized] private T currentValue;
