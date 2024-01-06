@@ -10,12 +10,14 @@ namespace Zenvin.Settings.Framework {
 	[CreateAssetMenu (menuName = "Scriptable Objects/Zenvin/Settings Asset", fileName = "New Settings")]
 	public sealed class SettingsAsset : SettingsGroup {
 
-		public delegate void SettingsAssetEvt (SettingsAsset asset);
+		public delegate void InitializedEvent (SettingsAsset asset);
+		public delegate void RuntimeSettingsLoadedEvent (SettingsAsset asset);
+
 
 		/// <summary> Invoked for every <see cref="SettingsAsset"/> during the initialization process. Preferably hook into this to load runtime settings. </summary>
-		public static event SettingsAssetEvt OnInitialize;
+		public static event InitializedEvent OnInitialize;
 		/// <summary> Invoked for every <see cref="SettingsAsset"/> after runtime settings has been loaded, but <b>only if the asset was already initialized</b>. </summary>
-		public static event SettingsAssetEvt OnRuntimeSettingsLoaded;
+		public static event RuntimeSettingsLoadedEvent OnRuntimeSettingsLoaded;
 
 		[NonSerialized] private readonly Dictionary<string, SettingBase> settingsDict = new Dictionary<string, SettingBase> ();
 		[NonSerialized] private readonly Dictionary<string, SettingsGroup> groupsDict = new Dictionary<string, SettingsGroup> ();
@@ -158,6 +160,22 @@ namespace Zenvin.Settings.Framework {
 			}
 			group = null;
 			return false;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="guid"></param>
+		/// <param name="fallback"></param>
+		/// <returns></returns>
+		public DynamicSettingReference<T> GetSettingReference<T> (string guid, T fallback = default) {
+			if (string.IsNullOrWhiteSpace (guid)) {
+				return null;
+			}
+			var dyn = new DynamicSettingReference<T> (this, guid);
+			dyn.Fallback = fallback;
+			return dyn;
 		}
 
 		/// <summary>
