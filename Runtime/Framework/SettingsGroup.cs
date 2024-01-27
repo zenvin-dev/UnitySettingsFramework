@@ -4,9 +4,22 @@ using UnityEngine;
 using System;
 
 namespace Zenvin.Settings.Framework {
+	/// <summary>
+	/// A collection of <see cref="SettingBase"/> and other <see cref="SettingsGroup"/> objects.
+	/// </summary>
 	public class SettingsGroup : FrameworkObject {
 
+		/// <summary>
+		/// Delegate type for filtering <see cref="SettingBase"/> objects.
+		/// </summary>
+		/// <param name="setting"> The Setting to filter. </param>
+		/// <returns> Whether the given <see cref="SettingBase"/> is valid for the filter. </returns>
 		public delegate bool SettingBaseFilter (SettingBase setting);
+		/// <summary>
+		/// Delegate type for filtering <see cref="SettingsGroup"/> objects.
+		/// </summary>
+		/// <param name="group"> The Group to filter. </param>
+		/// <returns> Whether the given <see cref="SettingsGroup"/> is valid for the filter. </returns>
 		public delegate bool SettingsGroupFilter (SettingsGroup group);
 
 
@@ -412,6 +425,7 @@ namespace Zenvin.Settings.Framework {
 		/// Note that <see cref="SettingsAsset.ResetAllSettings(bool)"/> can be more performant, because of how dirty Settings are managed internally.
 		/// </summary>
 		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		/// <param name="applyAfterReset"> Value to pass to <see cref="SettingBase.ResetValue(bool)"/>, to determine whether each Setting's value should be applied after resetting. </param>
 		public void ResetAllGroupSettings (bool includeChildGroups, bool applyAfterReset) {
 			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
 			foreach (var setting in settings) {
@@ -466,6 +480,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		/// <inheritdoc/>
 		public override string ToString () {
 			return $"Group '{Name}' ('{GUID}')";
 		}

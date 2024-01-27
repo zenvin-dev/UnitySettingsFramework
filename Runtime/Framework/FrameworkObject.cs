@@ -1,8 +1,14 @@
 using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
+	/// <summary>
+	/// Base class for various <see cref="ScriptableObject"/>s inside the Settings Framework.
+	/// </summary>
 	public abstract class FrameworkObject : ScriptableObject {
 
+		/// <summary>
+		/// Delegate type for the <see cref="VisibilityChanged"/> event.
+		/// </summary>
 		public delegate void VisibilityChangedEvt ();
 
 		/// <summary> Invoked whenever <see cref="Visibility"/> changes. </summary>

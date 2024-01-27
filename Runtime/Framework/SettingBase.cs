@@ -206,7 +206,7 @@ namespace Zenvin.Settings.Framework {
 
 
 		/// <summary>
-		/// Sets the setting's next value. Will be applied when <see cref="ApplyValue"/> is called.
+		/// Sets the setting's next value. Will be applied when <see cref="SettingBase.ApplyValue"/> is called.
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
 		public void SetValue (T value) {
@@ -232,7 +232,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// Called during <see cref="CreateInstanceWithValues{U}(T, StringKeyValuePair[])"/>, <b>before</b> the default value is set.
+		/// Called during <see cref="SettingBase{T}.CreateInstanceWithValues{U}(T, StringValuePair[])"/>, <b>before</b> the default value is set.
 		/// </summary>
 		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
 

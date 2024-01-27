@@ -10,7 +10,15 @@ namespace Zenvin.Settings.Framework {
 	[CreateAssetMenu (menuName = "Scriptable Objects/Zenvin/Settings Asset", fileName = "New Settings")]
 	public sealed class SettingsAsset : SettingsGroup {
 
+		/// <summary>
+		/// Delegate type for the <see cref="OnInitialize"/> event.
+		/// </summary>
+		/// <param name="asset"> The <see cref="SettingsAsset"/> that was initialized. </param>
 		public delegate void InitializedEvent (SettingsAsset asset);
+		/// <summary>
+		/// Delegate type for the <see cref="OnRuntimeSettingsLoaded"/> event.
+		/// </summary>
+		/// <param name="asset"> The <see cref="SettingsAsset"/> that the Settings (and Groups) were loaded into. </param>
 		public delegate void RuntimeSettingsLoadedEvent (SettingsAsset asset);
 
 

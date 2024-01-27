@@ -6,11 +6,11 @@ using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
-	/// Non-generic base class for a Setting that contains a fixed array of values.<br></br>
+	/// Non-generic base class for a Setting that contains an array of values.<br></br>
 	/// The Setting's actual value represents the index used to retrieve values from that array.
 	/// </summary>
 	[HasDeviatingDefaultValue]
-	public abstract class ValueArraySetting : SettingBase<int>, IEnumerable<object> {
+	public abstract class ValueArraySetting : SettingBase<int>, IEnumerable {
 		private protected object[] values;
 
 
@@ -56,11 +56,13 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void OnPostInitialize () { }
 
 
+		/// <inheritdoc/>
 		protected sealed override void OnInitialize () {
 			values = GetValueArray () ?? Array.Empty<object>();
 			OnPostInitialize ();
 		}
 
+		/// <inheritdoc/>
 		protected override void ProcessValue (ref int value) {
 			if (value >= values.Length) {
 				value = values.Length - 1;
@@ -71,28 +73,30 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
-		public IEnumerator<object> GetEnumerator () {
-			return ((IEnumerable<object>)values).GetEnumerator ();
-		}
-		
 		IEnumerator IEnumerable.GetEnumerator () {
 			return values.GetEnumerator ();
 		}
 	}
 
+	/// <summary>
+	/// Generic implementation of <see cref="ValueArraySetting"/> and base  class for a Setting that contains an array of values.<br></br>
+	/// The Setting's actual value represents the index used to retrieve values from that array.
+	/// </summary>
 	public abstract class ValueArraySetting<T> : ValueArraySetting, IEnumerable<T> {
 
 		[SerializeField] private T typedDefaultValue;
 
 
-		/// <summary> The value at the index of CachedValue, cast to <see cref="T"/>. </summary>
+		/// <summary> The value at the index of CachedValue, cast to <typeparamref name="T"/>. </summary>
 		public T CachedValueTyped => CachedValue < 0 || CachedValue >= values.Length ? default : (T)values[CachedValue];
-		/// <summary> The value at the index of CurrentValue, cast to <see cref="T"/>. </summary>
+		/// <summary> The value at the index of CurrentValue, cast to <typeparamref name="T"/>. </summary>
 		public T CurrentValueTyped => CurrentValue < 0 || CurrentValue >= values.Length ? default : (T)values[CurrentValue];
-
+		/// <returns> The value at the given index, cast to <typeparamref name="T"/>. </returns>
+		/// <exception cref="IndexOutOfRangeException"> When the index is less than 0, or greater or equal to the total number of values. </exception>
 		public T this[int index] => index < 0 || index >= Length ? throw new IndexOutOfRangeException (nameof (index)) : (T)values[index];
 
 
+		/// <inheritdoc/>
 		protected override int OnSetupInitialDefaultValue () {
 			return Array.IndexOf (values, typedDefaultValue);
 		}
