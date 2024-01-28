@@ -8,16 +8,13 @@
 		"name": "Zenvin",
 		"email": "zenvin@outlook.de"
 	},
-	"keywords": [
-		"settings"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/xZenvin/UnitySettingsFramework"
-	},
 	"dependencies": {
 		"com.unity.nuget.newtonsoft-json": "2.0.0"
 	},
+	"hideInEditor": false,
+	"keywords": [
+		"settings"
+	],
 	"license": "LICENSE.md",
 	"samples": [
 		{
@@ -27,8 +24,13 @@
 		},
 		{
 			"displayName": "Localization Setting",
-			"description": "An implementation of a dropdown setting, specifically for changing the localization of the game. REQUIRES UNTIY'S LOCALIZATION PACKAGE!",
+			"description": "An implementation of a dropdown setting, specifically for changing the localization of the game. REQUIRES UNITY'S LOCALIZATION PACKAGE!",
 			"path": "Samples~/Localization Setting"
+		},
+		{
+			"displayName": "Volume Setting",
+			"description": "An implementation of a Slider for changing volumes. \nIncludes property drawer for picking an exposed AudioMixer parameter and takes logarithmic scaling into account when setting values.",
+			"path": "Volume Setting"
 		}
 	]
 }
