@@ -42,10 +42,10 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField, HideInInspector] internal SettingsGroup group;
 
 
-		protected internal abstract object DefaultValueRaw { get; }
-		protected internal abstract object CurrentValueRaw { get; }
-		protected internal abstract object CachedValueRaw { get; }
-		protected internal abstract Type ValueType { get; }
+		internal abstract object DefaultValueRaw { get; }
+		internal abstract object CurrentValueRaw { get; }
+		internal abstract object CachedValueRaw { get; }
+		internal abstract Type ValueType { get; }
 
 		/// <summary> Whether the Setting's value has been changed but not applied yet. </summary>
 		public abstract bool IsDirty { get; private protected set; }
@@ -133,12 +133,30 @@ namespace Zenvin.Settings.Framework {
 	}
 
 	/// <summary>
-	/// Base class for all typed Settings objects.<br></br>
-	/// Inherit to create Settings with any type, but keep in mind that Unity won't be able to serialize every type you may conveive Settings for, which could break the implementation.
+	/// Base class for all typed Settings objects. Inherit to create Settings with any type.
 	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// When implementing Settings for new types, it is worth bearing in mind that Unity will not be able to serialize any arbitrary type.<br></br>
+	/// As such, implementing Settings for types Unity cannot serialize may cause unexpected behaviour in the editor,
+	/// as it will become impossible to define a default value for the Setting.<br></br>
+	/// The same goes for value types that Unity does not have a built-in property drawer for.
+	/// </para>
+	/// <para>
+	/// Custom default value handling can be achieved by decorating a given Setting class with the <see cref="Utility.HasDeviatingDefaultValueAttribute"/>
+	/// and overriding <see cref="SettingBase{T}.OnSetupInitialDefaultValue"/>.<br></br>
+	/// An example for this can be found in <see cref="ValueArraySetting"/> and <see cref="ValueArraySetting{T}"/>, respectively.
+	/// </para>
+	/// </remarks>
 	public abstract class SettingBase<T> : SettingBase {
 
+		/// <summary>
+		/// Delegate type for the <see cref="ValueChanged"/> event.
+		/// </summary>
+		/// <param name="mode"> The way in which the Setting's value was modified. </param>
 		public delegate void ValueChangedEvent (ValueChangeMode mode);
+		/// <summary> Invoked every time the Setting's value changes. </summary>
+		/// <remarks> The event invocation will always happen <b>after</b> <see cref="OnValueChanged(ValueChangeMode)"/> was called for the same change. </remarks>
 		public event ValueChangedEvent ValueChanged;
 
 		[NonSerialized] private T cachedValue;
@@ -177,10 +195,10 @@ namespace Zenvin.Settings.Framework {
 			internal set => orderInGroup = value;
 		}
 
-		protected internal sealed override object DefaultValueRaw => defaultValue;
-		protected internal sealed override object CurrentValueRaw => currentValue;
-		protected internal sealed override object CachedValueRaw => cachedValue;
-		protected internal sealed override Type ValueType => typeof (T);
+		internal sealed override object DefaultValueRaw => defaultValue;
+		internal sealed override object CurrentValueRaw => currentValue;
+		internal sealed override object CachedValueRaw => cachedValue;
+		internal sealed override Type ValueType => typeof (T);
 
 
 		/// <summary>

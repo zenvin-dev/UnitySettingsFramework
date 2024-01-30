@@ -7,8 +7,14 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public class DynamicSettingReference<T> : SettingReference<T>, IDisposable {
 
+		/// <summary>
+		/// Delegate type for the <see cref="ReferenceChanged"/> event.
+		/// </summary>
+		/// <param name="previous"> The <see cref="SettingBase"/> reference encapsulated by the <see cref="DynamicSettingReference{T}"/> before the change. </param>
+		/// <param name="current"> The <see cref="SettingBase"/> reference encapsulated by the <see cref="DynamicSettingReference{T}"/> after the change. </param>
 		public delegate void ReferenceChangedEvent (SettingBase previous, SettingBase current);
-		public event ReferenceChangedEvent OnReferenceChanged;
+		/// <summary> Invoked every time the reference's encapsulated <see cref="Setting"/> changes. </summary>
+		public event ReferenceChangedEvent ReferenceChanged;
 
 
 		/// <summary>
@@ -94,7 +100,7 @@ namespace Zenvin.Settings.Framework {
 
 			var previous = Setting;
 			settingObj = value;
-			OnReferenceChanged?.Invoke (previous, value);
+			ReferenceChanged?.Invoke (previous, value);
 		}
 
 

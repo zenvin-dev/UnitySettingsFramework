@@ -12,8 +12,14 @@ namespace Zenvin.Settings.Framework.Serialization {
 		private readonly Dictionary<string, byte[]> data = new Dictionary<string, byte[]> ();
 
 
+		/// <summary> Default constructor that initializes an empty <see cref="ValuePacket"/>. </summary>
 		public ValuePacket () { }
 
+		/// <summary> Initializes a new <see cref="ValuePacket"/> with the contents of a given byte array. </summary>
+		/// <param name="byteData"> Initial data to write into the packet. </param>
+		/// <remarks>
+		/// Assumes that <paramref name="byteData"/> is a value that was returned by <see cref="ValuePacket.ToArray"/>, or is in the same format.
+		/// </remarks>
 		public ValuePacket (byte[] byteData) {
 			FromArray (byteData);
 		}
@@ -48,6 +54,10 @@ namespace Zenvin.Settings.Framework.Serialization {
 			return stream.ToArray ();
 		}
 
+		/// <summary>
+		/// <inheritdoc cref="ToArray"/><br></br>
+		/// The same as calling <see cref="ToArray"/>.
+		/// </summary>
 		public static implicit operator byte[] (ValuePacket packet) {
 			if (packet == null) {
 				return Array.Empty<byte> ();

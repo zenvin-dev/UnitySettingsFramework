@@ -29,9 +29,9 @@ namespace Zenvin.Settings.Framework {
 
 		/// <summary> The Fallback value, that is used when no valid <see cref="SettingBase{T}"/> is referenced. </summary>
 		public T Fallback { get => fallbackValue; set => fallbackValue = value; }
-		/// <summary> The <see cref="SettingBase{T}.CurrentValue"/> of the referenced Setting. <see cref="Fallback"/> if none. </summary>
+		/// <summary> The <see cref="SettingBase{T}.CurrentValue"/> of the referenced Setting. <see cref="Fallback"/> if no fallback is given. </summary>
 		public T CurrentValue => settingObj == null ? fallbackValue : settingObj.CurrentValue;
-		/// <summary> The <see cref="SettingBase{T}.CachedValue"/> of the referenced Setting. <see cref="Fallback"/> if none. </summary>
+		/// <summary> The <see cref="SettingBase{T}.CachedValue"/> of the referenced Setting. <see cref="Fallback"/> if no fallback is given. </summary>
 		public T CachedValue => settingObj == null ? fallbackValue : settingObj.CachedValue;
 	}
 }

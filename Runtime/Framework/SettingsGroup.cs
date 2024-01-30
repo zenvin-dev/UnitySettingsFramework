@@ -47,10 +47,10 @@ namespace Zenvin.Settings.Framework {
 		/// <summary> The total count of child Settings, including both internal and external Settings. </summary>
 		public int SettingCount => InternalSettingCount + externalSettings.Count;
 
-		protected internal List<SettingsGroup> Groups => groups;
-		protected internal List<SettingsGroup> ExternalGroups => externalGroups;
-		protected internal List<SettingBase> Settings => settings;
-		protected internal List<SettingBase> ExternalSettings => externalSettings;
+		internal List<SettingsGroup> Groups => groups;
+		internal List<SettingsGroup> ExternalGroups => externalGroups;
+		internal List<SettingBase> Settings => settings;
+		internal List<SettingBase> ExternalSettings => externalSettings;
 
 		/// <summary> The Group's parent Group. </summary>
 		public SettingsGroup Parent {
