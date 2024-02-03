@@ -30,7 +30,7 @@
 		{
 			"displayName": "Volume Setting",
 			"description": "An implementation of a Slider for changing volumes. \nIncludes property drawer for picking an exposed AudioMixer parameter and takes logarithmic scaling into account when setting values.",
-			"path": "Volume Setting"
+			"path": "Samples~/Volume Setting"
 		}
 	]
 }
