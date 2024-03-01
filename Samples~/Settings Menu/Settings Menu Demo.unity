@@ -601,7 +601,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1154068461}
   m_HandleRect: {fileID: 1154068460}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -950,6 +950,7 @@ MonoBehaviour:
     - {fileID: 3343890958718214053, guid: 94280cc4c5815d147a24070d834c82e0, type: 3}
     - {fileID: 6681123877252186959, guid: 41a6ecb8dbed19d43a16980b0314a064, type: 3}
     - {fileID: 6569405655600696519, guid: faa0f1f188e6f3544aa00d94143d7df9, type: 3}
+    - {fileID: 1832298213457389779, guid: a08b9bc6894ad19409b6a0a4565d22ec, type: 3}
   tabView: {fileID: 1572041089}
 --- !u!1 &800521288
 GameObject:
@@ -1701,7 +1702,7 @@ GameObject:
   - component: {fileID: 1283833228}
   - component: {fileID: 1283833227}
   m_Layer: 5
-  m_Name: Reset Button (1)
+  m_Name: Save Button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1878,7 +1879,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Reset All
+  m_text: Save
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
