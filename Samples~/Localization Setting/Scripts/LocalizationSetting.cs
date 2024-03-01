@@ -5,12 +5,15 @@ using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
+using Zenvin.Settings.Utility;
 
 namespace Zenvin.Settings.Samples {
+	[HasDeviatingDefaultValue]
 	public class LocalizationSetting : SettingBase<int>, ISerializable<JObject>, ISerializable<ValuePacket> {
 
 		private List<Locale> locales;
 
+		[SerializeField, LocaleSelector] private int defaultLocale;
 
 		public int LocaleCount => locales?.Count ?? 0;
 		public Locale this[int index] => locales == null || index < 0 || index >= locales.Count ? null : locales[index];
@@ -24,6 +27,10 @@ namespace Zenvin.Settings.Samples {
 		protected override void OnInitialize () {
 			// update locales list
 			locales = LocalizationSettings.AvailableLocales.Locales;
+		}
+
+		protected override int OnSetupInitialDefaultValue () {
+			return defaultLocale;
 		}
 
 		// After appying the Setting

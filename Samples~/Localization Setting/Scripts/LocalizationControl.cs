@@ -40,7 +40,11 @@ namespace Zenvin.Settings.Samples {
 
 		protected override void OnLocalizationChanged (Locale locale) {
 			if (label != null) {
-				label.text = LocalizationSettings.StringDatabase.GetLocalizedString (localizationTable, Setting.NameLocalizationKey, locale);
+				if (string.IsNullOrWhiteSpace (Setting.NameLocalizationKey)) {
+					label.text = Setting.Name;
+				} else {
+					label.text = LocalizationSettings.StringDatabase.GetLocalizedString (localizationTable, Setting.NameLocalizationKey, locale);
+				}
 			}
 		}
 
@@ -49,6 +53,5 @@ namespace Zenvin.Settings.Samples {
 				dropdown.SetValueWithoutNotify (Setting.CachedValue);
 			}
 		}
-
 	}
 }
