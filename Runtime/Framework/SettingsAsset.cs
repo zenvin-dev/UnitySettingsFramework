@@ -171,12 +171,15 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
-		/// 
+		/// Creates a <see cref="DynamicSettingReference{T}"/>, which will automatically update 
+		/// when a Setting with the expected GUID and type is added to this <see cref="SettingsAsset"/>.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="guid"></param>
-		/// <param name="fallback"></param>
-		/// <returns></returns>
+		/// <typeparam name="T">The type of Setting that the created reference should wrap.</typeparam>
+		/// <param name="guid">
+		/// The GUID that the created dynamic reference will look out for.<br></br>
+		/// This value must not be <see langword="null"/> or white space.
+		/// </param>
+		/// <param name="fallback">The fallback value returned by <see cref="SettingReference{T}.Fallback"/> as long as no <see cref="SettingBase{T}"/> is referenced.</param>
 		public DynamicSettingReference<T> GetSettingReference<T> (string guid, T fallback = default) {
 			if (string.IsNullOrWhiteSpace (guid)) {
 				return null;
