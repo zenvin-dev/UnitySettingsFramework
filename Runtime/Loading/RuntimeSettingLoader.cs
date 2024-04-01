@@ -25,7 +25,7 @@ namespace Zenvin.Settings.Loading {
 		/// <remarks>
 		/// Can only be used while the game is running.
 		/// </remarks>
-		[Obsolete("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
+		[Obsolete ("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (string.IsNullOrWhiteSpace (json)) {
 				return false;
@@ -52,7 +52,7 @@ namespace Zenvin.Settings.Loading {
 		/// <remarks>
 		/// Can only be used while the game is running.
 		/// </remarks>
-		[Obsolete("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
+		[Obsolete ("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
 		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
 			if (!Application.isPlaying) {
 				return false;
@@ -69,8 +69,8 @@ namespace Zenvin.Settings.Loading {
 			var options = new SettingLoaderOptions (asset)
 				.WithData (data)
 				.WithTypeFactories (factories)
-				.WithDefaultGroupType<SettingsGroup>()
-				.WithIconLoader(iconLoader);
+				.WithDefaultGroupType<SettingsGroup> ()
+				.WithIconLoader (iconLoader);
 
 			return LoadSettingsIntoAsset (options);
 		}
@@ -107,6 +107,9 @@ namespace Zenvin.Settings.Loading {
 
 			// run post-integration event
 			options.Asset.ProcessRuntimeSettingsIntegration ();
+
+			// apply default overrides, if necessary
+			ApplyDefaultOverrides (options.Asset, options.Data.DefaultOverrides, options.OverrideDefaults);
 
 			// reset loader state
 			ResetLoaderState ();
@@ -199,6 +202,23 @@ namespace Zenvin.Settings.Loading {
 				if (g.group.ChildGroupCount > 0 || g.group.SettingCount > 0) {
 					g.parent.IntegrateChildGroup (g.group);
 				}
+			}
+		}
+
+		private static void ApplyDefaultOverrides (SettingsAsset asset, OverrideData[] defaultOverrides, bool overrideDefaults) {
+			if (!overrideDefaults)
+				return;
+			if (defaultOverrides == null || defaultOverrides.Length == 0)
+				return;
+
+			foreach (var o in defaultOverrides) {
+				if (o == null)
+					continue;
+
+				if (!asset.TryGetSettingByGUID (o.GUID, out var setting))
+					continue;
+
+				setting.OverrideDefaultValue (o.Values, o.Update);
 			}
 		}
 

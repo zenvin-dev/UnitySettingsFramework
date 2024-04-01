@@ -87,6 +87,33 @@ namespace Zenvin.Settings.Framework {
 		private protected abstract bool OnReset (bool apply);
 
 
+		/// <summary>
+		/// Attempts to replace the Setting's current <see cref="SettingBase{T}.DefaultValue"/> 
+		/// with a value parsed from the given <see cref="StringValuePair"/> collection.<br></br>
+		/// Should only be used for manipulation while loading new Settings.
+		/// </summary>
+		/// <param name="values"> The value collection to parse the new default from. If the collection is null or empty, the method will abort. </param>
+		/// <param name="updateMode"> Determines if and how the Setting's current value is updated after a successful parsing. </param>
+		/// <returns> Whether parsing was successful. </returns>
+		public bool OverrideDefaultValue (StringValuePair[] values, UpdateValueMode updateMode) {
+			if (values == null || values.Length == 0)
+				return false;
+
+			if (!OnOverrideDefault (values, out var wasDefault))
+				return false;
+
+			if (updateMode == UpdateValueMode.DontUpdate)
+				return true;
+
+			if (wasDefault) {
+				OnReset (updateMode == UpdateValueMode.ApplyIfDefault);
+			}
+			return true;
+		}
+
+		private protected abstract bool OnOverrideDefault (StringValuePair[] values, out bool wasDefault);
+
+
 		internal abstract void OnAfterDeserialize ();
 
 		/// <summary>
@@ -300,6 +327,17 @@ namespace Zenvin.Settings.Framework {
 			return false;
 		}
 
+		/// <summary>
+		/// If implemented, attempts to parse a collection of string/value pairs into the Setting's value type <typeparamref name="T"/>.
+		/// </summary>
+		/// <param name="values"> The values to be parsed. Will always have at least once entry. </param>
+		/// <param name="value"> The result of the parsing operation, or <see langword="default"/>. </param>
+		/// <returns> Whether parsing was successful. </returns>
+		protected virtual bool TryGetOverrideValue (StringValuePair[] values, out T value) {
+			value = default;
+			return false;
+		}
+
 
 		internal sealed override void Initialize () {
 			Log ($"Initializing {ToString ()}");
@@ -360,6 +398,19 @@ namespace Zenvin.Settings.Framework {
 			}
 			OnValueChanged (ValueChangeMode.Reset);
 			ValueChanged?.Invoke (ValueChangeMode.Reset);
+			return true;
+		}
+
+		private protected sealed override bool OnOverrideDefault (StringValuePair[] values, out bool wasDefault) {
+			wasDefault = false;
+			if (!TryGetOverrideValue (values, out var newDefault))
+				return false;
+
+			var oldDefault = defaultValue;
+			ProcessValue (ref newDefault);
+			defaultValue = newDefault;
+
+			wasDefault = CompareEquality (newDefault, oldDefault);
 			return true;
 		}
 

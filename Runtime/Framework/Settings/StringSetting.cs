@@ -8,6 +8,12 @@ namespace Zenvin.Settings.Framework {
 		private Encoding StringEncoding => Encoding.UTF8;
 
 
+		protected override bool TryGetOverrideValue (StringValuePair[] values, out string value) {
+			value = values[0].Value;
+			return true;
+		}
+
+
 		void ISerializable<JObject>.OnDeserialize (JObject value) {
 			if (value.TryGetValue ("value", out JToken token)) {
 				SetValue ((string)token);

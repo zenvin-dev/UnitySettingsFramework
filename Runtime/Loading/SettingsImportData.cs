@@ -6,6 +6,7 @@ namespace Zenvin.Settings.Loading {
 	public class SettingsImportData {
 		public GroupData[] Groups;
 		public SettingData[] Settings;
+		public OverrideData[] DefaultOverrides;
 	}
 
 	[Serializable]
@@ -35,5 +36,12 @@ namespace Zenvin.Settings.Loading {
 	public class SettingData : ObjectDataBase {
 		public int OrderInGroup;
 		public string DefaultValue;
+	}
+
+	[Serializable]
+	public class OverrideData {
+		public string GUID;
+		public UpdateValueMode Update;
+		public StringValuePair[] Values;
 	}
 }

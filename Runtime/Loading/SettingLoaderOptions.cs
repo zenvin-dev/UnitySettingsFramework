@@ -11,19 +11,31 @@ namespace Zenvin.Settings.Loading {
 		internal readonly Dictionary<string, ISettingFactory> SettingFactories = new Dictionary<string, ISettingFactory> ();
 		internal readonly Dictionary<string, IGroupFactory> GroupFactories = new Dictionary<string, IGroupFactory> ();
 
-		/// <summary> The <see cref="SettingsAsset"/> into which new Settings should be loaded. </summary>
+		/// <summary> 
+		/// The <see cref="SettingsAsset"/> into which new Settings should be loaded. 
+		/// </summary>
 		public SettingsAsset Asset { get; private set; }
-		/// <summary> Data defining Settings and Setting Groups to load. </summary>
+		/// <summary> 
+		/// Data defining Settings and Setting Groups to load. 
+		/// </summary>
 		public SettingsImportData Data { get; private set; }
-		/// <summary> An optional <see cref="IGroupIconLoader"/> instance, used to load Setting Group icons. </summary>
+		/// <summary> 
+		/// An optional <see cref="IGroupIconLoader"/> instance, used to load Setting Group icons. 
+		/// </summary>
 		public IGroupIconLoader IconLoader { get; private set; }
 		/// <summary>
 		/// The type of <see cref="SettingsGroup"/> which is used if the <see cref="ObjectDataBase.Type"/> is empty or does not have an associated <see cref="IGroupFactory"/>.
 		/// </summary>
 		public Type DefaultGroupType { get; private set; } = typeof (SettingsGroup);
+		/// <summary> 
+		/// Determines whether <see cref="SettingsImportData.DefaultOverrides"/> are applied during the load process.<br></br>
+		/// Defaults to <see langword="true"/>. 
+		/// </summary>
+		public bool OverrideDefaults { get; private set; } = true;
 
 		/// <summary> Determines whether the options are valid. </summary>
 		public bool IsValid => Asset != null && SettingFactories.Count > 0 && Data != null && Data.Settings != null && Data.Settings.Length > 0;
+
 
 		private SettingLoaderOptions () { }
 
@@ -151,6 +163,15 @@ namespace Zenvin.Settings.Loading {
 		/// </summary>
 		public SettingLoaderOptions WithIconLoader (IGroupIconLoader iconLoader) {
 			IconLoader = iconLoader;
+			return this;
+		}
+
+		/// <summary>
+		/// Fluent builder to toggle loading new Setting defaults.<br></br>
+		/// See also: <see cref="SettingBase.OverrideDefaultValue(StringValuePair[], UpdateValueMode)"/>
+		/// </summary>
+		public SettingLoaderOptions WithOverrideDefaults (bool @override = false) {
+			OverrideDefaults = @override;
 			return this;
 		}
 
