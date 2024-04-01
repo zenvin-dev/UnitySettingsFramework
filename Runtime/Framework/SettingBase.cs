@@ -236,7 +236,7 @@ namespace Zenvin.Settings.Framework {
 			Log ($"Setting Value of {ToString ()} to '{value}'");
 			ProcessValue (ref value);
 
-			if (ValuesAreEqual (cachedValue, value)) {
+			if (CompareEquality (cachedValue, value)) {
 				return;
 			}
 
@@ -279,6 +279,25 @@ namespace Zenvin.Settings.Framework {
 			T value = defaultValue;
 			ProcessValue (ref value);
 			return value;
+		}
+
+		/// <summary>
+		/// Used to compare Setting values. Can be overridden to define custom behaviours during operations that set values.
+		/// </summary>
+		/// <remarks>
+		/// If not overridden, will equate <see langword="null"/> and use the default <see cref="object.Equals(object)"/> implementation for non-null objects.
+		/// </remarks>
+		protected virtual bool CompareEquality (T a, T b) {
+			if (a == null && b == null) {
+				return true;
+			}
+			if (a != null && a.Equals (b)) {
+				return true;
+			}
+			if (b != null && b.Equals (a)) {
+				return true;
+			}
+			return false;
 		}
 
 
@@ -355,19 +374,6 @@ namespace Zenvin.Settings.Framework {
 			if (value != null && value is INotifyPropertyChanged notify) {
 				notify.PropertyChanged -= ValuePropertyChangedHandler;
 			}
-		}
-
-		private bool ValuesAreEqual (T cachedValue, T value) {
-			if (cachedValue == null && value == null) {
-				return true;
-			}
-			if (cachedValue != null && cachedValue.Equals (value)) {
-				return true;
-			}
-			if (value != null && value.Equals (cachedValue)) {
-				return true;
-			}
-			return false;
 		}
 
 
