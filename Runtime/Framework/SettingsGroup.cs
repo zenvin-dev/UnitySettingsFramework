@@ -38,12 +38,13 @@ namespace Zenvin.Settings.Framework {
 			get => groupIcon;
 			internal set => groupIcon = value;
 		}
-
-		private int InternalChildGroupCount => groups?.Count ?? 0;
+		/// <summary> The Group's parent Group. </summary>
+		public SettingsGroup Parent {
+			get => parent;
+			internal set => parent = value;
+		}
 		/// <summary> The total count of direct child Groups, including both internal and external Groups. </summary>
 		public int ChildGroupCount => InternalChildGroupCount + externalGroups.Count;
-
-		private int InternalSettingCount => settings?.Count ?? 0;
 		/// <summary> The total count of child Settings, including both internal and external Settings. </summary>
 		public int SettingCount => InternalSettingCount + externalSettings.Count;
 
@@ -52,11 +53,8 @@ namespace Zenvin.Settings.Framework {
 		internal List<SettingBase> Settings => settings;
 		internal List<SettingBase> ExternalSettings => externalSettings;
 
-		/// <summary> The Group's parent Group. </summary>
-		public SettingsGroup Parent {
-			get => parent;
-			internal set => parent = value;
-		}
+		private int InternalChildGroupCount => groups?.Count ?? 0;
+		private int InternalSettingCount => settings?.Count ?? 0;
 
 
 		/// <summary>
@@ -77,11 +75,6 @@ namespace Zenvin.Settings.Framework {
 
 			return group;
 		}
-
-		/// <summary>
-		/// Called during <see cref="CreateInstanceWithValues{T}(StringValuePair[])"/>.
-		/// </summary>
-		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
 
 		/// <summary>
 		/// Get the child Setting at the given index. Null if the index is invalid.
@@ -130,121 +123,6 @@ namespace Zenvin.Settings.Framework {
 			GetGroupsRecursively (this, groups);
 			return groups.AsReadOnly ();
 		}
-
-
-		/// <summary>
-		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, before any of the Group's children are initialized.
-		/// </summary>
-		/// <remarks>
-		/// Initialization for external Groups happens separately and always after that for internal ones.
-		/// </remarks>
-		internal protected virtual void OnBeforeInitialize () { }
-
-		/// <summary>
-		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, after all the Group's children have been initialized.
-		/// </summary>
-		/// <remarks>
-		/// Initialization for external Groups happens separately and always after that for internal ones.
-		/// </remarks>
-		internal protected virtual void OnAfterInitialize () { }
-
-
-		internal void AddChildGroup (SettingsGroup group) {
-			if (group == null || group.Parent == this || group == this) {
-				return;
-			}
-			if (group.Parent != null) {
-				group.Parent.RemoveChildGroup (group);
-			}
-			if (groups == null) {
-				groups = new List<SettingsGroup> ();
-			}
-			group.Parent = this;
-			groups.Add (group);
-		}
-
-		internal void AddChildGroup (SettingsGroup group, int index) {
-			if (groups == null) {
-				groups = new List<SettingsGroup> ();
-			}
-
-			index = Mathf.Clamp (index, 0, groups.Count);
-
-			if (group.Parent == this) {
-				if (index < groups.IndexOf (group)) {
-					index++;
-				}
-				groups.Remove (group);
-			} else if (group.Parent != null) {
-				group.Parent.RemoveChildGroup (group);
-				group.Parent = this;
-			}
-
-			groups.Insert (index, group);
-		}
-
-		internal void IntegrateChildGroup (SettingsGroup group) {
-			if (group == null) {
-				return;
-			}
-			group.Parent = this;
-			externalGroups.Add (group);
-			OnIntegratedChildGroup (group);
-		}
-
-		private protected virtual void OnIntegratedChildGroup (SettingsGroup group) { }
-
-		internal void RemoveChildGroup (SettingsGroup group) {
-			if (group == null || group.Parent != this) {
-				return;
-			}
-			groups.Remove (group);
-		}
-
-		internal bool IsIndirectChildGroup (SettingsGroup group) {
-			return !IsDirectChildGroup (group) && IsNestedChildGroup (group);
-		}
-
-		internal bool IsDirectChildGroup (SettingsGroup group) {
-			return groups?.Contains (group) ?? false;
-		}
-
-		internal bool IsNestedChildGroup (SettingsGroup group) {
-			return IsNestedChildGroupInternal (group, this);
-		}
-
-		private bool IsNestedChildGroupInternal (SettingsGroup child, SettingsGroup group) {
-			if (group?.groups?.Contains (child) ?? false) {
-				return true;
-			}
-			if (group == null || group.groups == null) {
-				return false;
-			}
-			foreach (var g in group.groups) {
-				return IsNestedChildGroupInternal (child, g);
-			}
-			return false;
-		}
-
-		private void GetGroupsRecursively (SettingsGroup group, List<SettingsGroup> groupList) {
-			if (group == null) {
-				return;
-			}
-
-			if (group.groups != null) {
-				groupList.AddRange (group.groups);
-			}
-			if (group.externalGroups != null) {
-				groupList.AddRange (group.externalGroups);
-			}
-
-			if (group.groups != null) {
-				foreach (SettingsGroup g in group.groups) {
-					GetGroupsRecursively (g, groupList);
-				}
-			}
-		}
-
 
 		/// <summary>
 		/// Get the child Group at the given index. Null if the index is invalid.
@@ -329,7 +207,7 @@ namespace Zenvin.Settings.Framework {
 
 			return settingsList.AsReadOnly ();
 		}
-		
+
 		/// <summary>
 		/// Gets all child Settings that are deemed valid by the given filter.
 		/// </summary>
@@ -340,7 +218,150 @@ namespace Zenvin.Settings.Framework {
 			if (sorted) {
 				settingsList.Sort ();
 			}
-			return settingsList.AsReadOnly();
+			return settingsList.AsReadOnly ();
+		}
+
+		/// <summary>
+		/// Applies all dirty Settings within this group.<br></br>
+		/// Note that <see cref="SettingsAsset.ApplyDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		public void ApplyDirtyGroupSettings (bool includeChildGroups) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				if (setting.IsDirty) {
+					setting.ApplyValue ();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Reverts all dirty Settings within this group to their current, unapplied values.<br></br>
+		/// Note that <see cref="SettingsAsset.RevertDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		public void RevertDirtyGroupSettings (bool includeChildGroups) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				if (setting.IsDirty) {
+					setting.RevertValue ();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Resets all Settings within this group to their default values.<br></br>
+		/// Note that <see cref="SettingsAsset.ResetAllSettings(bool)"/> can be more performant, because of how dirty Settings are managed internally.
+		/// </summary>
+		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
+		/// <param name="applyAfterReset"> Value to pass to <see cref="SettingBase.ResetValue(bool)"/>, to determine whether each Setting's value should be applied after resetting. </param>
+		public void ResetAllGroupSettings (bool includeChildGroups, bool applyAfterReset) {
+			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
+			foreach (var setting in settings) {
+				setting.ResetValue (applyAfterReset);
+			}
+		}
+
+		/// <inheritdoc/>
+		public sealed override SettingVisibility GetVisibilityInHierarchy () {
+			SettingVisibility vis = Visibility;
+			SettingsGroup obj = this;
+			while (obj != null && obj.Parent != null) {
+				if ((int)obj.Visibility < (int)obj.Parent.Visibility) {
+					vis = obj.Parent.Visibility;
+				}
+				if (vis == SettingVisibility.Hidden) {
+					return vis;
+				}
+				obj = obj.Parent;
+			}
+			return vis;
+		}
+
+
+		/// <summary>
+		/// Called during <see cref="CreateInstanceWithValues{T}(StringValuePair[])"/>.
+		/// </summary>
+		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
+
+
+		/// <summary>
+		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, before any of the Group's children are initialized.
+		/// </summary>
+		/// <remarks>
+		/// Initialization for external Groups happens separately and always after that for internal ones.
+		/// </remarks>
+		internal protected virtual void OnBeforeInitialize () { }
+
+		/// <summary>
+		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, after all the Group's children have been initialized.
+		/// </summary>
+		/// <remarks>
+		/// Initialization for external Groups happens separately and always after that for internal ones.
+		/// </remarks>
+		internal protected virtual void OnAfterInitialize () { }
+
+
+		internal void AddChildGroup (SettingsGroup group) {
+			if (group == null || group.Parent == this || group == this) {
+				return;
+			}
+			if (group.Parent != null) {
+				group.Parent.RemoveChildGroup (group);
+			}
+			if (groups == null) {
+				groups = new List<SettingsGroup> ();
+			}
+			group.Parent = this;
+			groups.Add (group);
+		}
+
+		internal void AddChildGroup (SettingsGroup group, int index) {
+			if (groups == null) {
+				groups = new List<SettingsGroup> ();
+			}
+
+			index = Mathf.Clamp (index, 0, groups.Count);
+
+			if (group.Parent == this) {
+				if (index < groups.IndexOf (group)) {
+					index++;
+				}
+				groups.Remove (group);
+			} else if (group.Parent != null) {
+				group.Parent.RemoveChildGroup (group);
+				group.Parent = this;
+			}
+
+			groups.Insert (index, group);
+		}
+
+		internal void IntegrateChildGroup (SettingsGroup group) {
+			if (group == null) {
+				return;
+			}
+			group.Parent = this;
+			externalGroups.Add (group);
+			OnIntegratedChildGroup (group);
+		}
+
+		internal void RemoveChildGroup (SettingsGroup group) {
+			if (group == null || group.Parent != this) {
+				return;
+			}
+			groups.Remove (group);
+		}
+
+		internal bool IsIndirectChildGroup (SettingsGroup group) {
+			return !IsDirectChildGroup (group) && IsNestedChildGroup (group);
+		}
+
+		internal bool IsDirectChildGroup (SettingsGroup group) {
+			return groups?.Contains (group) ?? false;
+		}
+
+		internal bool IsNestedChildGroup (SettingsGroup group) {
+			return IsNestedChildGroupInternal (group, this);
 		}
 
 		internal void AddSetting (SettingBase setting) {
@@ -392,13 +413,77 @@ namespace Zenvin.Settings.Framework {
 			OnIntegratedSetting (setting);
 		}
 
-		private protected virtual void OnIntegratedSetting (SettingBase setting) { }
-
 		internal void RemoveSetting (SettingBase setting) {
 			if (setting == null || setting.group != this) {
 				return;
 			}
 			settings.Remove (setting);
+		}
+
+
+		private protected virtual void OnIntegratedChildGroup (SettingsGroup group) { }
+
+		private protected virtual void OnIntegratedSetting (SettingBase setting) { }
+
+		private protected sealed override void OnSetVisibilityInternal (SettingVisibility visibility) {
+			PropagateVisiblityEvent (this);
+		}
+
+		private static void PropagateVisiblityEvent (SettingsGroup group) {
+			if (group == null) {
+				return;
+			}
+			group.SetVisibility (group.Visibility, false);
+
+			foreach (var g in group.Groups) {
+				PropagateVisiblityEvent (g);
+			}
+			if (group.ExternalGroups != null) {
+				foreach (var g in group.ExternalGroups) {
+					PropagateVisiblityEvent (g);
+				}
+			}
+
+			foreach (var s in group.Settings) {
+				s.SetVisibility (s.Visibility, false);
+			}
+			if (group.ExternalSettings != null) {
+				foreach (var s in group.ExternalSettings) {
+					s.SetVisibility (s.Visibility, false);
+				}
+			}
+		}
+
+		private bool IsNestedChildGroupInternal (SettingsGroup child, SettingsGroup group) {
+			if (group?.groups?.Contains (child) ?? false) {
+				return true;
+			}
+			if (group == null || group.groups == null) {
+				return false;
+			}
+			foreach (var g in group.groups) {
+				return IsNestedChildGroupInternal (child, g);
+			}
+			return false;
+		}
+
+		private void GetGroupsRecursively (SettingsGroup group, List<SettingsGroup> groupList) {
+			if (group == null) {
+				return;
+			}
+
+			if (group.groups != null) {
+				groupList.AddRange (group.groups);
+			}
+			if (group.externalGroups != null) {
+				groupList.AddRange (group.externalGroups);
+			}
+
+			if (group.groups != null) {
+				foreach (SettingsGroup g in group.groups) {
+					GetGroupsRecursively (g, groupList);
+				}
+			}
 		}
 
 		private void GetSettingsRecursively (SettingsGroup group, List<SettingBase> settingsList, SettingBaseFilter isValid = null) {
@@ -433,94 +518,6 @@ namespace Zenvin.Settings.Framework {
 			if (group.groups != null) {
 				foreach (SettingsGroup g in group.groups) {
 					GetSettingsRecursively (g, settingsList);
-				}
-			}
-		}
-
-
-		/// <summary>
-		/// Applies all dirty Settings within this group.<br></br>
-		/// Note that <see cref="SettingsAsset.ApplyDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
-		/// </summary>
-		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
-		public void ApplyDirtyGroupSettings (bool includeChildGroups) {
-			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
-			foreach (var setting in settings) {
-				if (setting.IsDirty) {
-					setting.ApplyValue ();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Reverts all dirty Settings within this group to their current, unapplied values.<br></br>
-		/// Note that <see cref="SettingsAsset.RevertDirtySettings"/> can be more performant, because of how dirty Settings are managed internally.
-		/// </summary>
-		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
-		public void RevertDirtyGroupSettings (bool includeChildGroups) {
-			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
-			foreach (var setting in settings) {
-				if (setting.IsDirty) {
-					setting.RevertValue ();
-				}
-			}
-		}
-
-		/// <summary>
-		/// Resets all Settings within this group to their default values.<br></br>
-		/// Note that <see cref="SettingsAsset.ResetAllSettings(bool)"/> can be more performant, because of how dirty Settings are managed internally.
-		/// </summary>
-		/// <param name="includeChildGroups"> If true, this method will also apply dirty Settings in all child groups. </param>
-		/// <param name="applyAfterReset"> Value to pass to <see cref="SettingBase.ResetValue(bool)"/>, to determine whether each Setting's value should be applied after resetting. </param>
-		public void ResetAllGroupSettings (bool includeChildGroups, bool applyAfterReset) {
-			var settings = includeChildGroups ? GetAllSettings () : GetSettings ();
-			foreach (var setting in settings) {
-				setting.ResetValue (applyAfterReset);
-			}
-		}
-
-
-		/// <inheritdoc/>
-		public sealed override SettingVisibility GetVisibilityInHierarchy () {
-			SettingVisibility vis = Visibility;
-			SettingsGroup obj = this;
-			while (obj != null && obj.Parent != null) {
-				if ((int)obj.Visibility < (int)obj.Parent.Visibility) {
-					vis = obj.Parent.Visibility;
-				}
-				if (vis == SettingVisibility.Hidden) {
-					return vis;
-				}
-				obj = obj.Parent;
-			}
-			return vis;
-		}
-
-		private protected sealed override void OnSetVisibilityInternal (SettingVisibility visibility) {
-			PropagateVisiblityEvent (this);
-		}
-
-		private static void PropagateVisiblityEvent (SettingsGroup group) {
-			if (group == null) {
-				return;
-			}
-			group.SetVisibility (group.Visibility, false);
-
-			foreach (var g in group.Groups) {
-				PropagateVisiblityEvent (g);
-			}
-			if (group.ExternalGroups != null) {
-				foreach (var g in group.ExternalGroups) {
-					PropagateVisiblityEvent (g);
-				}
-			}
-
-			foreach (var s in group.Settings) {
-				s.SetVisibility (s.Visibility, false);
-			}
-			if (group.ExternalSettings != null) {
-				foreach (var s in group.ExternalSettings) {
-					s.SetVisibility (s.Visibility, false);
 				}
 			}
 		}
