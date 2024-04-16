@@ -44,6 +44,12 @@ namespace Zenvin.Settings.Framework.Presets {
 
 		[SerializeField, Tooltip ("The preset object from which preset values can/will be sourced upon application.")]
 		private TPreset[] presets;
+		[SerializeField, Tooltip ("If true, the Group will attempt to load any available preset objects from the graphics settings on startup.")]
+		private bool findPresets = true;
+
+
+		/// <summary> If true, the Group will attempt to load any available preset objects from the graphics settings on startup. </summary>
+		public bool FindPresets => findPresets;
 
 
 		/// <summary>
@@ -117,6 +123,18 @@ namespace Zenvin.Settings.Framework.Presets {
 			}
 
 			return -1;
+		}
+
+		/// <summary>
+		/// If implemented, used to find available presets during initialization, if <see cref="FindPresets"/> is <see langword="true"/>.
+		/// </summary>
+		protected virtual TPreset[] GetAvailablePresets () => null;
+
+		/// <inheritdoc/>
+		protected internal override void OnBeforeInitialize () {
+			if (findPresets) {
+				presets = GetAvailablePresets ();
+			}
 		}
 
 
