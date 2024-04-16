@@ -1,6 +1,6 @@
 {
 	"name": "com.zenvin.settings-framework",
-	"version": "2.6.0",
+	"version": "2.7.0",
 	"displayName": "Settings Framework",
 	"description": "Made to allow for simple implementation of arbitrarily typed game settings.",
 	"unity": "2020.1",
