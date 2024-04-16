@@ -52,18 +52,22 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		public void Initialize () {
 			if (!Application.isPlaying) {
-				Debug.LogWarning ("Cannot initialize SettingsAsset during edit-time.");
+				Debug.LogWarning ("Cannot initialize SettingsAsset during edit-time.", this);
 				return;
 			}
-			if (!Initialized) {
-				RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
-
-				OnInitialize?.Invoke (this);
-
-				RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
-
-				initialized = true;
+			if (Initialized) {
+				Debug.LogWarning ($"SettingsAsset has already been initialized.", this);
+				return;
 			}
+
+			initialized = true;
+			OnBeforeInitialize ();
+
+			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
+			OnInitialize?.Invoke (this);
+			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
+
+			OnAfterInitialize ();
 		}
 
 		private void RegisterGroupsAndSettingsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
@@ -71,11 +75,16 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
+			// keep track of whether this group should be initialized
+			var initGroup = false;
+
 			// if group is not root
 			if (group != this) {
 				// register group
 				if (!group.External || !groupDict.ContainsKey (group.GUID)) {
 					groupDict[group.GUID] = group;
+					initGroup = true;
+					group.OnBeforeInitialize ();
 				}
 			}
 
@@ -111,6 +120,12 @@ namespace Zenvin.Settings.Framework {
 				foreach (var g in group.ExternalGroups) {
 					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
 				}
+			}
+
+			// should only run if the group was actually registered
+			if (initGroup) {
+				// run post-initialization actions on group
+				group.OnAfterInitialize ();
 			}
 		}
 
@@ -269,7 +284,7 @@ namespace Zenvin.Settings.Framework {
 				return false;
 			}
 
-			Log ($"Serializing Settings using '{typeof(ISerializer<T>)}' (Target type '{typeof(T)}', Filtered: {filter != null})");
+			Log ($"Serializing Settings using '{typeof (ISerializer<T>)}' (Target type '{typeof (T)}', Filtered: {filter != null})");
 
 			var advSer = serializer as ISerializerCallbackReceiver;
 			advSer?.InitializeSerialization ();
@@ -304,14 +319,14 @@ namespace Zenvin.Settings.Framework {
 				return false;
 			}
 
-			Log ($"Deserializing Settings using '{typeof(ISerializer<T>)}' (Target type '{typeof(T)}', Filtered: {filter != null})");
+			Log ($"Deserializing Settings using '{typeof (ISerializer<T>)}' (Target type '{typeof (T)}', Filtered: {filter != null})");
 
 			var advSer = serializer as ISerializerCallbackReceiver;
 			advSer?.InitializeDeserialization ();
 
 			var enumerator = serializer.GetSerializedData ();
 			if (enumerator != null) {
-				while (enumerator.MoveNext()) {
+				while (enumerator.MoveNext ()) {
 					var data = enumerator.Current;
 
 					if (settingsDict.TryGetValue (data.Key, out SettingBase setting) && (filter == null || filter (setting)) && setting is ISerializable<T> serializable) {

@@ -117,6 +117,24 @@ namespace Zenvin.Settings.Framework {
 			return groups.AsReadOnly ();
 		}
 
+
+		/// <summary>
+		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, before any of the Group's children are initialized.
+		/// </summary>
+		/// <remarks>
+		/// Initialization for external Groups happens separately and always after that for internal ones.
+		/// </remarks>
+		internal protected virtual void OnBeforeInitialize () { }
+
+		/// <summary>
+		/// Called when the Group's <see cref="SettingsAsset"/> is initialized, after all the Group's children have been initialized.
+		/// </summary>
+		/// <remarks>
+		/// Initialization for external Groups happens separately and always after that for internal ones.
+		/// </remarks>
+		internal protected virtual void OnAfterInitialize () { }
+
+
 		internal void AddChildGroup (SettingsGroup group) {
 			if (group == null || group.Parent == this || group == this) {
 				return;
