@@ -109,6 +109,20 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		/// <summary>
+		/// Iterates direct child groups, without allocating an entire new collection.
+		/// </summary>
+		public IEnumerable<SettingsGroup> IterateGroups (bool includeExternal) {
+			for (int i = 0; i < groups.Count; i++) {
+				yield return groups[i];
+			}
+			if (includeExternal) {
+				for (int i = 0; i < externalGroups.Count; i++) {
+					yield return externalGroups[i];
+				}
+			}
+		}
+
+		/// <summary>
 		/// Recursively gets a read-only collection of all child Groups.
 		/// </summary>
 		public ReadOnlyCollection<SettingsGroup> GetAllGroups () {
@@ -261,6 +275,20 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			return settingsList;
+		}
+
+		/// <summary>
+		/// Iterates all direct child settings, without allocating an entire new collection.
+		/// </summary>
+		public IEnumerable<SettingBase> IterateSettings (bool includeExternal) {
+			for (int i = 0; i < settings.Count; i++) {
+				yield return settings[i];
+			}
+			if (includeExternal) {
+				for (int i = 0; i < externalSettings.Count; i++) {
+					yield return externalSettings[i];
+				}
+			}
 		}
 
 		/// <summary>
