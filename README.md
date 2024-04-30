@@ -21,25 +21,25 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 
 # Features
 - Flexible and extensible way of setting up game settings
-    - Intuitive editor for creating and managing settings
-    - ScriptableObject-based architecture, no need to manage scene objects
-    - Settings can be grouped together
-    - No code changes or recompilation required for creating or referencing setting instances
-    - Easy creation of custom setting types and setting group types
-    - Type-safety through use of generics
-    - Values of custom settings can easily be validated before they are assigned
+	- Intuitive editor for creating and managing settings
+	- ScriptableObject-based architecture, no need to manage scene objects
+	- Settings can be grouped together
+	- No code changes or recompilation required for creating or referencing setting instances
+	- Easy creation of custom setting types and setting group types
+	- Type-safety through use of generics
+	- Values of custom settings can easily be validated before they are assigned
 - Staged value changing allows reverting a setting to its previous state before a new value is applied
 - Multiple ways of referencing settings
-    - As a reference in a wrapper class, that also provides a fallback value
-    - With direct references to Settings objects
-    - Through code by their respective ID
+	- As a reference in a wrapper class, that also provides a fallback value
+	- With direct references to Settings objects
+	- Through code by their respective ID
 - Utility for automatically creating UI menus from a Settings asset
-    - UI controls can be chosen automatically, based on setting type
-    - UI controls are designed to work with Unity's UI events
-    - Show, hide, or disable individual settings or entire groups in the UI
+	- UI controls can be chosen automatically, based on setting type
+	- UI controls are designed to work with Unity's UI events
+	- Show, hide, or disable individual settings or entire groups in the UI
 - Built to easily adapt to the way you save and load your game
-    - Settings can implement an arbitrary number of serialization methods
-    - Built-in JSON and binary serializers
+	- Settings can implement an arbitrary number of serialization methods
+	- Built-in JSON and binary serializers
 - Little memory overhead: Setting objects are **not** cloned during runtime
 - Additional settings can be added during runtime by loading a json string (great for modding support)
 
@@ -80,8 +80,8 @@ Generally speaking, there are 3 different ways of referencing Settings:
 - Accessed by its `GUID` using `SettingsAsset.TryGetSettingByGUID(string, out SettingBase)`, assuming that the containing `SettingsAsset` has been initialized.
 
 Each Setting object contains 2 essential values that are managed by the Framework:
-* `CurrentValue`: The value that is currently **applied** to the Setting.
-* `CachedValue`: The value that the Setting will have once applied.
+- `CurrentValue`: The value that is currently **applied** to the Setting.
+- `CachedValue`: The value that the Setting will have once applied.
 
 To get a Setting's value, you would usually poll `CurrentValue`. This can be done either continuously, or every time `SettingBase<T>.OnValueApplied` is invoked.
 
@@ -135,11 +135,11 @@ In some cases, it is necessary that your Setting value adheres to specific rules
 `ProcessValue(ref T)` in `SettingBase<T>` is a `virtual void` method allows to process a given value, before the Setting is updated with it. By default, this method does nothing, so it does not _have_ to be overridden if you just want to use the value as-is.
 
 ### Setting, Applying, Reverting and Resetting values
-* When `SetValue(T)` is called on a given `SettingBase<T>`, it will update the Setting's `CachedValue` and mark the Setting as _dirty_.
-* Dirty Settings can be applied with a call to `ApplyValue()`. This will remove the _dirty_ flag, update the Setting's `CurrentValue` with whatever `CachedValue` was set to, and invoke `OnValueApplied`.
-* Reverting a _dirty_ Setting with a call to `RevertValue()` will set its `CachedValue` to its `CurrentValue`.
-* A Setting can be reset by calling `ResetValue()`. This will set its value to the `DefaultValue` it was given in the editor.
-* Reverting or resetting will invoke `OnValueReverted` or `OnValueReset`, respectively. They will also both mark the Setting as _dirty_.
+- When `SetValue(T)` is called on a given `SettingBase<T>`, it will update the Setting's `CachedValue` and mark the Setting as _dirty_.
+- Dirty Settings can be applied with a call to `ApplyValue()`. This will remove the _dirty_ flag, update the Setting's `CurrentValue` with whatever `CachedValue` was set to, and invoke `OnValueApplied`.
+- Reverting a _dirty_ Setting with a call to `RevertValue()` will set its `CachedValue` to its `CurrentValue`.
+- A Setting can be reset by calling `ResetValue()`. This will set its value to the `DefaultValue` it was given in the editor.
+- Reverting or resetting will invoke `OnValueReverted` or `OnValueReset`, respectively. They will also both mark the Setting as _dirty_.
 
 
 # Saving and Loading Setting values
@@ -167,10 +167,10 @@ The Framework will however automatically call `ApplyValue` on each deserialized 
 Sometimes, the serialized or deserialized data might need to be processed, such as loading data from a file before deserialization, or writing it to a file after serialization. \
 For this purpose, any class implementing `ISerializer<T>` may also implement `ISerializerCallbackReceiver` (not to be confused with Unity's [`ISerializationCallbackReceiver`](https://docs.unity3d.com/ScriptReference/ISerializationCallbackReceiver.html)!). \
 This interface implements the following four methods, which can be used to respond to specific steps of the serialization process: 
-* `InitializeSerialization()` will be called before serialization starts.
-* `FinalizeSerialization()` will be called after serialization has finished.
-* `InitializeDeserialization()` will be called before deserialization starts.
-* `FinalizeDeserialization()` will be called after deserialization has finished.
+- `InitializeSerialization()` will be called before serialization starts.
+- `FinalizeSerialization()` will be called after serialization has finished.
+- `InitializeDeserialization()` will be called before deserialization starts.
+- `FinalizeDeserialization()` will be called after deserialization has finished.
 
 See [JSON File Serializer](./Runtime/Framework/Serialization/JSON/JsonFileSerializer.cs) or [Binary File Serializer](./Runtime/Framework/Serialization/Binary/BinaryFileSerializer.cs) for examples on how to implement the interface.
 
@@ -188,15 +188,15 @@ However, loading is only possible during the initialization process of the Setti
 In order to load external Settings, the `RuntimeSettingLoader` needs to know how to translate the `string` values it gets from the parsed JSON objects into `SettingBase<T>` instances.
 \
 That is where the `ISettingFactory` interface comes into play:
-* `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
-* `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired Setting class.
+- `ISettingFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Setting object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
+- `ISettingFactory.CreateSettingFromType(string, StringValuePair[])`: Should return an instance of your desired Setting class.
 
 ### Group Factories
 Loading external Groups happens similarly to the way external Settings are loaded, with the main difference being that the `RuntimeSettingLoader` will fall back to the built-in `SettingsGroup` type, if it cannot translate the JSON values into Group instances.
 \
 Translating the values again, is where an interface is used - respectively `IGroupFactory`:
-* `IGroupFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Group object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
-* `IGroupFactory.CreateGroupFromType(StringValuePair[])`: Should return an instance of your desired Group class.
+- `IGroupFactory.GetDefaultValidType()`: This method returns the default type `string` which this factory can translate into a Group object. This value can be overridden while calling `RuntimeSettingLoader.LoadSettingsIntoAsset`.
+- `IGroupFactory.CreateGroupFromType(StringValuePair[])`: Should return an instance of your desired Group class.
 
 
 # Examples
@@ -206,9 +206,9 @@ Make a new script and paste the below code into it:
 using System;
 using Zenvin.Settings.Framework;
 
-public class DropdownSetting : SettingBase<int>     // declare custom Setting type
+public class DropdownSetting : SettingBase<int>	 // declare custom Setting type
 {
-    [SerializeField] private string[] values;       // expose field in the editor to allow assigning dropdown values
+	[SerializeField] private string[] values;	   // expose field in the editor to allow assigning dropdown values
 }
 ```
 After you let Unity recompile, the new Setting type should show up in your create setting context menu.
@@ -220,7 +220,7 @@ All you need to do to achieve this, is `override` the `ProcessValue` method like
 ```csharp
 protected override void ProcessValue(ref int value)
 {
-    value = Mathf.Clamp (value, 0, values.Length - 1);
+	value = Mathf.Clamp (value, 0, values.Length - 1);
 }
 ```
 
@@ -229,15 +229,15 @@ First, create factories for your custom Setting types. For the class from **Exam
 ```csharp
 public class DropdownSettingFactory : ISettingFactory
 {
-    string ISettingFactory.GetDefaultValidType() => "dropdown";     // make default type string "dropdown"
-    
-    SettingBase ISettingFactory.CreateSettingFromValue(string defaultValue, StringValuePair[] values)
-    {
-        if (!int.TryParse(defaultValue, out int val)) {     // try parsing the json default value to an int
-          val = 0;                                              // if not possible, use 0 as default
-        }
-        return DropdownSetting.CreateInstanceWithValues<DropdownSetting>(val, values);  // create a new instance.
-    }
+	string ISettingFactory.GetDefaultValidType() => "dropdown";	 // make default type string "dropdown"
+	
+	SettingBase ISettingFactory.CreateSettingFromValue(string defaultValue, StringValuePair[] values)
+	{
+		if (!int.TryParse(defaultValue, out int val)) {	 // try parsing the json default value to an int
+			val = 0;	// if not possible, use 0 as default
+		}
+		return DropdownSetting.CreateInstanceWithValues<DropdownSetting>(val, values);  // create a new instance.
+	}
 }
 ```
 The above factory can create an instance of `DropdownSetting`. By default, it will respond to the json type string `"dropdown"`.
@@ -252,27 +252,27 @@ using Zenvin.Settings.Loading;
 
 public class SettingsInitializer : MonoBehaviour
 {
-    [SerializeField] private SettingsAsset asset;
-    [SerializeField, TextArea (10, 10)] private string json;  // this is for the JSON string you want to load
-    
-    private void Start ()
-    {
-        SettingsAsset.OnInitialize += OnInitialize; // static event, hence the SettingAsset parameter
-        asset.Initialize();
-    }
-    
-    private void OnInitialize (SettingsAsset asset)
-    {
-        var options = new SettingLoaderOptions (asset)                          // initialize options object with the target asset
-            .WithData (json)                                                    // set the options' data from the json string 
-            .WithSettingFactory ("bool", new BoolSettingFactory ())             // add factories provided by the package
-            .WithSettingFactory ("int", new IntSettingFactory ())               // for the Int and Bool factories, the "type" they are used for will be overwritten
-            .WithSettingFactory (new FloatSettingFactory ())                    // for the Float factory, its default "type" value will be used
+	[SerializeField] private SettingsAsset asset;
+	[SerializeField, TextArea (10, 10)] private string json;  // this is for the JSON string you want to load
+	
+	private void Start ()
+	{
+		SettingsAsset.OnInitialize += OnInitialize; // static event, hence the SettingAsset parameter
+		asset.Initialize();
+	}
+	
+	private void OnInitialize (SettingsAsset asset)
+	{
+		var options = new SettingLoaderOptions (asset)						  // initialize options object with the target asset
+			.WithData (json)													// set the options' data from the json string 
+			.WithSettingFactory ("bool", new BoolSettingFactory ())			 // add factories provided by the package
+			.WithSettingFactory ("int", new IntSettingFactory ())			   // for the Int and Bool factories, the "type" they are used for will be overwritten
+			.WithSettingFactory (new FloatSettingFactory ())					// for the Float factory, its default "type" value will be used
 
-            .WithSettingFactory ("dropdown", new DropdownSettingFactory ());    // add the factory we created earlier
+			.WithSettingFactory ("dropdown", new DropdownSettingFactory ());	// add the factory we created earlier
 
-        RuntimeSettingLoader.LoadSettingsIntoAsset (options);   // load settings into the asset, using the options created above
-    }
+		RuntimeSettingLoader.LoadSettingsIntoAsset (options);   // load settings into the asset, using the options created above
+	}
 }
 ```
 Note that the `LoadSettingsIntoAsset` method can override individual factories' target types. This allows using the same factory for multiple types of Settings.
@@ -281,43 +281,43 @@ Last, create a JSON string for the Settings you want to load and assign it to th
 Such a JSON string could look like this:
 ```json
 {
-    "Groups": [
-        {
-            "GUID": "_graphics",
-            "Name": "Graphics",
-            "LocalizationKey": "",
-            "ParentGroupGUID": "",
-            "IconResource": ""
-        }
-    ],
-    "Settings": [
-        {
-            "GUID": "anti_aliasing",
-            "Name": "Anti-Aliasing",
-            "LocalizationKey": "",
-            "ParentGroupGUID": "_graphics",
-            "Type": "dropdown",
-            "DefaultValue": "2",
-            "Values": [
-                {
-                    "Key": "",
-                    "Value": "Disabled"
-                },
-                {
-                    "Key": "",
-                    "Value": "2x Multisampling"
-                },
-                {
-                    "Key": "",
-                    "Value": "4x Multisampling"
-                },
-                {
-                    "Key": "",
-                    "Value": "8x Multisampling"
-                }
-            ]
-        }
-    ]
+	"Groups": [
+		{
+			"GUID": "_graphics",
+			"Name": "Graphics",
+			"LocalizationKey": "",
+			"ParentGroupGUID": "",
+			"IconResource": ""
+		}
+	],
+	"Settings": [
+		{
+			"GUID": "anti_aliasing",
+			"Name": "Anti-Aliasing",
+			"LocalizationKey": "",
+			"ParentGroupGUID": "_graphics",
+			"Type": "dropdown",
+			"DefaultValue": "2",
+			"Values": [
+				{
+					"Key": "",
+					"Value": "Disabled"
+				},
+				{
+					"Key": "",
+					"Value": "2x Multisampling"
+				},
+				{
+					"Key": "",
+					"Value": "4x Multisampling"
+				},
+				{
+					"Key": "",
+					"Value": "8x Multisampling"
+				}
+			]
+		}
+	]
 }
 ```
 This would first try to create a new Group called `Graphics` with GUID `_graphics`, and then to make a Setting from a hypothetical `dropdown` factory, give it a default value of `2` and try to set it up with an array of values. Assuming both were successful, the new Setting would become a child of the new Group.
@@ -325,17 +325,17 @@ This would first try to create a new Group called `Graphics` with GUID `_graphic
 If there already was a Group with GUID `_graphics`, no new Group will be created, and the Setting will be added to the existing one instead.
 
 ## 4. Setting up a dynamic Setting
-Sometimes, a default value alone is not enough to set up an external Setting with. Because of that, the `SettingBase<T>` class allows you to override its `OnCreateWithValues(StringValuePair[])` method. Sticking with the class from the previous examples, you could use the `Key`s of all the `StringValuePair`s you get, to populate your `values`.
+Sometimes, a default value alone is not enough to set up an external Setting with. Because of that, the `SettingBase<T>` class allows you to override its `OnCreateWithValues(StringValuePair[])` method. Sticking with the class from the previous examples, you could use the `Value`s of all the `StringValuePair`s you get, to populate your `values`.
 \
 In code, this can look like this:
 ```csharp
 protected override void OnCreateWithValues (StringValuePair[] _values)
 {
-    this.values = new string[_values.Length]; // assign a new array with appropriate length to values
-    for (int i = 0; i < values.Length; i++)   // iterate through either array
-    {
-        values[i] = _values[i].Value;         // set content of values
-    }
+	this.values = new string[_values.Length]; // assign a new array with appropriate length to values
+	for (int i = 0; i < values.Length; i++)   // iterate through either array
+	{
+		values[i] = _values[i].Value;		 // set content of values
+	}
 }
 ```
 
@@ -354,32 +354,32 @@ using UnityEngine.UI;
 
 public class SettingsMenu : MonoBehaviour
 {
-    [SerializeField] private SettingsAsset asset;   // the asset to source the Settings from
-    [SerializeField] private SettingControlCollection prefabs;  // a collection of available Setting control prefabs
-    [SerializeField] private LayoutGroup parent;    // the layout group to parent the spawned Setting controls to
+	[SerializeField] private SettingsAsset asset;   // the asset to source the Settings from
+	[SerializeField] private SettingControlCollection prefabs;  // a collection of available Setting control prefabs
+	[SerializeField] private LayoutGroup parent;	// the layout group to parent the spawned Setting controls to
 
 
-    private void Start ()
-    {
-        asset.Initialize();    // initializing Settings could be done somewhere else as well.
-        SpawnSettings();
-    }
+	private void Start ()
+	{
+		asset.Initialize();	// initializing Settings could be done somewhere else as well.
+		SpawnSettings();
+	}
 
-    private void SpawnSettings ()
-    {
-        var settings = asset.GetAllSettings();
-        foreach (var setting in settings)   // iterate over all registered Settings
-        {
-            if (prefabs.TryGetControl(setting.GetType(), out SettingControl prefab))    // try get a SettingControl prefab matching the current Setting
-            {
-                if (prefab.TryInstantiateWith (setting, out SettingControl control))     // try instantiating the found prefab with the given Setting. If successful, this will automatically spawn and initialize the prefab.
-                {
-                    control.transform.SetParent (parent.transform); // make instance a child of the layout group
-                    control.transform.localScale = Vector3.one; // reset instance scale, because parenting UI elements likes to mess that up
-                }
-            }
-        }
-    }
+	private void SpawnSettings ()
+	{
+		var settings = asset.GetAllSettings();
+		foreach (var setting in settings)   // iterate over all registered Settings
+		{
+			if (prefabs.TryGetControl(setting.GetType(), out SettingControl prefab))	// try get a SettingControl prefab matching the current Setting
+			{
+				if (prefab.TryInstantiateWith (setting, out SettingControl control))	 // try instantiating the found prefab with the given Setting. If successful, this will automatically spawn and initialize the prefab.
+				{
+					control.transform.SetParent (parent.transform); // make instance a child of the layout group
+					control.transform.localScale = Vector3.one; // reset instance scale, because parenting UI elements likes to mess that up
+				}
+			}
+		}
+	}
 }
 ```
 This could be expanded to utilize the Settings' group structure to implement tabs and/or headers in the menu as well. Have a look into [SettingsMenu.cs](https://github.com/xZenvin/UnitySettingsFramework/blob/main/Samples~/Settings%20Menu/Scripts/SettingsMenu.cs) to see how that might work.
@@ -395,16 +395,16 @@ With that, creating a control for that Setting type is simply a matter of making
 ```csharp
 public class DropdownControl : SettingControl<DropdownSetting, int> // DropdownSetting is the SettingBase this Control is meant for, and int is the value type ultimately managed by the Setting
 {
-    [SerializeField] private TMP_Dropdown dropdown;
+	[SerializeField] private TMP_Dropdown dropdown;
 
-    protected override void OnSetup () {    // OnSetup is called when the Control is spawned via TryInstantiateWith()
-        dropdown.ClearOptions ();
-        dropdown.AddOptions (new List<string> (Setting.Options));   // Setting is provided by the base class. It will have the type given in the class declaration, so DropdownSetting in this case.
-        dropdown.SetValueWithoutNotify (Setting.CurrentValue);
+	protected override void OnSetup () {	// OnSetup is called when the Control is spawned via TryInstantiateWith()
+		dropdown.ClearOptions ();
+		dropdown.AddOptions (new List<string> (Setting.Options));   // Setting is provided by the base class. It will have the type given in the class declaration, so DropdownSetting in  this case.
+		dropdown.SetValueWithoutNotify (Setting.CurrentValue);
 	}
 
-    protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {  // called whenever the assigned Setting's value changes
-	    dropdown?.SetValueWithoutNotify (Setting.CachedValue);  // make sure the dropdown's selection is "in sync" with the Setting's value
+	protected override void OnSettingValueChanged (SettingBase.ValueChangeMode mode) {  // called whenever the assigned Setting's value changes
+		dropdown?.SetValueWithoutNotify (Setting.CachedValue);  // make sure the dropdown's selection is "in sync" with the Setting's value
 	}
 }
 ```
