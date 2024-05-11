@@ -542,7 +542,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			Rect copyMenuRect = GUILayoutUtility.GetLastRect ();
-			FrameworkObject frObj = nameProp.serializedObject.targetObject as FrameworkObject;
+			var frObj = nameProp.serializedObject.targetObject as NamedFrameworkObject;
 
 			if (GUILayout.Button (DropdownArrowContent, EditorStyles.miniButtonRight, GUILayout.Width (EditorGUIUtility.singleLineHeight))) {
 				GenericMenu copyToGuidMenu = new GenericMenu ();
@@ -1305,7 +1305,7 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
-		private string GetGuidFormattedName (FrameworkObject obj, bool includeParentGuid, bool includeParentName, bool format) {
+		private string GetGuidFormattedName (NamedFrameworkObject obj, bool includeParentGuid, bool includeParentName, bool format) {
 			string name = obj.Name;
 			if (includeParentGuid ^ includeParentName) {
 				switch (obj) {

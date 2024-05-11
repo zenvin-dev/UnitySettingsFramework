@@ -6,7 +6,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// Base class for all Settings objects.
 	/// </summary>
-	public abstract class SettingBase : FrameworkObject, IComparable<SettingBase> {
+	public abstract class SettingBase : VisualHierarchyObject, IComparable<SettingBase> {
 
 		/// <summary>
 		/// Enum used in <see cref="SettingBase{T}.ValueChanged"/>, to convey how the Setting's value was changed.

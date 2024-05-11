@@ -7,7 +7,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// A collection of <see cref="SettingBase"/> and other <see cref="SettingsGroup"/> objects.
 	/// </summary>
-	public class SettingsGroup : FrameworkObject {
+	public class SettingsGroup : VisualHierarchyObject {
 
 		/// <summary>
 		/// Delegate type for filtering <see cref="SettingBase"/> objects.
