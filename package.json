@@ -31,6 +31,11 @@
 			"displayName": "Volume Setting",
 			"description": "An implementation of a Slider for changing volumes. \nIncludes property drawer for picking an exposed AudioMixer parameter and takes logarithmic scaling into account when setting values.",
 			"path": "Samples~/Volume Setting"
+		},
+		{
+			"displayName": "Volume Setting FMOD",
+			"description": "An implementation of a Slider for changing volumes in FMOD projects. \nREQUIRES THE FMOD ASSET TO BE PRESENT IN THE PROJECT. \nLearn more: \nhttps://fmod.com/unity \nhttps://assetstore.unity.com/packages/tools/audio/fmod-for-unity-161631",
+			"path": "Samples~/Volume Setting FMOD"
 		}
 	]
 }
