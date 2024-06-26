@@ -35,6 +35,7 @@ namespace Zenvin.Settings.Framework {
 
 		[SerializeField, Min (0)] private int orderStep = 100;
 		[SerializeField] private bool enableDebugLogging = false;
+		[SerializeField] private bool enableErrorLogging = true;
 
 		/// <summary> Whether the asset has been initialized. </summary>
 		public bool Initialized => initialized;
@@ -92,6 +93,10 @@ namespace Zenvin.Settings.Framework {
 			if (external) {
 				// register external settings
 				foreach (var s in group.ExternalSettings) {
+					if (s == null) {
+						continue;
+					}
+
 					if (!settingsDict.ContainsKey (s.GUID)) {
 						settingsDict[s.GUID] = s;
 						s.Initialize ();
@@ -101,6 +106,11 @@ namespace Zenvin.Settings.Framework {
 				// register internal settings
 				int i = group.SettingCount;
 				foreach (var s in group.Settings) {
+					if (s == null) {
+						LogError ("Setting instance was null during initialization. This can happen if the initializing SettingsAsset broke due to import errors.");
+						continue;
+					}
+
 					settingsDict[s.GUID] = s;
 					s.OrderInGroup = -i * orderStep;
 					s.Initialize ();
@@ -411,9 +421,13 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		internal void Log (string message) {
-			if (enableDebugLogging) {
-				Debug.Log ("[Settings Framework] " + message);
-			}
+			if (enableDebugLogging)
+				Debug.Log ($"[Settings Framework] {message}", this);
+		}
+
+		internal void LogError (string message) {
+			if (enableErrorLogging)
+				Debug.LogError ($"[Settings Framework] {message}", this);
 		}
 
 	}
