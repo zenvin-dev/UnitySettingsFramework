@@ -57,6 +57,9 @@ Or you could download the ZIP Archive, unpack it, and add the contents to your U
 For the "Localization Setting" sample:
 - [Unity Localization](https://docs.unity3d.com/Packages/com.unity.localization@1.4/manual/index.html) package (any version should work)
 
+For the "Volume Setting FMOD" sample:
+- [Unity FMOD](https://www.fmod.com/unity) plugin (any recent version should work, tested with `2.02.22`)
+
 # Usage
 ### 1. Creating a Settings Asset
 A `SettingsAsset` will hold all of your individual Settings and Settings Groups. \
