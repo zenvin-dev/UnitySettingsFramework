@@ -69,6 +69,7 @@ namespace Zenvin.Settings.Framework {
 			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
 
 			OnAfterInitialize ();
+			OnInitialized ();
 		}
 
 		private void RegisterGroupsAndSettingsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
@@ -138,6 +139,9 @@ namespace Zenvin.Settings.Framework {
 				group.OnAfterInitialize ();
 			}
 		}
+
+		[System.Diagnostics.Conditional ("UNITY_EDITOR")]
+		partial void OnInitialized ();
 
 
 		// Setting/Group Access
