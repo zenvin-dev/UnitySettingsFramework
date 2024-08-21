@@ -5,6 +5,7 @@ using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
 namespace Zenvin.Settings.Samples {
+	[AddComponentMenu("Zenvin/Settings/UI/Volume Control")]
 	public class VolumeControl : SettingControl<VolumeSetting, float> {
 
 		[SerializeField] private TextMeshProUGUI label;

@@ -3,10 +3,10 @@ using UnityEngine;
 using TMPro;
 
 using Zenvin.Settings.Framework;
-using Zenvin.Settings.Samples;
 using Zenvin.Settings.UI;
 
-namespace Zenvin {
+namespace Zenvin.Settings.Samples {
+	[AddComponentMenu("Zenvin/Settings/UI/Dropdown Control")]
 	public class DropdownControl : SettingControl<DropdownSetting, int> {
 
 		[SerializeField] private TextMeshProUGUI label;

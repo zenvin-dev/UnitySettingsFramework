@@ -6,6 +6,7 @@ using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
 namespace Zenvin.Settings.Samples {
+	[AddComponentMenu("Zenvin/Settings/UI/Toggle Control")]
 	public class ToggleControl : SettingControl<BoolSetting, bool> {
 
 		[SerializeField] private TextMeshProUGUI label;

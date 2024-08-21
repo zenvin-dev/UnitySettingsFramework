@@ -6,6 +6,7 @@ using Zenvin.Settings.Framework;
 using Zenvin.Settings.UI;
 
 namespace Zenvin.Settings.Samples {
+	[AddComponentMenu("Zenvin/Settings/UI/Slider Control")]
 	public class SliderControl : SettingControl<SliderSetting, float> {
 
 		[SerializeField] private TextMeshProUGUI label;

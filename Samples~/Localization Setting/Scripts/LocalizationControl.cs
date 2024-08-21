@@ -7,6 +7,7 @@ using UnityEngine;
 using TMPro;
 
 namespace Zenvin.Settings.Samples {
+	[AddComponentMenu("Zenvin/Settings/UI/Localization Control")]
 	public class LocalizationControl : LocalizedControlBase<LocalizationSetting, int> {
 
 		[SerializeField] private TextMeshProUGUI label;
