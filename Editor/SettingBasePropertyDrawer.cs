@@ -79,6 +79,15 @@ namespace Zenvin.Settings.Framework {
 		private void OpenMenu (SerializedProperty property, SettingBase setting, Rect rect) {
 			GenericMenu gm = new GenericMenu ();
 
+			gm.AddItem (
+				new GUIContent("None"), 
+				setting == null, 
+				() => {
+					property.objectReferenceValue = null;
+					property.serializedObject.ApplyModifiedProperties ();
+				}
+			);
+
 			var assets = FindSettingsAssets ();
 			for (int i = 0; i < assets.Length; i++) {
 				var settings = assets[i].GetAllSettings ();
