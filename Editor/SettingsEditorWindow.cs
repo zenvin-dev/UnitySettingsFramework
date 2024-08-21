@@ -549,33 +549,33 @@ namespace Zenvin.Settings.Framework {
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy/Name only"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, false), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, false), isGroup, true)
 				);
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy/With parent name"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, false), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, false), isGroup, true)
 				);
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy/With parent GUID"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, false), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, false), isGroup, true)
 				);
 
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy Formatted/Name only"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, true), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, false, true), isGroup, true)
 				);
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy Formatted/With parent name"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, true), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, false, true, true), isGroup, true)
 				);
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Copy Formatted/With parent GUID"),
 					false,
-					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, true), isGroup)
+					() => TrySetGuid (guidProp, GetGuidFormattedName (frObj, true, false, true), isGroup, true)
 				);
 
 				copyToGuidMenu.AddSeparator ("");
@@ -583,7 +583,7 @@ namespace Zenvin.Settings.Framework {
 				copyToGuidMenu.AddItem (
 					new GUIContent ("Generate new GUID"),
 					false,
-					() => TrySetGuid (guidProp, Guid.NewGuid ().ToString (), isGroup)
+					() => TrySetGuid (guidProp, Guid.NewGuid ().ToString (), isGroup, true)
 				);
 				copyToGuidMenu.DropDown (copyMenuRect);
 			}
@@ -701,7 +701,6 @@ namespace Zenvin.Settings.Framework {
 				}
 
 				if (dragged != null && dragged != group && below) {
-
 					Rect preview = new Rect (rect);
 					preview.y += rect.height * 0.8f;
 					preview.height = rect.height * 0.2f;
@@ -1279,7 +1278,7 @@ namespace Zenvin.Settings.Framework {
 			allAssets = assets.ToArray ();
 		}
 
-		private bool TrySetGuid (SerializedProperty target, string guid, bool isGroup, bool verbose = true) {
+		private bool TrySetGuid (SerializedProperty target, string guid, bool isGroup, bool verbose = true, bool allowUndo = false) {
 			if (Application.isPlaying) {
 				if (verbose) {
 					Debug.LogError ("Cannot set GUID while game is running.");
@@ -1295,7 +1294,11 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			target.stringValue = guid;
-			target.serializedObject.ApplyModifiedPropertiesWithoutUndo ();
+			if (allowUndo) {
+				target.serializedObject.ApplyModifiedProperties ();
+			} else {
+				target.serializedObject.ApplyModifiedPropertiesWithoutUndo ();
+			}
 			return true;
 		}
 
