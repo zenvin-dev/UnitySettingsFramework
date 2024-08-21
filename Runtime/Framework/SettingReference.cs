@@ -12,12 +12,18 @@ namespace Zenvin.Settings.Framework {
 		[SerializeField] private protected T fallbackValue = default;
 
 
-		public SettingReference () { }
-
-		public SettingReference (T fallbackValue) {
-			this.fallbackValue = fallbackValue;
+		/// <summary>
+		/// Exposes the wrapped Setting's <see cref="SettingBase{T}.ValueChanged"/> event.<br></br>
+		/// (Un-)Subscribing while no <see cref="SettingBase{T}"/> is referenced will not have an effect.
+		/// </summary>
+		public event SettingBase<T>.ValueChangedEvent ValueChanged {
+			add {
+				if (HasSetting) settingObj.ValueChanged += value;
+			}
+			remove {
+				if (HasSetting) settingObj.ValueChanged -= value;
+			}
 		}
-
 
 		/// <summary> Whether a Setting is referenced. </summary>
 		public bool HasSetting => settingObj != null;
@@ -33,5 +39,12 @@ namespace Zenvin.Settings.Framework {
 		public T CurrentValue => settingObj == null ? fallbackValue : settingObj.CurrentValue;
 		/// <summary> The <see cref="SettingBase{T}.CachedValue"/> of the referenced Setting. <see cref="Fallback"/> if no fallback is given. </summary>
 		public T CachedValue => settingObj == null ? fallbackValue : settingObj.CachedValue;
+
+
+		public SettingReference () { }
+
+		public SettingReference (T fallbackValue) {
+			this.fallbackValue = fallbackValue;
+		}
 	}
 }
