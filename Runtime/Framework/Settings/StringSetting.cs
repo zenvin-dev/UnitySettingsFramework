@@ -17,14 +17,12 @@ namespace Zenvin.Settings.Framework {
 		void ISerializable<JObject>.OnDeserialize (JObject value) {
 			if (value.TryGetValue ("value", out JToken token)) {
 				SetValue ((string)token);
-				ApplyValue ();
 			}
 		}
 
 		void ISerializable<ValuePacket>.OnDeserialize (ValuePacket value) {
 			if (value.TryRead ("value", out string val)) {
 				SetValue (val);
-				ApplyValue ();
 			}
 		}
 
@@ -35,6 +33,5 @@ namespace Zenvin.Settings.Framework {
 		void ISerializable<ValuePacket>.OnSerialize (ValuePacket value) {
 			value.Write ("value", CurrentValue, StringEncoding);
 		}
-
 	}
 }

@@ -28,14 +28,12 @@ namespace Zenvin.Settings.Framework {
 		void ISerializable<JObject>.OnDeserialize (JObject data) {
 			if (data.TryGetValue ("value", out JToken token)) {
 				SetValue ((bool)token);
-				ApplyValue ();
 			}
 		}
 
 		void ISerializable<ValuePacket>.OnDeserialize (ValuePacket value) {
 			if (value.TryRead ("value", out bool val)) {
 				SetValue (val);
-				ApplyValue ();
 			}
 		}
 

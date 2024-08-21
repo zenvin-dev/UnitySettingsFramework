@@ -53,14 +53,12 @@ namespace Zenvin.Settings.Samples {
 		void ISerializable<JObject>.OnDeserialize (JObject value) {
 			if (value.TryGetValue ("value", out JToken token)) {
 				SetValue ((int)token);
-				ApplyValue ();
 			}
 		}
 
 		void ISerializable<ValuePacket>.OnDeserialize (ValuePacket value) {
 			if (value.TryRead ("value", out int val)) {
 				SetValue (val);
-				ApplyValue ();
 			}
 		}
 
