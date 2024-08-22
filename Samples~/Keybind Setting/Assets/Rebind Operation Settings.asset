@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbaf504749d593749b8ae64ecafcdf0d, type: 3}
+  m_Name: Rebind Operation Settings
+  m_EditorClassIdentifier: 
+  rebindCancelSource: 2
+  cancelActionReferences:
+  - {fileID: 7727032971491509709, guid: 5af24a746b199d945b2aea0b3b50e409, type: 3}
+  cancelActionBindings:
+  - <Keyboard>/escape
+  - '*/{Cancel}'
+  excludeBindings:
+  - <Pointer>/position
+  - <Pointer>/delta
+  - <Mouse>/clickCount
+  - <VirtualMouse>/clickCount
+  useMask: 0
+  bindingMask:
+    m_Name: 
+    m_Id: 
+    m_Path: 
+    m_Interactions: 
+    m_Processors: 
+    m_Groups: 
+    m_Action: 
+    m_Flags: 0
+  suppressMatchingEvents: 1
+  ignoreNoisyControls: 1
+  minMagnitude: 0.5
+  hasTimeout: 1
+  timeout: 10
+  generalizeControlPath: 1

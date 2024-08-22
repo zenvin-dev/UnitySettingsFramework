@@ -36,6 +36,11 @@
 			"displayName": "Volume Setting FMOD",
 			"description": "An implementation of a Slider for changing volumes in FMOD projects. \nREQUIRES THE FMOD ASSET TO BE PRESENT IN THE PROJECT. \nLearn more: \nhttps://fmod.com/unity \nhttps://assetstore.unity.com/packages/tools/audio/fmod-for-unity-161631",
 			"path": "Samples~/Volume Setting FMOD"
+		},
+		{
+			"displayName": "Keybind Setting",
+			"description": "An implementation of a Setting for remapping a key binding. \nREQUIRES THE PROJECT TO BE USING THE NEW INPUT SYSTEM. \nLearn more: \nhttps://docs.unity3d.com/Packages/com.unity.inputsystem@1.10/manual/index.html",
+			"path": "Samples~/Keybind Setting"
 		}
 	]
 }
