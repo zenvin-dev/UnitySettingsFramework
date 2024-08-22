@@ -39,6 +39,9 @@ namespace Zenvin.Settings.UI {
 
 				while (_type != null && (!type.IsConstructedGenericType || type.GetGenericTypeDefinition () != baseType)) {
 					_type = _type.BaseType;
+					if (_type is null)
+						break;
+
 					if (controlDict.TryGetValue (_type, out control)) {
 						controlDict[type] = control;
 						break;
@@ -108,6 +111,5 @@ namespace Zenvin.Settings.UI {
 				} while (_type != baseType && (!_type.IsConstructedGenericType || _type.GetGenericTypeDefinition () == baseType) && !controlDict.ContainsKey (_type));
 			}
 		}
-
 	}
 }
