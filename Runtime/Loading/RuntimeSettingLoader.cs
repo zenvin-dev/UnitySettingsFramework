@@ -229,10 +229,17 @@ namespace Zenvin.Settings.Loading {
 		}
 
 
+		/// <summary>
+		/// A helper struct wrapping either a <see cref="ISettingFactory"/> or a <see cref="IGroupFactory"/> instance, so they can be passed into methods uniformly.
+		/// </summary>
 		public struct TypeFactoryWrapper {
+			/// <summary> The type to get from the wrapped factory. </summary>
 			public string Type;
+			/// <summary> An instance of a <see cref="ISettingFactory"/>. </summary>
 			public ISettingFactory SettingFactory;
+			/// <summary> An instance of a <see cref="IGroupFactory"/>. </summary>
 			public IGroupFactory GroupFactory;
+			/// <summary> Switch to determine whether this wrapper is a Group or Setting factory. </summary>
 			public readonly bool IsGroupFactory;
 
 			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory, null) { IsGroupFactory = false; }
