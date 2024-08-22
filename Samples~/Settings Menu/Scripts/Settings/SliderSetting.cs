@@ -58,9 +58,16 @@ namespace Zenvin.Settings.Samples {
 			maxValue = max.Value;
 			increment = inc.Value;
 
-			MathUtility.AssignMinMax (ref minValue, ref maxValue);
-
+			AssignMinMax (ref minValue, ref maxValue);
 		}
 
+		private static void AssignMinMax (ref float min, ref float max) {
+			if (min <= max) {
+				return;
+			}
+			var cache = max;
+			max = min;
+			min = cache;
+		}
 	}
 }
