@@ -4,6 +4,7 @@ using UnityEngine;
 using Zenvin.Settings.Framework;
 using Zenvin.Settings.Framework.Serialization;
 using System.IO;
+using TMPro;
 
 namespace Zenvin.Settings.Samples {
 	public class SettingsMenu : MonoBehaviour {
@@ -25,7 +26,7 @@ namespace Zenvin.Settings.Samples {
 
 			serializer = new JsonFileSerializer (Path.Combine (Application.dataPath, "settings_test.json"));
 		}
-		
+
 		private void SpawnMenu () {
 
 			// get settings groups for tabs
@@ -50,6 +51,11 @@ namespace Zenvin.Settings.Samples {
 						RectTransform header = Instantiate (settingHeaderPrefab);
 						header.SetParent (tabTransform);
 						header.localScale = Vector3.one;
+
+						TextMeshProUGUI label = header.GetComponentInChildren<TextMeshProUGUI> ();
+						if (label != null) {
+							label.SetText (cg.Name);
+						}
 					}
 
 					// spawn controls
@@ -100,5 +106,8 @@ namespace Zenvin.Settings.Samples {
 			asset.SerializeSettings (serializer);
 		}
 
+		public void Load () {
+			asset.DeserializeSettings (serializer);
+		}
 	}
 }
