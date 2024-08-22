@@ -12,8 +12,9 @@ namespace Zenvin.Settings.Samples {
 			OnLocalizationChanged (LocalizationSettings.SelectedLocale);
 		}
 
-		private void OnDestroy () {
+		protected override void OnDestroy () {
 			LocalizationSettings.SelectedLocaleChanged -= OnLocalizationChanged;
+			base.OnDestroy ();
 		}
 
 		/// <summary>
