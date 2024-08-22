@@ -345,6 +345,7 @@ namespace Zenvin.Settings.Framework {
 
 			T value = OnSetupInitialDefaultValue ();
 
+			defaultValue = value;
 			currentValue = value;
 			cachedValue = value;
 			isDirty = false;
