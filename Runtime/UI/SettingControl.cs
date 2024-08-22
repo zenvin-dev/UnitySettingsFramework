@@ -1,14 +1,18 @@
-using Zenvin.Settings.Framework;
-using UnityEngine;
 using System;
+using UnityEngine;
+using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.UI {
+	/// <summary>
+	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value during runtime.<br></br>
+	/// Implement through <see cref="SettingControl{TControlType, THandledType}"/>.
+	/// </summary>
 	[DisallowMultipleComponent]
 	public abstract class SettingControl : MonoBehaviour {
 
 		/// <summary> The type of the <see cref="SettingBase"/> that this Control is valid for. </summary>
 		public abstract Type ControlType { get; }
-		/// <summary> The "raw" <see cref="SettingBase"/> object assigned to this Control. </summary>
+		/// <summary> The non-generic <see cref="SettingBase"/> object assigned to this Control. </summary>
 		public SettingBase SettingRaw { get; internal set; }
 
 
@@ -41,7 +45,7 @@ namespace Zenvin.Settings.UI {
 	}
 
 	/// <summary>
-	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value on runtime.
+	/// Base class for a UI Control managing a <see cref="SettingBase"/>'s value during runtime.
 	/// </summary>
 	/// <typeparam name="TControlType"> The most basic type of <see cref="SettingBase{T}"/> that this control can handle. </typeparam>
 	/// <typeparam name="THandledType"> The type used by the handled <see cref="SettingBase{T}"/>. </typeparam>
@@ -83,6 +87,23 @@ namespace Zenvin.Settings.UI {
 		/// </summary>
 		protected virtual void OnVisibilityChanged () { }
 
+		/// <summary>
+		/// Called when the validity of the <see cref="Setting"/> associated with the Control changes.<br></br>
+		/// Equivalent of subscribing to <see cref="ValidatedSettingBase{T}.ValidityChanged"/>.
+		/// </summary>
+		/// <remarks>
+		/// Requires the <see cref="SettingBase"/> associated with the Control to inherit <see cref="ValidatedSettingBase{T}"/>.
+		/// </remarks>
+		/// <param name="isValid"></param>
+		protected virtual void OnValidityChanged (bool isValid) { }
+
+		protected virtual void OnDestroy () {
+			if (Setting != null) {
+				Setting.ValueChanged -= OnSettingValueChanged;
+				Setting.VisibilityChanged -= OnVisibilityChanged;
+			}
+		}
+
 
 		private protected sealed override bool CanAssignTo (SettingBase setting) {
 			return setting is TControlType;
@@ -94,13 +115,6 @@ namespace Zenvin.Settings.UI {
 			Setting.VisibilityChanged += OnVisibilityChanged;
 			OnSetup ();
 			OnVisibilityChanged ();
-		}
-
-		private void OnDestroy () {
-			if (Setting != null) {
-				Setting.ValueChanged -= OnSettingValueChanged;
-				Setting.VisibilityChanged -= OnVisibilityChanged;
-			}
 		}
 	}
 }
