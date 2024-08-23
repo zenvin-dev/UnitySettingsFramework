@@ -82,20 +82,10 @@ namespace Zenvin.Settings.UI {
 
 		/// <summary>
 		/// Called when the visible state of the <see cref="Setting"/> or one of its parent groups was changed. <br></br>
-		/// Equivalent of subscribing to <see cref="FrameworkObject.VisibilityChanged"/>. <br></br>
+		/// Equivalent of subscribing to <see cref="VisualHierarchyObject.VisibilityChanged"/>. <br></br>
 		/// Also called while the control is being set up.
 		/// </summary>
 		protected virtual void OnVisibilityChanged () { }
-
-		/// <summary>
-		/// Called when the validity of the <see cref="Setting"/> associated with the Control changes.<br></br>
-		/// Equivalent of subscribing to <see cref="ValidatedSettingBase{T}.ValidityChanged"/>.
-		/// </summary>
-		/// <remarks>
-		/// Requires the <see cref="SettingBase"/> associated with the Control to inherit <see cref="ValidatedSettingBase{T}"/>.
-		/// </remarks>
-		/// <param name="isValid"></param>
-		protected virtual void OnValidityChanged (bool isValid) { }
 
 		protected virtual void OnDestroy () {
 			if (Setting != null) {
