@@ -60,6 +60,10 @@ For the "Localization Setting" sample:
 For the "Volume Setting FMOD" sample:
 - [Unity FMOD](https://www.fmod.com/unity) plugin (any recent version should work, tested with `2.02.22`)
 
+For the "Keybind Setting" sample:
+- [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.8/manual/index.html) package (any version should work, tested with `1.2.0`)
+- Credits: The Keybind Control prefab currently uses an icon by [Icons8](https://icons8.com), which is subject to their [license](https://icons8.com/license) [terms](https://intercom.help/icons8-7fb7577e8170/en/articles/5534926-universal-multimedia-license-agreement-for-icons8)
+
 # Usage
 ### 1. Creating a Settings Asset
 A `SettingsAsset` will hold all of your individual Settings and Settings Groups. \
