@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
 
@@ -56,6 +57,20 @@ namespace Zenvin.Settings.Framework {
 		/// <summary> The <see cref="SettingsGroup"/> which this Setting is a child of. May be the same as <see cref="Asset"/>. </summary>
 		public SettingsGroup Group => group;
 
+
+		internal void RegisterAndInitialize (SettingsAsset root, Dictionary<string, SettingBase> settingDict, int index) {
+			if (root == null || root != Asset || settingDict == null)
+				return;
+			if (settingDict.ContainsKey (GUID) || string.IsNullOrWhiteSpace (GUID))
+				return;
+
+			settingDict[GUID] = this;
+			if (!External) {
+				OrderInGroup = -index * root.OrderStep;
+			}
+
+			Initialize ();
+		}
 
 		internal virtual void Initialize () { }
 

@@ -46,6 +46,8 @@ namespace Zenvin.Settings.Framework {
 		/// <summary> The number of Settings registered in the asset, which have been changed but not applied yet. </summary>
 		public int DirtySettingsCount => dirtySettings.Count;
 
+		internal int OrderStep => orderStep;
+
 
 		// Initialization
 		/// <summary>
@@ -53,95 +55,27 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		public void Initialize () {
 			if (!Application.isPlaying) {
-				Debug.LogWarning ("Cannot initialize SettingsAsset during edit-time.", this);
+				LogError ("Cannot initialize SettingsAsset during edit-time.");
 				return;
 			}
 			if (Initialized) {
-				Debug.LogWarning ($"SettingsAsset has already been initialized.", this);
+				LogError ($"SettingsAsset has already been initialized.");
 				return;
 			}
 
 			initialized = true;
 			OnBeforeInitialize ();
 
-			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, false);
+			RegisterAndInitializeRecursively (this, groupsDict, settingsDict, false);
 			OnInitialize?.Invoke (this);
-			RegisterGroupsAndSettingsRecursively (this, groupsDict, settingsDict, true);
+			RegisterAndInitializeRecursively (this, groupsDict, settingsDict, true);
 
-			OnAfterInitialize ();
-			OnInitialized ();
-		}
-
-		private void RegisterGroupsAndSettingsRecursively (SettingsGroup group, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
-			if (group == null) {
-				return;
-			}
-
-			// keep track of whether this group should be initialized
-			var initGroup = false;
-
-			// if group is not root
-			if (group != this) {
-				// register group
-				if (!group.External || !groupDict.ContainsKey (group.GUID)) {
-					groupDict[group.GUID] = group;
-					initGroup = true;
-					group.OnBeforeInitialize ();
-				}
-			}
-
-			// register settings
-			if (external) {
-				// register external settings
-				foreach (var s in group.ExternalSettings) {
-					if (s == null) {
-						continue;
-					}
-
-					if (!settingsDict.ContainsKey (s.GUID)) {
-						settingsDict[s.GUID] = s;
-						s.Initialize ();
-					}
-				}
-			} else if (group.Settings != null) {
-				// register internal settings
-				int i = group.SettingCount;
-				foreach (var s in group.Settings) {
-					if (s == null) {
-						LogError ("Setting instance was null during initialization. This can happen if the initializing SettingsAsset broke due to import errors.");
-						continue;
-					}
-
-					settingsDict[s.GUID] = s;
-					s.OrderInGroup = -i * orderStep;
-					s.Initialize ();
-					i--;
-				}
-			}
-
-			// register sub-groups
-			if (group.Groups != null) {
-				foreach (var g in group.Groups) {
-					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
-				}
-			}
-
-			// register external sub-groups, if necessary
-			if (external) {
-				foreach (var g in group.ExternalGroups) {
-					RegisterGroupsAndSettingsRecursively (g, groupDict, settingDict, external);
-				}
-			}
-
-			// should only run if the group was actually registered
-			if (initGroup) {
-				// run post-initialization actions on group
-				group.OnAfterInitialize ();
-			}
+			InitializeGroup (before: false, after: true);
+			OnInitialized_Editor ();
 		}
 
 		[System.Diagnostics.Conditional ("UNITY_EDITOR")]
-		partial void OnInitialized ();
+		partial void OnInitialized_Editor ();
 
 
 		// Setting/Group Access
@@ -359,21 +293,25 @@ namespace Zenvin.Settings.Framework {
 
 		// Integrating runtime settings post-initialization
 		private protected override void OnIntegratedChildGroup (SettingsGroup group) {
-			if (!initialized) {
+			if (!initialized)
 				return;
-			}
-			if (!groupsDict.ContainsKey (group.GUID)) {
-				groupsDict[group.GUID] = group;
-			}
+
+			if (groupsDict.ContainsKey (group.GUID))
+				return;
+
+			groupsDict[group.GUID] = group;
+			group.InitializeGroup ();
 		}
 
 		private protected override void OnIntegratedSetting (SettingBase setting) {
-			if (!initialized) {
+			if (!initialized)
 				return;
-			}
-			if (!settingsDict.ContainsKey (setting.GUID)) {
-				settingsDict[setting.GUID] = setting;
-			}
+
+			if (settingsDict.ContainsKey (setting.GUID))
+				return;
+
+			settingsDict[setting.GUID] = setting;
+			setting.Initialize ();
 		}
 
 		internal void ProcessRuntimeSettingsIntegration () {

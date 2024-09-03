@@ -3,7 +3,7 @@ using UnityEditor;
 
 namespace Zenvin.Settings.Framework {
 	public partial class SettingsAsset {
-		partial void OnInitialized () {
+		partial void OnInitialized_Editor () {
 			EditorApplication.playModeStateChanged -= PlayModeStateChangedHandler;
 			EditorApplication.playModeStateChanged += PlayModeStateChangedHandler;
 		}

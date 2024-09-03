@@ -420,6 +420,58 @@ namespace Zenvin.Settings.Framework {
 			settings.Remove (setting);
 		}
 
+		internal void InitializeGroup (bool before = true, bool after = true) {
+			if (before)
+				OnBeforeInitialize ();
+
+			if (after)
+				OnAfterInitialize ();
+		}
+
+
+		private protected void RegisterAndInitializeRecursively (SettingsAsset root, Dictionary<string, SettingsGroup> groupDict, Dictionary<string, SettingBase> settingDict, bool external) {
+			if (root == null || groupDict == null || settingDict == null)
+				return;
+
+			if (!groupDict.ContainsKey (GUID)) {
+				groupDict[GUID] = this;
+			}
+
+			// self-initialization only needs to happen when the current group is NOT the SettingsAsset
+			var initSelf = this != root;
+			if (initSelf) {
+				InitializeGroup (before: true, after: false);
+			}
+
+			// iterate different collections, depending on internal or external requirement
+			var settings = external ? externalSettings : this.settings;
+			var groups = external ? externalGroups : this.groups;
+
+			if (groups != null) {
+				for (int i = 0; i < groups.Count; i++) {
+					var group = groups[i];
+					if (group == null)
+						continue;
+
+					// initialize child group
+					group.RegisterAndInitializeRecursively (root, groupDict, settingDict, external);
+				}
+			}
+
+			if (settings != null) {
+				for (int i = 0; i < settings.Count; i++) {
+					var setting = settings[i];
+					if (setting == null)
+						continue;
+
+					setting.RegisterAndInitialize (root, settingDict, settings.Count - i);
+				}
+			}
+
+			if (initSelf) {
+				InitializeGroup (before: false, after: true);
+			}
+		}
 
 		private protected virtual void OnIntegratedChildGroup (SettingsGroup group) { }
 
