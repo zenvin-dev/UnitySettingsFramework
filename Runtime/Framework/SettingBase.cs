@@ -2,27 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
+using Zenvin.Settings.Framework.Components;
 
 namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// Base class for all Settings objects.
 	/// </summary>
-	public abstract class SettingBase : VisualHierarchyObject, IComparable<SettingBase> {
+	public abstract class SettingBase : ComposedFrameworkObject, IComparable<SettingBase> {
 
 		/// <summary>
 		/// Enum used in <see cref="SettingBase{T}.ValueChanged"/>, to convey how the Setting's value was changed.
 		/// </summary>
 		public enum ValueChangeMode {
-			/// <summary> The Setting was initialized by <see cref="SettingsAsset.Initialize"/>. </summary>
+			/// <summary> 
+			/// The Setting was initialized by <see cref="SettingsAsset.Initialize"/>. 
+			/// </summary>
 			Initialize,
-			/// <summary> The Setting's value was set by <see cref="SettingBase{T}.SetValue(T)"/>. </summary>
+			/// <summary> 
+			/// The Setting's value was set by <see cref="SettingBase{T}.SetValue(T)"/>. 
+			/// </summary>
 			Set,
 			/// <summary>
 			/// The Setting's value was reset to its default by <see cref="ResetValue(bool)"/>.<br></br>
 			/// <see cref="IsDirty"/> will be <see langword="true"/>.
 			/// </summary>
 			Reset,
-			/// <summary> The Setting's cached value was reverted to its previously applied state by <see cref="RevertValue"/> </summary>
+			/// <summary> 
+			/// The Setting's cached value was reverted to its previously applied state by <see cref="RevertValue"/>.
+			/// </summary>
 			Revert,
 			/// <summary>
 			/// The Setting's cached value was applied by <see cref="ApplyValue"/>.<br></br>
@@ -37,6 +44,10 @@ namespace Zenvin.Settings.Framework {
 			/// The Setting's value implements <see cref="INotifyPropertyChanged"/> and triggered its changed event.
 			/// </summary>
 			Notify,
+			/// <summary>
+			/// The Setting's value was not actually changed because a change was prevented.
+			/// </summary>
+			Prevent,
 		}
 
 		[SerializeField, HideInInspector] internal SettingsAsset asset;
@@ -79,27 +90,27 @@ namespace Zenvin.Settings.Framework {
 		/// Applies the cached value to the setting.<br></br>
 		/// Will return <c>false</c> if the values were equal already.
 		/// </summary>
-		public bool ApplyValue () => OnApply ();
+		public bool ApplyValue () => OnApply (true);
 
-		private protected abstract bool OnApply ();
+		private protected abstract bool OnApply (bool preventable);
 
 
 		/// <summary>
 		/// Reverts the cached value back to the current value.<br></br>
 		/// Will return <c>false</c> if they were equal already.
 		/// </summary>
-		public bool RevertValue () => OnRevert ();
+		public bool RevertValue () => OnRevert (true);
 
-		private protected abstract bool OnRevert ();
+		private protected abstract bool OnRevert (bool preventable);
 
 
 		/// <summary>
 		/// Resets the setting to its default value.
 		/// </summary>
 		/// <param name="apply"> Whether to instantly apply the value. Otherwise the setting will be dirtied. </param>
-		public bool ResetValue (bool apply) => OnReset (apply);
+		public bool ResetValue (bool apply) => OnReset (apply, true);
 
-		private protected abstract bool OnReset (bool apply);
+		private protected abstract bool OnReset (bool apply, bool preventable);
 
 
 		/// <summary>
@@ -121,7 +132,7 @@ namespace Zenvin.Settings.Framework {
 				return true;
 
 			if (wasDefault) {
-				OnReset (updateMode == UpdateValueMode.ApplyIfDefault);
+				OnReset (updateMode == UpdateValueMode.ApplyIfDefault, false);
 			}
 			return true;
 		}
@@ -270,25 +281,7 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="value"> The value to set. </param>
 		public void SetValue (T value) {
-			if (!Application.isPlaying) {
-				Log ("Cannot set Setting value during edit-time.");
-				return;
-			}
-
-			Log ($"Setting Value of {ToString ()} to '{value}'");
-			ProcessValue (ref value);
-
-			if (CompareEquality (cachedValue, value)) {
-				return;
-			}
-
-			UnSubscribeNotification (cachedValue);
-			cachedValue = value;
-			IsDirty = true;
-			SubscribeNotification (cachedValue);
-
-			OnValueChanged (ValueChangeMode.Set);
-			ValueChanged?.Invoke (ValueChangeMode.Set);
+			OnSet (value, true);
 		}
 
 		/// <summary>
@@ -297,8 +290,13 @@ namespace Zenvin.Settings.Framework {
 		protected virtual void OnCreateWithValues (StringValuePair[] values) { }
 
 		/// <summary>
-		/// Called during <see cref="SetValue(T)"/> to process the change before it is cached.
+		/// Called during <see cref="SetValue(T)"/> to process the change before it is cached.<br></br>
 		/// </summary>
+		/// <remarks>
+		/// If <b>any</b> of the <see cref="FrameworkComponent"/>s attached to the Setting implement <see cref="ISettingEventReceiver{TValue}"/>,
+		/// this method will be called a second time after all relevant components were given a chance to react to the changing value. <br></br>
+		/// See also: <seealso cref="ISettingEventReceiver{TValue}.OnValueChanging(ValueChangingArgs{TValue})"/>
+		/// </remarks>
 		/// <param name="value"> The next value of the setting. </param>
 		protected virtual void ProcessValue (ref T value) { }
 
@@ -309,7 +307,6 @@ namespace Zenvin.Settings.Framework {
 
 		/// <summary>
 		/// Called after the setting has been registered in the Settings Asset. <br></br>
-		/// Use this to set up necessary values. <br></br>
 		/// Assignment of the default value will happen immediately after.
 		/// </summary>
 		protected virtual void OnInitialize () { }
@@ -366,54 +363,66 @@ namespace Zenvin.Settings.Framework {
 			isDirty = false;
 
 			SubscribeNotification (value);
-			OnValueChanged (ValueChangeMode.Initialize);
-			ValueChanged?.Invoke (ValueChangeMode.Initialize);
+			InitializeComponents ();
+			TriggerValueChanged (ValueChangeMode.Initialize);
 
 			Log ($"Initialized {ToString ()}. Current Value: '{currentValue}', Cached Value: '{cachedValue}', Default Value: '{defaultValue}'");
 		}
 
 		internal sealed override void OnAfterDeserialize () {
-			OnValueChanged (ValueChangeMode.Deserialize);
-			ValueChanged?.Invoke (ValueChangeMode.Deserialize);
+			TriggerValueChanged (ValueChangeMode.Deserialize);
 			Log ($"Deserialized {ToString ()}");
 		}
 
 
-		private protected sealed override bool OnApply () {
+		private protected sealed override bool OnApply (bool preventable) {
 			if (!IsDirty) {
 				Log ($"Did not apply value on {ToString ()} because it was not dirty.");
 				return false;
 			}
+
+			if (TriggerValueChanging (ValueChangeMode.Apply, cachedValue, preventable, out _)) {
+				TriggerValueChanged (ValueChangeMode.Prevent);
+				return false;
+			}
+
 			Log ($"Applying value '{cachedValue}' on {ToString ()}.");
 			currentValue = cachedValue;
 			IsDirty = false;
-			OnValueChanged (ValueChangeMode.Apply);
-			ValueChanged?.Invoke (ValueChangeMode.Apply);
+			TriggerValueChanged (ValueChangeMode.Apply);
 			return true;
 		}
 
-		private protected sealed override bool OnRevert () {
+		private protected sealed override bool OnRevert (bool preventable) {
 			if (!IsDirty) {
 				Log ($"Did not revert value on {ToString ()} because it was not dirty.");
 				return false;
 			}
+
+			if (TriggerValueChanging (ValueChangeMode.Revert, currentValue, preventable, out _)) {
+				TriggerValueChanged (ValueChangeMode.Prevent);
+				return false;
+			}
+
 			Log ($"Applying value of {ToString ()}.");
-			T curr = currentValue;
 			cachedValue = currentValue;
 			IsDirty = false;
-			OnValueChanged (ValueChangeMode.Revert);
-			ValueChanged?.Invoke (ValueChangeMode.Revert);
+			TriggerValueChanged (ValueChangeMode.Revert);
 			return true;
 		}
 
-		private protected sealed override bool OnReset (bool apply) {
-			Log ($"Resetting {ToString ()} [apply: {apply}]");
-			SetValue (defaultValue);
-			if (apply) {
-				ApplyValue ();
+		private protected sealed override bool OnReset (bool apply, bool preventable) {
+			if (TriggerValueChanging (ValueChangeMode.Reset, defaultValue, preventable, out _)) {
+				TriggerValueChanged (ValueChangeMode.Prevent);
+				return false;
 			}
-			OnValueChanged (ValueChangeMode.Reset);
-			ValueChanged?.Invoke (ValueChangeMode.Reset);
+
+			Log ($"Resetting {ToString ()} [apply: {apply}]");
+			OnSet (defaultValue, false);
+			if (apply) {
+				OnApply (false);
+			}
+			TriggerValueChanged (ValueChangeMode.Reset);
 			return true;
 		}
 
@@ -431,6 +440,36 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		private void OnSet (T value, bool preventable) {
+			if (!Application.isPlaying) {
+				Log ("Cannot set Setting value during edit-time.");
+				return;
+			}
+
+			Log ($"Setting Value of {ToString ()} to '{value}'");
+			ProcessValue (ref value);
+
+			if (CompareEquality (cachedValue, value)) {
+				return;
+			}
+
+			if (TriggerValueChanging (ValueChangeMode.Set, value, preventable, out var foundReceivers)) {
+				TriggerValueChanged (ValueChangeMode.Prevent);
+				return;
+			}
+
+			if (foundReceivers) {
+				ProcessValue (ref value);
+			}
+
+			UnSubscribeNotification (cachedValue);
+			cachedValue = value;
+			IsDirty = true;
+			SubscribeNotification (cachedValue);
+
+			TriggerValueChanged (ValueChangeMode.Set);
+		}
+
 		private void SubscribeNotification (T value) {
 			if (value != null && value is INotifyPropertyChanged notify) {
 				notify.PropertyChanged += ValuePropertyChangedHandler;
@@ -443,10 +482,34 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private bool TriggerValueChanging (ValueChangeMode mode, T newValue, bool preventable, out bool receiversFound) {
+			receiversFound = false;
+			if (components.Count == 0)
+				return false;
+
+			if (preventable) {
+				var args = new ValueChangingArgs<T> (this, mode, newValue);
+				receiversFound = components.OnValueChanging (args);
+				if (args.ChangePrevented)
+					return true;
+			}
+
+			components.OnValueChanging (this, mode);
+
+			Log ($"Value change in {ToString ()} was prevented (Mode: {mode}).");
+			return false;
+		}
+
+		private void TriggerValueChanged (ValueChangeMode mode) {
+			OnValueChanged (mode);
+			ValueChanged?.Invoke (mode);
+			components.OnValueChanged (this, mode);
+		}
+
 
 		private void ValuePropertyChangedHandler (object sender, PropertyChangedEventArgs args) {
 			IsDirty = true;
-			OnValueChanged (ValueChangeMode.Notify);
+			TriggerValueChanged (ValueChangeMode.Notify);
 		}
 	}
 }

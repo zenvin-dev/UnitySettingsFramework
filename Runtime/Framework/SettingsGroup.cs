@@ -7,7 +7,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// A collection of <see cref="SettingBase"/> and other <see cref="SettingsGroup"/> objects.
 	/// </summary>
-	public class SettingsGroup : VisualHierarchyObject {
+	public class SettingsGroup : ComposedFrameworkObject {
 
 		/// <summary>
 		/// Delegate type for filtering <see cref="SettingBase"/> objects.
@@ -481,6 +481,7 @@ namespace Zenvin.Settings.Framework {
 			PropagateVisiblityEvent (this);
 		}
 
+
 		private static void PropagateVisiblityEvent (SettingsGroup group) {
 			if (group == null) {
 				return;
@@ -579,6 +580,5 @@ namespace Zenvin.Settings.Framework {
 		public override string ToString () {
 			return $"Group '{Name}' ('{GUID}')";
 		}
-
 	}
 }
