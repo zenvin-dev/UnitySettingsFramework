@@ -7,9 +7,12 @@ namespace Zenvin.Settings {
 	public class SettingReferenceDrawer : PropertyDrawer {
 
 		public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-			position.height = EditorGUIUtility.singleLineHeight;
-			position = EditorGUI.PrefixLabel (position, label);
-			EditorGUI.PropertyField (position, property.FindPropertyRelative ("settingObj"), GUIContent.none);
+
+			using (new EditorGUI.DisabledGroupScope (Application.isPlaying)) {
+				position.height = EditorGUIUtility.singleLineHeight;
+				position = EditorGUI.PrefixLabel (position, label);
+				EditorGUI.PropertyField (position, property.FindPropertyRelative ("settingObj"), GUIContent.none);
+			}
 
 			const float width = 60f;
 			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
