@@ -366,7 +366,7 @@ namespace Zenvin.Settings.Framework {
 			InitializeComponents ();
 			TriggerValueChanged (ValueChangeMode.Initialize);
 
-			Log ($"Initialized {ToString ()}. Current Value: '{currentValue}', Cached Value: '{cachedValue}', Default Value: '{defaultValue}'");
+			Log ($"Initialized {ToString ()}. Current: '{currentValue}', Cached: '{cachedValue}', Default: '{defaultValue}', Components: '{components.Count}'");
 		}
 
 		internal sealed override void OnAfterDeserialize () {

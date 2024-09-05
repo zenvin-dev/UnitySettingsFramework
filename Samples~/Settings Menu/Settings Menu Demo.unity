@@ -734,7 +734,7 @@ MonoBehaviour:
   mode: 0
   settings: {fileID: 11400000, guid: f991d69d82bb81b419f7f3ce2e22657c, type: 2}
   resetToDefaults: 0
-  loadDynamicSettings: 0
+  loadDynamicSettings: 2
   dynamicSettings:
     Groups:
     - GUID: _new_group
@@ -744,8 +744,9 @@ MonoBehaviour:
       Description: 
       DescriptionLocalizationKey: 
       ParentGroupGUID: 
-      InitialVisibility: 2
+      InitialVisibility: 0
       Values: []
+      Components: []
       IconResource: 
     Settings:
     - GUID: anti_aliasing
@@ -754,7 +755,7 @@ MonoBehaviour:
       NameLocalizationKey: 
       Description: 
       DescriptionLocalizationKey: 
-      ParentGroupGUID: abb7bfd6-d036-4993-b17e-ef04e58cb962
+      ParentGroupGUID: szdrgnkhgnkh
       InitialVisibility: 0
       Values:
       - Key: 
@@ -765,6 +766,7 @@ MonoBehaviour:
         Value: 4x Multisampling
       - Key: 
         Value: 8x Multisampling
+      Components: []
       OrderInGroup: 0
       DefaultValue: 2
     - GUID: _test_setting
@@ -782,6 +784,25 @@ MonoBehaviour:
         Value: 10
       - Key: increment
         Value: 1
+      Components: []
+      OrderInGroup: 0
+      DefaultValue: 
+    - GUID: _showEntityInfo
+      Type: bool
+      Name: Show Entity Information
+      NameLocalizationKey: 
+      Description: 
+      DescriptionLocalizationKey: 
+      ParentGroupGUID: group_debugging
+      InitialVisibility: 0
+      Values: []
+      Components:
+      - Type: conditional_visibility
+        Values:
+        - Key: condition
+          Value: setting_debugging_enabled
+        - Key: targetValue
+          Value: CachedValue
       OrderInGroup: 0
       DefaultValue: 
     DefaultOverrides: []
@@ -789,30 +810,42 @@ MonoBehaviour:
     \"_new_group\",\n            \"Type\": \"\",\n            \"Name\": \"New Group\",\n           
     \"NameLocalizationKey\": \"\",\n            \"Description\": \"\",\n           
     \"DescriptionLocalizationKey\": \"\",\n            \"ParentGroupGUID\": \"\",\n           
-    \"InitialVisibility\": 2,\n            \"Values\": [],\n            \"IconResource\":
-    \"\"\n        }\n    ],\n    \"Settings\": [\n        {\n            \"GUID\":
-    \"anti_aliasing\",\n            \"Type\": \"dropdown\",\n            \"Name\":
-    \"Anti-Aliasing\",\n            \"NameLocalizationKey\": \"\",\n            \"Description\":
-    \"\",\n            \"DescriptionLocalizationKey\": \"\",\n            \"ParentGroupGUID\":
-    \"abb7bfd6-d036-4993-b17e-ef04e58cb962\",\n            \"InitialVisibility\":
+    \"InitialVisibility\": 0,\n            \"Values\": [],\n            \"Components\":
+    [],\n            \"IconResource\": \"\"\n        }\n    ],\n    \"Settings\":
+    [\n        {\n            \"GUID\": \"anti_aliasing\",\n            \"Type\":
+    \"dropdown\",\n            \"Name\": \"Anti-Aliasing\",\n            \"NameLocalizationKey\":
+    \"\",\n            \"Description\": \"\",\n            \"DescriptionLocalizationKey\":
+    \"\",\n            \"ParentGroupGUID\": \"szdrgnkhgnkh\",\n            \"InitialVisibility\":
     0,\n            \"Values\": [\n                {\n                    \"Key\":
     \"\",\n                    \"Value\": \"Disabled\"\n                },\n               
     {\n                    \"Key\": \"\",\n                    \"Value\": \"2x Multisampling\"\n               
     },\n                {\n                    \"Key\": \"\",\n                   
     \"Value\": \"4x Multisampling\"\n                },\n                {\n                   
     \"Key\": \"\",\n                    \"Value\": \"8x Multisampling\"\n               
-    }\n            ],\n            \"OrderInGroup\": 0,\n            \"DefaultValue\":
-    \"2\"\n        },\n        {\n            \"GUID\": \"_test_setting\",\n           
-    \"Type\": \"slider\",\n            \"Name\": \"Test Setting\",\n            \"NameLocalizationKey\":
+    }\n            ],\n            \"Components\": [],\n            \"OrderInGroup\":
+    0,\n            \"DefaultValue\": \"2\"\n        },\n        {\n            \"GUID\":
+    \"_test_setting\",\n            \"Type\": \"slider\",\n            \"Name\":
+    \"Test Setting\",\n            \"NameLocalizationKey\": \"\",\n            \"Description\":
+    \"\",\n            \"DescriptionLocalizationKey\": \"\",\n            \"ParentGroupGUID\":
+    \"_new_group\",\n            \"InitialVisibility\": 0,\n            \"Values\":
+    [\n                {\n                    \"Key\": \"minValue\",\n                   
+    \"Value\": \"0\"\n                },\n                {\n                   
+    \"Key\": \"maxValue\",\n                    \"Value\": \"10\"\n               
+    },\n                {\n                    \"Key\": \"increment\",\n                   
+    \"Value\": \"1\"\n                }\n            ],\n            \"Components\":
+    [],\n            \"OrderInGroup\": 0,\n            \"DefaultValue\": \"\"\n       
+    },\n        {\n            \"GUID\": \"_showEntityInfo\",\n            \"Type\":
+    \"bool\",\n            \"Name\": \"Show Entity Information\",\n            \"NameLocalizationKey\":
     \"\",\n            \"Description\": \"\",\n            \"DescriptionLocalizationKey\":
-    \"\",\n            \"ParentGroupGUID\": \"_new_group\",\n            \"InitialVisibility\":
-    0,\n            \"Values\": [\n                {\n                    \"Key\":
-    \"minValue\",\n                    \"Value\": \"0\"\n                },\n               
-    {\n                    \"Key\": \"maxValue\",\n                    \"Value\":
-    \"10\"\n                },\n                {\n                    \"Key\": \"increment\",\n                   
-    \"Value\": \"1\"\n                }\n            ],\n            \"OrderInGroup\":
-    0,\n            \"DefaultValue\": \"\"\n        }\n    ],\n    \"DefaultOverrides\":
-    []\n}"
+    \"\",\n            \"ParentGroupGUID\": \"group_debugging\",\n            \"InitialVisibility\":
+    0,\n            \"Values\": [],\n            \"Components\": [\n               
+    {\n                    \"Type\": \"conditional_visibility\",\n                   
+    \"Values\": [\n                        {\n                            \"Key\":
+    \"condition\",\n                            \"Value\": \"setting_debugging_enabled\"\n                       
+    },\n                        {\n                            \"Key\": \"targetValue\",\n                           
+    \"Value\": \"CachedValue\"\n                        }\n                    ]\n               
+    }\n            ],\n            \"OrderInGroup\": 0,\n            \"DefaultValue\":
+    \"\"\n        }\n    ],\n    \"DefaultOverrides\": []\n}"
 --- !u!4 &724441637
 Transform:
   m_ObjectHideFlags: 0

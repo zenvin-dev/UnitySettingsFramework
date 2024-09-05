@@ -8,13 +8,20 @@ namespace Zenvin.Settings.Samples {
 
 		public enum InitMode {
 			Awake,
-			Start
+			Start,
 		}
+
+		public enum DynamicLoading {
+			Disabled,
+			DuringInitialization,
+			AfterInitialization,
+		}
+
 
 		[SerializeField] private InitMode mode = InitMode.Start;
 		[SerializeField] private SettingsAsset settings;
 		[SerializeField] private bool resetToDefaults = true;
-		[Space, SerializeField] private bool loadDynamicSettings = true;
+		[Space, SerializeField] private DynamicLoading loadDynamicSettings = DynamicLoading.DuringInitialization;
 		[SerializeField] private SettingsImportData dynamicSettings;
 		[SerializeField, TextArea (25, 35), Space (20)] private string dynamicSettingsJsonOutput = "";
 
@@ -29,11 +36,15 @@ namespace Zenvin.Settings.Samples {
 			if (mode == InitMode.Start) {
 				Init ();
 			}
+
+			if (loadDynamicSettings == DynamicLoading.AfterInitialization) {
+				LoadSettings (settings);
+			}
 		}
 
 
 		private void Init () {
-			if (loadDynamicSettings) {
+			if (loadDynamicSettings == DynamicLoading.DuringInitialization) {
 				SettingsAsset.OnInitialize += LoadSettings;
 			}
 			if (settings != null) {
@@ -55,9 +66,11 @@ namespace Zenvin.Settings.Samples {
 				.WithSettingFactory ("int", new IntSettingFactory ())
 				.WithSettingFactory ("float", new FloatSettingFactory ())
 				.WithSettingFactory ("dropdown", new DropdownSettingFactory ())
-				.WithSettingFactory ("slider", new SliderSettingFactory ());
+				.WithSettingFactory ("slider", new SliderSettingFactory ())
+				.WithComponentType ("conditional_visibility", typeof (ConditionalVisibility));
 
 			RuntimeSettingLoader.LoadSettingsIntoAsset (options);
+			SettingsAsset.OnInitialize -= LoadSettings;
 		}
 
 		private void OnValidate () {
