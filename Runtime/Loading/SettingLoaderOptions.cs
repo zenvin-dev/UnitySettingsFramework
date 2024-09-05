@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Components;
 
 namespace Zenvin.Settings.Loading {
 	/// <summary>
@@ -10,6 +11,7 @@ namespace Zenvin.Settings.Loading {
 	public class SettingLoaderOptions {
 		internal readonly Dictionary<string, ISettingFactory> SettingFactories = new Dictionary<string, ISettingFactory> ();
 		internal readonly Dictionary<string, IGroupFactory> GroupFactories = new Dictionary<string, IGroupFactory> ();
+		internal readonly Dictionary<string, Type> ComponentTypes = new Dictionary<string, Type> ();
 
 		/// <summary> 
 		/// The <see cref="SettingsAsset"/> into which new Settings should be loaded. 
@@ -120,6 +122,26 @@ namespace Zenvin.Settings.Loading {
 			if (!string.IsNullOrWhiteSpace (type) && factory != null) {
 				GroupFactories[type] = factory;
 			}
+			return this;
+		}
+
+		/// <summary>
+		/// Fluent builder to add an association between a name and a component type.<br></br>
+		/// Will not do anything if the given <paramref name="name"/> was empty or <see langword="null"/>.<br></br> 
+		/// The given <paramref name="type"/> must inherit from <see cref="FrameworkComponent"/>, not contain any generic parameters, and cannot be <c>abstract</c>.
+		/// </summary>
+		/// <remarks>
+		/// If a component type with the given name already existed, it will be replaced.
+		/// </remarks>
+		public SettingLoaderOptions WithComponentType (string name, Type type) {
+			if (string.IsNullOrWhiteSpace (name))
+				return this;
+			if (type == null || type.IsAbstract || !type.IsSubclassOf (typeof (FrameworkComponent)))
+				return this;
+			if (type.ContainsGenericParameters)
+				return this;
+
+			ComponentTypes[name] = type;
 			return this;
 		}
 
