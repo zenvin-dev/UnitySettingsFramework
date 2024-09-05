@@ -36,8 +36,12 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		internal bool TryAddComponentNoContainerCheck (FrameworkComponent component) {
+			return components.Add (this, component, false);
+		}
+
 		internal bool TryAddComponent (FrameworkComponent component) {
-			return components.Add (this, component);
+			return components.Add (this, component, true);
 		}
 
 		internal bool RemoveComponent (FrameworkComponent component) {

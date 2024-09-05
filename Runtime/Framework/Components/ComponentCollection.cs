@@ -12,10 +12,10 @@ namespace Zenvin.Settings.Framework.Components {
 		internal FrameworkComponent this[int index] => components == null || index < 0 || index >= Count ? null : components[index];
 
 
-		internal bool Add (ComposedFrameworkObject container, FrameworkComponent component) {
+		internal bool Add (ComposedFrameworkObject container, FrameworkComponent component, bool checkContainer) {
 			if (component == null || container == null)
 				return false;
-			if (component.BaseContainer != null)
+			if (checkContainer && component.BaseContainer != null)
 				return component.BaseContainer == container;
 			if (components != null && components.Contains (component))
 				return true;
