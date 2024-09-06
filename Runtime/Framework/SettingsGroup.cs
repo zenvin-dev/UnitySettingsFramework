@@ -7,7 +7,7 @@ namespace Zenvin.Settings.Framework {
 	/// <summary>
 	/// A collection of <see cref="SettingBase"/> and other <see cref="SettingsGroup"/> objects.
 	/// </summary>
-	public class SettingsGroup : VisualHierarchyObject {
+	public class SettingsGroup : ComposedFrameworkObject {
 
 		/// <summary>
 		/// Delegate type for filtering <see cref="SettingBase"/> objects.
@@ -342,7 +342,6 @@ namespace Zenvin.Settings.Framework {
 			}
 			group.Parent = this;
 			externalGroups.Add (group);
-			OnIntegratedChildGroup (group);
 		}
 
 		internal void RemoveChildGroup (SettingsGroup group) {
@@ -410,7 +409,6 @@ namespace Zenvin.Settings.Framework {
 			}
 			setting.group = this;
 			externalSettings.Add (setting);
-			OnIntegratedSetting (setting);
 		}
 
 		internal void RemoveSetting (SettingBase setting) {
@@ -438,24 +436,19 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			// self-initialization only needs to happen when the current group is NOT the SettingsAsset
-			var initSelf = this != root;
+			var initSelf = this != root && External == external;
 			if (initSelf) {
 				InitializeGroup (before: true, after: false);
 			}
 
 			// iterate different collections, depending on internal or external requirement
 			var settings = external ? externalSettings : this.settings;
-			var groups = external ? externalGroups : this.groups;
 
-			if (groups != null) {
-				for (int i = 0; i < groups.Count; i++) {
-					var group = groups[i];
-					if (group == null)
-						continue;
-
-					// initialize child group
-					group.RegisterAndInitializeRecursively (root, groupDict, settingDict, external);
-				}
+			// always iterate normal child groups, because they or their children may have received external Settings/Groups
+			InitializeGroups (groups);
+			// only iterate external groups if "external" is set
+			if (external) {
+				InitializeGroups (externalGroups);
 			}
 
 			if (settings != null) {
@@ -471,15 +464,26 @@ namespace Zenvin.Settings.Framework {
 			if (initSelf) {
 				InitializeGroup (before: false, after: true);
 			}
+
+
+			void InitializeGroups (List<SettingsGroup> targetGroups) {
+				if (targetGroups != null) {
+					for (int i = 0; i < targetGroups.Count; i++) {
+						var group = targetGroups[i];
+						if (group == null)
+							continue;
+
+						// initialize child group
+						group.RegisterAndInitializeRecursively (root, groupDict, settingDict, external);
+					}
+				}
+			}
 		}
-
-		private protected virtual void OnIntegratedChildGroup (SettingsGroup group) { }
-
-		private protected virtual void OnIntegratedSetting (SettingBase setting) { }
 
 		private protected sealed override void OnSetVisibilityInternal (SettingVisibility visibility) {
 			PropagateVisiblityEvent (this);
 		}
+
 
 		private static void PropagateVisiblityEvent (SettingsGroup group) {
 			if (group == null) {
@@ -579,6 +583,5 @@ namespace Zenvin.Settings.Framework {
 		public override string ToString () {
 			return $"Group '{Name}' ('{GUID}')";
 		}
-
 	}
 }

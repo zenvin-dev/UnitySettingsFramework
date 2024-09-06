@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using static Zenvin.Settings.Loading.RuntimeSettingLoader;
-using IGF = Zenvin.Settings.Loading.IGroupFactory;
-using ISF = Zenvin.Settings.Loading.ISettingFactory;
+﻿using static Zenvin.Settings.Loading.RuntimeSettingLoader;
+using GroupFacDict = System.Collections.Generic.Dictionary<string, Zenvin.Settings.Loading.IGroupFactory>;
+using SettingFacDict = System.Collections.Generic.Dictionary<string, Zenvin.Settings.Loading.ISettingFactory>;
 
 namespace Zenvin.Settings.Loading {
 	internal static class RuntimeLoaderHelpers {
-		public static void PopulateFactoryDicts (TypeFactoryWrapper[] factories, Dictionary<string, ISF> settingFactories, Dictionary<string, IGF> groupFactories) {
+		public static void PopulateFactoryDicts (TypeFactoryWrapper[] factories, SettingFacDict settingFactories, GroupFacDict groupFactories) {
 			if (factories == null || factories.Length == 0 || settingFactories == null || groupFactories == null) {
 				return;
 			}
@@ -13,36 +12,37 @@ namespace Zenvin.Settings.Loading {
 			foreach (var f in factories) {
 				string fType = f.Type;
 
-				if (f.IsGroupFactory) {
-					PopulateGroupFactoryDict (f.GroupFactory, groupFactories, fType);
-				} else {
-					PopulateSettingFactoryDict (f.SettingFactory, settingFactories, fType);
+				switch (f.FactoryType) {
+					case TypeFactoryWrapper.FactoryResult.Group:
+						PopulateGroupFactoryDict (f.GroupFactory, groupFactories, fType);
+						break;
+					case TypeFactoryWrapper.FactoryResult.Setting:
+						PopulateSettingFactoryDict (f.SettingFactory, settingFactories, fType);
+						break;
 				}
 			}
 		}
 
-		private static void PopulateGroupFactoryDict (IGF factory, Dictionary<string, IGF> groupFactories, string fType) {
-			if (factory != null) {
-				if (string.IsNullOrEmpty (fType)) {
-					fType = factory.GetDefaultValidType ();
-				}
+		private static void PopulateGroupFactoryDict (IGroupFactory factory, GroupFacDict groupFactories, string fType) {
+			if (factory == null)
+				return;
 
-				if (!string.IsNullOrEmpty (fType)) {
-					groupFactories[fType] = factory;
-				}
-			}
+			if (string.IsNullOrEmpty (fType))
+				fType = factory.GetDefaultValidType ();
+
+			if (!string.IsNullOrEmpty (fType))
+				groupFactories[fType] = factory;
 		}
 
-		private static void PopulateSettingFactoryDict (ISF factory, Dictionary<string, ISF> settingsFactories, string fType) {
-			if (factory != null) {
-				if (string.IsNullOrEmpty (fType)) {
-					fType = factory.GetDefaultValidType ();
-				}
+		private static void PopulateSettingFactoryDict (ISettingFactory factory, SettingFacDict settingsFactories, string fType) {
+			if (factory == null)
+				return;
 
-				if (!string.IsNullOrEmpty (fType)) {
-					settingsFactories[fType] = factory;
-				}
-			}
+			if (string.IsNullOrEmpty (fType))
+				fType = factory.GetDefaultValidType ();
+
+			if (!string.IsNullOrEmpty (fType))
+				settingsFactories[fType] = factory;
 		}
 	}
 }

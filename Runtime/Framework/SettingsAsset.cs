@@ -292,26 +292,32 @@ namespace Zenvin.Settings.Framework {
 
 
 		// Integrating runtime settings post-initialization
-		private protected override void OnIntegratedChildGroup (SettingsGroup group) {
+		internal bool TryIntegrateChildGroup (SettingsGroup group) {
 			if (!initialized)
-				return;
+				return false;
+			if (group == null || !group.External)
+				return false;
 
 			if (groupsDict.ContainsKey (group.GUID))
-				return;
+				return false;
 
 			groupsDict[group.GUID] = group;
 			group.InitializeGroup ();
+			return true;
 		}
 
-		private protected override void OnIntegratedSetting (SettingBase setting) {
+		internal bool TryIntegrateSetting (SettingBase setting) {
 			if (!initialized)
-				return;
+				return false;
+			if (setting == null || !setting.External)
+				return false;
 
 			if (settingsDict.ContainsKey (setting.GUID))
-				return;
+				return false;
 
 			settingsDict[setting.GUID] = setting;
 			setting.Initialize ();
+			return true;
 		}
 
 		internal void ProcessRuntimeSettingsIntegration () {

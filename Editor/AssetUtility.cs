@@ -19,10 +19,7 @@ namespace Zenvin.Settings.Framework {
 			if (!noUndo) {
 				Undo.RecordObject (asset, "Add sub-asset");
 			}
-			AssetDatabase.AddObjectToAsset (instance, asset);
-			EditorUtility.SetDirty (asset);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.Refresh ();
+			AddObjectToAssetAndRefresh (asset, instance);
 
 			return instance;
 		}
@@ -39,16 +36,55 @@ namespace Zenvin.Settings.Framework {
 
 			onBeforeAdd?.Invoke (instance);
 
-			if (!noUndo) {
+			if (!noUndo)
 				Undo.RecordObject (asset, "Add sub-asset");
-			}
-			AssetDatabase.AddObjectToAsset (instance, asset);
-			EditorUtility.SetDirty (asset);
-			AssetDatabase.SaveAssets ();
-			AssetDatabase.Refresh ();
+
+			AddObjectToAssetAndRefresh (asset, instance);
 
 			return instance;
 		}
 
+		public static T ConditionalCreateAsPartOf<T> (Object asset, Type assetType, Func<T, bool> condition, Action<T> onBeforeAdd = null, string undoText = null)
+			where T : ScriptableObject {
+
+			if (asset == null || assetType.IsAbstract || condition == null) {
+				return null;
+			}
+
+			var instance = ScriptableObject.CreateInstance (assetType) as T;
+			if (instance == null) {
+				return null;
+			}
+
+			if (!condition.Invoke (instance)) {
+				DestroyReliable (instance);
+				return null;
+			}
+
+			if (undoText != null)
+				Undo.RecordObject (asset, undoText);
+
+			onBeforeAdd?.Invoke (instance);
+			AddObjectToAssetAndRefresh (asset, instance);
+			return instance;
+		}
+
+		public static void DestroyReliable (Object instance) {
+			if (instance == null)
+				return;
+
+			if (Application.isPlaying) {
+				Object.Destroy (instance);
+			} else {
+				Object.DestroyImmediate (instance);
+			}
+		}
+
+		private static void AddObjectToAssetAndRefresh<T> (Object asset, T instance) where T : ScriptableObject {
+			AssetDatabase.AddObjectToAsset (instance, asset);
+			EditorUtility.SetDirty (asset);
+			AssetDatabase.SaveAssets ();
+			AssetDatabase.Refresh ();
+		}
 	}
 }

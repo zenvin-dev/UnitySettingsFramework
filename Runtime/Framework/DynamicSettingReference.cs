@@ -99,7 +99,7 @@ namespace Zenvin.Settings.Framework {
 			}
 
 			var previous = Setting;
-			settingObj = value;
+			SetReference (value);
 			ReferenceChanged?.Invoke (previous, value);
 		}
 

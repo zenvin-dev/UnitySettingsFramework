@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using Zenvin.Settings.Framework.Components;
 using Object = UnityEngine.Object;
 
 namespace Zenvin.Settings.Framework {
@@ -22,6 +23,7 @@ namespace Zenvin.Settings.Framework {
 			All = ~0b0000
 		}
 
+
 		private const float indentSize = 15f;
 		private const float margin = 1f;
 
@@ -30,6 +32,7 @@ namespace Zenvin.Settings.Framework {
 		private static readonly Color hierarchyColorSelected = new Color (0f, 0.5f, 1.0f, 0.4f);
 		private static readonly Color hierarchyColorDragged = new Color (1f, 0.5f, 1f, 0.4f);
 		private static readonly Color hierarchyColorHover = new Color (0.3f, 0.3f, 0.3f);
+		private static readonly Color separatorColor = new Color (0.1f, 0.1f, 0.1f);
 
 		private static GUIStyle foldoutStyleInternal;
 		private static GUIStyle foldoutStyleExternal;
@@ -64,7 +67,9 @@ namespace Zenvin.Settings.Framework {
 		private Vector2 hierarchyScroll;
 		private Vector2 editorScroll;
 		private Vector2 assetSelectScroll;
+
 		private Editor editor = null;
+		private List<Editor> componentEditors = new List<Editor> ();
 
 		private Type[] viableSettingTypes = null;
 		private Type[] viableGroupTypes = null;
@@ -178,7 +183,7 @@ namespace Zenvin.Settings.Framework {
 			);
 
 			Rect separatorRect = new Rect (hierarchyWidth, topBarRect.height, 1f, position.height - topBarRect.height);
-			EditorGUI.DrawRect (separatorRect, new Color (0.1f, 0.1f, 0.1f));
+			EditorGUI.DrawRect (separatorRect, separatorColor);
 
 			// draw window partition contents
 			DrawTopBar (topBarRect);
@@ -298,14 +303,14 @@ namespace Zenvin.Settings.Framework {
 			bool canAdd = selGroup != null;
 
 			GUI.enabled = canAdd;
-			Rect addGroupBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
+			Rect addGroupBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (120));
 			if (GUI.Button (addGroupBtnRect, "Add Group") && !Application.isPlaying) {
 				GenericMenu gm = new GenericMenu ();
 				PopulateGroupsTypeMenu (gm, selGroup, false);
 				gm.DropDown (addGroupBtnRect);
 			}
 
-			Rect addSettingBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (150));
+			Rect addSettingBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (120));
 			if (GUI.Button (addSettingBtnRect, "Add Setting") && !Application.isPlaying) {
 				GenericMenu gm = new GenericMenu ();
 				PopulateSettingTypeMenu (gm, selGroup, false);
@@ -313,24 +318,33 @@ namespace Zenvin.Settings.Framework {
 			}
 			GUI.enabled = true;
 
-			if (GUILayout.Button ("Select Asset", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
-				Selection.activeObject = Asset;
-				EditorGUIUtility.PingObject (Asset);
+			Rect addComponentBtnRect = EditorGUILayout.GetControlRect (false, GUILayout.Width (120));
+			if (GUI.Button (addComponentBtnRect, "Add Component") && !Application.isPlaying) {
+				GenericMenu gm = new GenericMenu ();
+				PopulateComponentTypeMenu (gm, selected as ComposedFrameworkObject);
+				gm.DropDown (addComponentBtnRect);
 			}
 
-			GUI.enabled = !Application.isPlaying;
-			if (GUILayout.Button ("Restore (Experimental)", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
-				const string notice = "This function will attempt to detect and restore lost references inside the SettingAsset.\n" +
-									  "But it may just as well break the asset. It is recommended to make a backup before proceeding.";
-				if (EditorUtility.DisplayDialog ("Notice", notice, "Proceed", "Cancel")) {
-					Restore (Asset);
+			if (selected == Asset) {
+				if (GUILayout.Button ("Select Asset", GUILayout.Width (120), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+					Selection.activeObject = Asset;
+					EditorGUIUtility.PingObject (Asset);
 				}
+
+				GUI.enabled = !Application.isPlaying;
+				if (GUILayout.Button ("Restore (Experimental)", GUILayout.Width (150), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
+					const string notice = "This function will attempt to detect and restore lost references inside the SettingAsset.\n" +
+										  "But it may just as well break the asset. It is recommended to make a backup before proceeding.";
+					if (EditorUtility.DisplayDialog ("Notice", notice, "Proceed", "Cancel")) {
+						Restore (Asset);
+					}
+				}
+				GUI.enabled = true;
 			}
-			GUI.enabled = true;
 
 			GUILayout.FlexibleSpace ();
 
-			if (GUILayout.Button (new GUIContent ("Asset List"), GUILayout.Height (EditorGUIUtility.singleLineHeight), GUILayout.Width (150))) {
+			if (GUILayout.Button (new GUIContent ("Asset List"), GUILayout.Height (EditorGUIUtility.singleLineHeight))) {
 				returnToList = true;
 			}
 
@@ -411,11 +425,12 @@ namespace Zenvin.Settings.Framework {
 					return;
 			}
 
-			GUILayout.Space (10);
 
-			editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
 			if (Application.isPlaying) {
+				GUILayout.Space (10);
+				DrawHorizonalSeparator ();
 
+				editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
 				// draw read-only runtime information
 				if (editor.target is SettingBase s) {
 					EditorGUILayout.LabelField ("Default Value", s.DefaultValueRaw?.ToString () ?? "", EditorStyles.textField);
@@ -426,16 +441,74 @@ namespace Zenvin.Settings.Framework {
 					GUILayout.Space (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
 					EditorGUILayout.LabelField ("Order in Group", s.OrderInGroup.ToString (), EditorStyles.textField);
 				}
+				EditorGUILayout.EndScrollView ();
 
 			} else {
+				editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
 
 				// draw default inspector to allow for custom properties in settings
-				editor.DrawDefaultInspector ();
-				editor.serializedObject.ApplyModifiedProperties ();
-				EditorUtility.SetDirty (editor.target);
+				GUILayout.Space (20);
+				DrawHorizonalSeparator ();
 
+				editor.DrawDefaultInspector ();
+				if (editor.serializedObject.ApplyModifiedProperties ()) {
+					EditorUtility.SetDirty (editor.target);
+				}
+
+				var componentsCollectionProperty = editor.serializedObject.FindProperty ("components");
+				var componentsProperty = componentsCollectionProperty.FindPropertyRelative ("components");
+				if (componentsProperty.arraySize > 0) {
+					GUILayout.Space (20);
+					DrawHorizonalSeparator ();
+
+					while (componentEditors.Count < componentsProperty.arraySize)
+						componentEditors.Add (null);
+
+					for (int i = 0; i < componentsProperty.arraySize; i++) {
+						var componentProperty = componentsProperty.GetArrayElementAtIndex (i);
+						var component = componentProperty.objectReferenceValue;
+						if (component == null)
+							continue;
+
+						var title = new GUIContent (
+							$"Component: {ToEditorSpelling (componentProperty.objectReferenceValue.GetType ().Name)}",
+							AssetPreview.GetMiniThumbnail (component)
+						);
+						componentProperty.isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup (
+							componentProperty.isExpanded,
+							title,
+							null,
+							r => {
+								var gm = new GenericMenu ();
+								gm.AddItem (
+									new GUIContent ("Remove Component"),
+									false,
+									DeleteComponent,
+									new DeleteComponentData {
+										Container = editor.target as ComposedFrameworkObject,
+										Component = component as FrameworkComponent,
+										Index = i,
+									}
+								);
+								gm.DropDown (r);
+							}
+						);
+
+						if (componentProperty.isExpanded) {
+							var componentEditor = componentEditors[i];
+							if (componentEditor == null || componentEditor.target != component) {
+								componentEditor = componentEditors[i] = Editor.CreateEditor (component);
+							}
+							componentEditor.DrawDefaultInspector ();
+							GUILayout.Space (10);
+						}
+
+						EditorGUILayout.EndFoldoutHeaderGroup ();
+					}
+				}
+
+				EditorGUILayout.EndScrollView ();
 			}
-			EditorGUILayout.EndScrollView ();
 
 			EditorGUI.EndDisabledGroup ();
 			GUILayout.EndArea ();
@@ -742,7 +815,6 @@ namespace Zenvin.Settings.Framework {
 
 					index++;
 					DrawSetting (setting, indent, index, i);
-
 				}
 			}
 
@@ -880,9 +952,9 @@ namespace Zenvin.Settings.Framework {
 
 			// only allow changing menus to be shown during edit-time
 			if (!Application.isPlaying) {
-
 				PopulateSettingTypeMenu (gm, group);
 				PopulateGroupsTypeMenu (gm, group);
+				PopulateComponentTypeMenu (gm, group, "Add Component/");
 
 				if (group != Asset) {
 					gm.AddSeparator ("");
@@ -965,10 +1037,26 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private void PopulateComponentTypeMenu (GenericMenu gm, ComposedFrameworkObject container, string prefix = null) {
+			if (gm == null || container == null)
+				return;
+
+			var types = TypeCache.GetTypesDerivedFrom<FrameworkComponent> ();
+			foreach (var compType in types) {
+				if (ShouldComponentTypeBeValidForContainer (compType, container)) {
+					gm.AddItem (
+						new GUIContent ($"{prefix}{(string.IsNullOrWhiteSpace (compType.Namespace) ? "<Global>" : compType.Namespace)}/{compType.Name}"),
+						false, CreateComponent, new CreateComponentData { ComponentType = compType, Container = container }
+					);
+				}
+			}
+		}
+
 		private void ShowSettingMenu (SettingBase setting) {
 			GenericMenu gm = new GenericMenu ();
 
 			if (!Application.isPlaying) {
+				PopulateComponentTypeMenu (gm, setting, "Add Component/");
 				gm.AddItem (new GUIContent ("Duplicate Setting"), false, DuplicateSetting, setting);
 				gm.AddSeparator ("");
 				gm.AddItem (new GUIContent ("Delete Setting"), false, DeleteSetting, setting);
@@ -1098,6 +1186,38 @@ namespace Zenvin.Settings.Framework {
 		}
 
 
+		// Creating and deleting Components
+
+		private void CreateComponent (object data) {
+			if (!(data is CreateComponentData d))
+				return;
+
+			AssetUtility.ConditionalCreateAsPartOf<FrameworkComponent> (
+				Asset,
+				d.ComponentType,
+				d.Container.TryAddComponent,
+				c => {
+					c.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+					c.name = $"{d.ComponentType.FullName} ({d.Container})";
+				},
+				"Add component"
+			);
+		}
+
+		private void DeleteComponent (object data) {
+			if (!(data is DeleteComponentData d))
+				return;
+			if (d.Container == null)
+				return;
+
+			if (!d.Container.RemoveComponent (d.Component))
+				return;
+
+			AssetDatabase.RemoveObjectFromAsset (d.Component);
+			AssetUtility.DestroyReliable (d.Component);
+		}
+
+
 		// Helper Methods
 
 		public static bool MakeHorizontalDragRect (ref Rect rect, float min, float max, float size = 5f, Color? color = null) {
@@ -1204,6 +1324,30 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private bool ShouldComponentTypeBeValidForContainer (Type componentType, ComposedFrameworkObject container) {
+			if (componentType == null)
+				return false;
+			if (container == null)
+				return false;
+
+			if (componentType.IsAbstract)
+				return false;
+			if (componentType.IsGenericType)
+				return false;
+
+			var typedCompBase = typeof (TypedFrameworkComponent<>);
+			var compType = componentType;
+			Type requireContainerType = null;
+			while (compType != null && requireContainerType == null) {
+				if (compType.IsConstructedGenericType && compType.GetGenericTypeDefinition () == typedCompBase) {
+					requireContainerType = compType.GetGenericArguments ()[0];
+				}
+				compType = compType.BaseType;
+			}
+
+			return requireContainerType == null || requireContainerType.IsAssignableFrom (container.GetType ());
+		}
+
 		private int Compare (Type a, Type b) {
 			return a.FullName.CompareTo (b.FullName);
 		}
@@ -1218,6 +1362,11 @@ namespace Zenvin.Settings.Framework {
 			} else {
 				return index % 2 == 0 ? hierarchyColorA : hierarchyColorB;
 			}
+		}
+
+		private static void DrawHorizonalSeparator () {
+			var rect = EditorGUILayout.GetControlRect (false, GUILayout.Height (1f), GUILayout.ExpandWidth (true));
+			EditorGUI.DrawRect (rect, separatorColor);
 		}
 
 		private void ExpandToSelection (bool collapseOthers) {
@@ -1467,6 +1616,7 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+
 		private class NewSettingData {
 			public readonly Type SettingType;
 			public SettingsGroup Group;
@@ -1477,5 +1627,15 @@ namespace Zenvin.Settings.Framework {
 			}
 		}
 
+		private class CreateComponentData {
+			public Type ComponentType;
+			public ComposedFrameworkObject Container;
+		}
+
+		private class DeleteComponentData {
+			public ComposedFrameworkObject Container;
+			public FrameworkComponent Component;
+			public int Index;
+		}
 	}
 }

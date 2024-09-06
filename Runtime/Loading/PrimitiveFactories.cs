@@ -10,7 +10,7 @@ namespace Zenvin.Settings.Loading {
 		}
 
 		SettingBase ISettingFactory.CreateSettingFromType (string defaultValue, StringValuePair[] values) {
-			return BoolSetting.CreateInstanceWithValues<BoolSetting> (bool.Parse (defaultValue), values);
+			return BoolSetting.CreateInstanceWithValues<BoolSetting> (bool.TryParse (defaultValue, out bool val) && val, values);
 		}
 	}
 

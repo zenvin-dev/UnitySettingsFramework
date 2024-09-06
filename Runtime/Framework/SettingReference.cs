@@ -7,21 +7,31 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	[Serializable]
 	public class SettingReference<T> {
-
-		[SerializeField] private protected SettingBase<T> settingObj = null;
+		private SettingBase<T>.ValueChangedEvent valueChanged;
+		
+		[SerializeField] private SettingBase<T> settingObj = null;
 		[SerializeField] private protected T fallbackValue = default;
 
 
 		/// <summary>
-		/// Exposes the wrapped Setting's <see cref="SettingBase{T}.ValueChanged"/> event.<br></br>
-		/// (Un-)Subscribing while no <see cref="SettingBase{T}"/> is referenced will not have an effect.
+		/// Relays the wrapped Setting's <see cref="SettingBase{T}.ValueChanged"/> event.<br></br>
 		/// </summary>
+		/// <remarks>
+		/// Events cannot be added when the game is not running.
+		/// </remarks>
 		public event SettingBase<T>.ValueChangedEvent ValueChanged {
 			add {
-				if (HasSetting) settingObj.ValueChanged += value;
+				if (!Application.isPlaying)
+					return;
+
+				if (settingObj != null) {
+					settingObj.ValueChanged -= ReferenceValueChangedHandler;
+					settingObj.ValueChanged += ReferenceValueChangedHandler;
+				}
+				valueChanged += value;
 			}
 			remove {
-				if (HasSetting) settingObj.ValueChanged -= value;
+				valueChanged -= value;
 			}
 		}
 
@@ -30,7 +40,7 @@ namespace Zenvin.Settings.Framework {
 		/// <summary> The referenced Setting object. </summary>
 		public virtual SettingBase<T> Setting {
 			get => settingObj;
-			set => settingObj = value;
+			set => SetReference (value);
 		}
 
 		/// <summary> The Fallback value, that is used when no valid <see cref="SettingBase{T}"/> is referenced. </summary>
@@ -46,5 +56,21 @@ namespace Zenvin.Settings.Framework {
 		public SettingReference (T fallbackValue) {
 			this.fallbackValue = fallbackValue;
 		}
+
+
+		private protected void SetReference (SettingBase<T> reference) {
+			if (reference == settingObj)
+				return;
+
+			if (settingObj != null)
+				settingObj.ValueChanged -= ReferenceValueChangedHandler;
+
+			settingObj = reference;
+
+			if (settingObj != null)
+				settingObj.ValueChanged += ReferenceValueChangedHandler;
+		}
+
+		private void ReferenceValueChangedHandler (SettingBase.ValueChangeMode mode) => valueChanged?.Invoke (mode);
 	}
 }

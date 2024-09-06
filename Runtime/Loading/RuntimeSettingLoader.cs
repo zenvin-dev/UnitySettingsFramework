@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenvin.Settings.Framework;
+using Zenvin.Settings.Framework.Components;
+using Object = UnityEngine.Object;
 
 namespace Zenvin.Settings.Loading {
 	/// <summary>
@@ -91,7 +93,7 @@ namespace Zenvin.Settings.Loading {
 			}
 
 			// create group instances from parsed data
-			PopulateGroupDict (options.Asset, options.Data.Groups, options.IconLoader, options.GroupFactories, options.DefaultGroupType);
+			PopulateGroupDict (options);
 
 			// link group instances in hierarchy & store groups that will be integrated directly
 			EstablishGroupRelationships (options.Asset);
@@ -100,7 +102,7 @@ namespace Zenvin.Settings.Loading {
 			desiredParents.Clear ();
 
 			// create settings instances from parsed data
-			IntegrateSettings (options.Asset, options.Data.Settings, options.SettingFactories);
+			IntegrateSettings (options);
 
 			// integrate created root groups into asset
 			IntegrateRootGroups ();
@@ -117,44 +119,49 @@ namespace Zenvin.Settings.Loading {
 			return true;
 		}
 
-		private static void PopulateGroupDict (SettingsAsset asset, GroupData[] groupsData, IGroupIconLoader loader, Dictionary<string, IGroupFactory> groupFactories, Type groupDefault) {
-			foreach (var g in groupsData) {
-				if (asset.IsValidGuid (g.GUID, true) && !groups.ContainsKey (g.GUID)) {
-					SettingsGroup obj;
-					if (!string.IsNullOrEmpty (g.Type) && groupFactories.TryGetValue (g.Type, out IGroupFactory fact)) {
-						obj = fact.CreateGroupFromType (g.Values);
-					} else {
-						if (groupDefault == null) {
-							continue;
-						}
-						obj = ScriptableObject.CreateInstance (groupDefault) as SettingsGroup;
-						obj.External = true;
-					}
+		private static void PopulateGroupDict (SettingLoaderOptions options) {
+			foreach (var g in options.Data.Groups) {
+				if (!options.Asset.IsValidGuid (g.GUID, true) || groups.ContainsKey (g.GUID))
+					continue;
 
-					if (obj == null || !obj.External) {
+				SettingsGroup newGroup;
+				if (!string.IsNullOrEmpty (g.Type) && options.GroupFactories.TryGetValue (g.Type, out IGroupFactory fact)) {
+					newGroup = fact.CreateGroupFromType (g.Values);
+				} else {
+					if (options.DefaultGroupType == null)
 						continue;
-					}
 
-					obj.GUID = g.GUID;
+					newGroup = ScriptableObject.CreateInstance (options.DefaultGroupType) as SettingsGroup;
+					if (newGroup == null)
+						continue;
 
-					obj.Name = g.Name;
-					obj.NameLocalizationKey = g.NameLocalizationKey;
-					obj.Icon = loader?.LoadIconResource (g.IconResource);
-
-					obj.Description = g.Description;
-					obj.DescriptionLocalizationKey = g.DescriptionLocalizationKey;
-
-					obj.SetVisibilityWithoutNotify (g.InitialVisibility);
-
-					groups.Add (g.GUID, obj);
-					desiredParents[g.GUID] = g.ParentGroupGUID;
+					newGroup.External = true;
 				}
+
+				if (newGroup == null || !newGroup.External) {
+					continue;
+				}
+
+				newGroup.GUID = g.GUID;
+
+				newGroup.Name = g.Name;
+				newGroup.NameLocalizationKey = g.NameLocalizationKey;
+				newGroup.Icon = options.IconLoader?.LoadIconResource (g.IconResource);
+
+				newGroup.Description = g.Description;
+				newGroup.DescriptionLocalizationKey = g.DescriptionLocalizationKey;
+
+				newGroup.SetVisibilityWithoutNotify (g.InitialVisibility);
+				CreateComponents (newGroup, g.Components, options.ComponentTypes);
+
+				groups.Add (g.GUID, newGroup);
+				desiredParents[g.GUID] = g.ParentGroupGUID;
 			}
 		}
 
 		private static void EstablishGroupRelationships (SettingsAsset asset) {
 			foreach (var _rel in desiredParents) {
-				SettingsGroup child = groups[_rel.Key];
+				var child = groups[_rel.Key];
 
 				if (groups.TryGetValue (_rel.Value, out SettingsGroup g)) {
 					if (g != child) {
@@ -166,33 +173,42 @@ namespace Zenvin.Settings.Loading {
 			}
 		}
 
-		private static void IntegrateSettings (SettingsAsset asset, SettingData[] settingsData, Dictionary<string, ISettingFactory> settingFactories) {
-			foreach (var s in settingsData) {
-				if (settingFactories.TryGetValue (s.Type, out ISettingFactory fact) && asset.IsValidGuid (s.GUID, false)) {
-					if (!groups.TryGetValue (s.ParentGroupGUID, out SettingsGroup parent)) {
-						asset.TryGetGroupByGUID (s.ParentGroupGUID, out parent);
-					}
+		private static void IntegrateSettings (SettingLoaderOptions options) {
+			var asset = options.Asset;
 
-					if (parent != null) {
-						SettingBase obj = fact.CreateSettingFromType (s.DefaultValue, s.Values);
-						if (obj != null && obj.External) {
+			foreach (var s in options.Data.Settings) {
+				if (!options.SettingFactories.TryGetValue (s.Type, out ISettingFactory fact) || !asset.IsValidGuid (s.GUID, false))
+					continue;
 
-							obj.asset = asset;
-							obj.GUID = s.GUID;
-							obj.OrderInGroup = s.OrderInGroup;
+				if (!groups.TryGetValue (s.ParentGroupGUID, out SettingsGroup parent))
+					asset.TryGetGroupByGUID (s.ParentGroupGUID, out parent);
 
-							obj.Name = s.Name;
-							obj.NameLocalizationKey = s.NameLocalizationKey;
+				if (parent == null)
+					continue;
 
-							obj.Description = s.Description;
-							obj.DescriptionLocalizationKey = s.DescriptionLocalizationKey;
+				var newSetting = fact.CreateSettingFromType (s.DefaultValue, s.Values);
+				if (newSetting == null || !newSetting.External) {
+					Object.Destroy (newSetting);
+					continue;
+				}
 
-							obj.SetVisibilityWithoutNotify (s.InitialVisibility);
+				newSetting.asset = asset;
+				newSetting.GUID = s.GUID;
+				newSetting.OrderInGroup = s.OrderInGroup;
 
-							parent.IntegrateSetting (obj);
+				newSetting.Name = s.Name;
+				newSetting.NameLocalizationKey = s.NameLocalizationKey;
 
-						}
-					}
+				newSetting.Description = s.Description;
+				newSetting.DescriptionLocalizationKey = s.DescriptionLocalizationKey;
+
+				newSetting.SetVisibilityWithoutNotify (s.InitialVisibility);
+				CreateComponents (newSetting, s.Components, options.ComponentTypes);
+
+				if (asset.TryIntegrateSetting (newSetting)) {
+					parent.IntegrateSetting (newSetting);
+				} else {
+					Object.Destroy (newSetting);
 				}
 			}
 		}
@@ -228,11 +244,47 @@ namespace Zenvin.Settings.Loading {
 			rootGroups.Clear ();
 		}
 
+		private static void CreateComponents (ComposedFrameworkObject target, ComponentData[] components, Dictionary<string, Type> componentTypes) {
+			if (target == null || components == null || components.Length == 0 || componentTypes == null)
+				return;
+
+			foreach (var c in components) {
+				if (!componentTypes.TryGetValue (c.Type, out var compType))
+					continue;
+
+				var newComponent = CreateComponent (target, compType, c.Values);
+				if (newComponent == null)
+					continue;
+
+				if (!target.TryAddComponentNoContainerCheck (newComponent))
+					Object.Destroy (newComponent);
+			}
+		}
+
+		private static FrameworkComponent CreateComponent (ComposedFrameworkObject container, Type compType, StringValuePair[] values) {
+			if (compType == null)
+				return null;
+
+			var component = ScriptableObject.CreateInstance (compType) as FrameworkComponent;
+			if (component == null)
+				return null;
+
+			component.External = true;
+			component.BaseContainer = container;
+			component.OnCreateWithValues (values);
+			return component;
+		}
+
 
 		/// <summary>
 		/// A helper struct wrapping either a <see cref="ISettingFactory"/> or a <see cref="IGroupFactory"/> instance, so they can be passed into methods uniformly.
 		/// </summary>
 		public struct TypeFactoryWrapper {
+			public enum FactoryResult : byte {
+				Group,
+				Setting,
+			}
+
 			/// <summary> The type to get from the wrapped factory. </summary>
 			public string Type;
 			/// <summary> An instance of a <see cref="ISettingFactory"/>. </summary>
@@ -240,18 +292,30 @@ namespace Zenvin.Settings.Loading {
 			/// <summary> An instance of a <see cref="IGroupFactory"/>. </summary>
 			public IGroupFactory GroupFactory;
 			/// <summary> Switch to determine whether this wrapper is a Group or Setting factory. </summary>
-			public readonly bool IsGroupFactory;
+			public readonly FactoryResult? FactoryType;
 
-			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory, null) { IsGroupFactory = false; }
 
-			public TypeFactoryWrapper (IGroupFactory factory) : this (null, null, factory) { IsGroupFactory = true; }
+			public TypeFactoryWrapper (ISettingFactory factory) : this (null, factory, null) { FactoryType = FactoryResult.Setting; }
+
+			public TypeFactoryWrapper (IGroupFactory factory) : this (null, null, factory) { FactoryType = FactoryResult.Group; }
 
 			private TypeFactoryWrapper (string type, ISettingFactory settingFactory, IGroupFactory groupFactory) {
 				Type = type;
-				SettingFactory = settingFactory;
-				GroupFactory = groupFactory;
-				IsGroupFactory = settingFactory == null;
+				FactoryType = null;
+				SettingFactory = null;
+				GroupFactory = null;
+
+				if (settingFactory != null) {
+					SettingFactory = settingFactory;
+					FactoryType = FactoryResult.Setting;
+
+				} else if (groupFactory != null) {
+					GroupFactory = groupFactory;
+					FactoryType = FactoryResult.Group;
+
+				}
 			}
+
 
 			public static implicit operator TypeFactoryWrapper ((string, ISettingFactory) tuple) {
 				return new TypeFactoryWrapper (tuple.Item1, tuple.Item2, null);

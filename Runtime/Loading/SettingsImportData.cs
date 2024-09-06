@@ -25,6 +25,7 @@ namespace Zenvin.Settings.Loading {
 		public SettingVisibility InitialVisibility;
 
 		public StringValuePair[] Values;
+		public ComponentData[] Components;
 	}
 
 	[Serializable]
@@ -42,6 +43,12 @@ namespace Zenvin.Settings.Loading {
 	public class OverrideData {
 		public string GUID;
 		public UpdateValueMode Update;
+		public StringValuePair[] Values;
+	}
+
+	[Serializable]
+	public class ComponentData {
+		public string Type;
 		public StringValuePair[] Values;
 	}
 }
