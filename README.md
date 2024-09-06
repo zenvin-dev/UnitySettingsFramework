@@ -42,6 +42,7 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 	- Built-in JSON and binary serializers
 - Little memory overhead: Setting objects are **not** cloned during runtime
 - Additional settings can be added during runtime by loading a json string (great for modding support)
+- [Version 3.0.0+] Component-based workflow to allow for easier extending of Setting or Setting Group behaviour
 
 # Installation
 This package can be installed through the Unity Package Manager using the following URL:
