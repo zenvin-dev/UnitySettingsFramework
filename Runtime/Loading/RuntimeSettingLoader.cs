@@ -18,66 +18,6 @@ namespace Zenvin.Settings.Loading {
 
 
 		/// <summary>
-		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.
-		/// </summary>
-		/// <param name="asset"> The <see cref="SettingsAsset"/> to load the additional Settings and Setting Groups into. </param>
-		/// <param name="json"> Information about the new Settings and Setting Groups. </param>
-		/// <param name="iconLoader"> Object for loading Setting Group icons. May be <see langword="null"/>. </param>
-		/// <param name="factories"> An arbitrary number of <see cref="IGroupFactory"/> and <see cref="ISettingFactory"/> instances, along with their names. </param>
-		/// <remarks>
-		/// Can only be used while the game is running.
-		/// </remarks>
-		[Obsolete ("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
-		public static bool LoadSettingsIntoAsset (SettingsAsset asset, string json, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
-			if (string.IsNullOrWhiteSpace (json)) {
-				return false;
-			}
-
-			// parse data from JSON
-			SettingsImportData data;
-			try {
-				data = JsonUtility.FromJson<SettingsImportData> (json);
-			} catch {
-				return false;
-			}
-
-			return LoadSettingsIntoAsset (asset, data, iconLoader, factories);
-		}
-
-		/// <summary>
-		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.<br></br>
-		/// </summary>
-		/// <param name="asset"> The <see cref="SettingsAsset"/> to load the additional Settings and Setting Groups into. </param>
-		/// <param name="data"> Information about the new Settings and Setting Groups. </param>
-		/// <param name="iconLoader"> Object for loading Setting Group icons. May be <see langword="null"/>. </param>
-		/// <param name="factories"> An arbitrary number of <see cref="IGroupFactory"/> and <see cref="ISettingFactory"/> instances, along with their names. </param>
-		/// <remarks>
-		/// Can only be used while the game is running.
-		/// </remarks>
-		[Obsolete ("Use LoadSettingsIntoAsset(SettingLoaderOptions) instead.", false)]
-		public static bool LoadSettingsIntoAsset (SettingsAsset asset, SettingsImportData data, IGroupIconLoader iconLoader, params TypeFactoryWrapper[] factories) {
-			if (!Application.isPlaying) {
-				return false;
-			}
-
-			if (asset == null || factories == null || factories.Length == 0) {
-				return false;
-			}
-
-			if (data.Settings == null || data.Settings.Length == 0 || data.Groups == null) {
-				return false;
-			}
-
-			var options = new SettingLoaderOptions (asset)
-				.WithData (data)
-				.WithTypeFactories (factories)
-				.WithDefaultGroupType<SettingsGroup> ()
-				.WithIconLoader (iconLoader);
-
-			return LoadSettingsIntoAsset (options);
-		}
-
-		/// <summary>
 		/// Attempts to add Settings and Setting Groups to a given <see cref="SettingsAsset"/>.<br></br>
 		/// </summary>
 		/// <remarks>
