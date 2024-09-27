@@ -1165,6 +1165,9 @@ namespace Zenvin.Settings.Framework {
 				if (g.Parent != null) {
 					g.Parent.RemoveChildGroup (g);
 				}
+
+				DeleteComponents (g);
+
 				DestroyImmediate (g, true);
 				DirtyAsset ();
 				AssetDatabase.Refresh ();
@@ -1175,6 +1178,7 @@ namespace Zenvin.Settings.Framework {
 
 		private void DeleteSetting (object setting) {
 			if (setting is SettingBase s) {
+				DeleteComponents (s);
 				s.group.RemoveSetting (s);
 
 				DestroyImmediate (s, true);
@@ -1182,6 +1186,19 @@ namespace Zenvin.Settings.Framework {
 				AssetDatabase.Refresh ();
 				AssetDatabase.SaveAssets ();
 				Repaint ();
+			}
+		}
+
+		private void DeleteComponents (ComposedFrameworkObject container) {
+			if (container == null)
+				return;
+
+			var enumerator = container.RemoveAllComponentsInteractive ();
+			while (enumerator.MoveNext ()) {
+				var current = enumerator.Current;
+
+				AssetDatabase.RemoveObjectFromAsset (current);
+				AssetUtility.DestroyReliable (current);
 			}
 		}
 
@@ -1197,7 +1214,6 @@ namespace Zenvin.Settings.Framework {
 				d.ComponentType,
 				d.Container.TryAddComponent,
 				c => {
-					c.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
 					c.name = $"{d.ComponentType.FullName} ({d.Container})";
 				},
 				"Add component"

@@ -48,6 +48,15 @@ namespace Zenvin.Settings.Framework {
 			return components.Remove (this, component);
 		}
 
+		internal IEnumerator<FrameworkComponent> RemoveAllComponentsInteractive () {
+			while (components.Count > 0) {
+				var index = components.Count - 1;
+				if (components.RemoveAt (this, index, out var comp)) {
+					yield return comp;
+				}
+			}
+		}
+
 		internal void InitializeComponents () {
 			for (int i = 0; i < components.Count; i++) {
 				if (components[i] != null) {

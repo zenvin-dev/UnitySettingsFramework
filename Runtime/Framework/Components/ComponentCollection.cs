@@ -42,6 +42,22 @@ namespace Zenvin.Settings.Framework.Components {
 			return true;
 		}
 
+		internal bool RemoveAt (ComposedFrameworkObject container, int index, out FrameworkComponent removed) {
+			removed = null;
+			if (container == null)
+				return false;
+			if (index < 0 || index >= components.Count)
+				return false;
+
+			removed = components[index];
+			if (removed.BaseContainer != null && removed.BaseContainer != container)
+				return false;
+
+			components.RemoveAt (index);
+			removed.BaseContainer = container;
+			return true;
+		}
+
 		internal void OnValueChanging (SettingBase setting, SettingBase.ValueChangeMode mode) {
 			if (components == null || components.Count == 0 || setting == null)
 				return;
