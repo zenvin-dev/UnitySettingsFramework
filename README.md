@@ -47,7 +47,7 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 # Installation
 This package can be installed through the Unity Package Manager using the following URL:
 ```
-https://github.com/xZenvin/UnitySettingsFramework.git
+https://github.com/zenvin-dev/UnitySettingsFramework.git
 ```
 Or you could download the ZIP Archive, unpack it, and add the contents to your Unity project's "Assets" directory.
 
@@ -390,7 +390,7 @@ public class SettingsMenu : MonoBehaviour
 	}
 }
 ```
-This could be expanded to utilize the Settings' group structure to implement tabs and/or headers in the menu as well. Have a look into [SettingsMenu.cs](https://github.com/xZenvin/UnitySettingsFramework/blob/main/Samples~/Settings%20Menu/Scripts/SettingsMenu.cs) to see how that might work.
+This could be expanded to utilize the Settings' group structure to implement tabs and/or headers in the menu as well. Have a look into [SettingsMenu.cs](https://github.com/zenvin-dev/UnitySettingsFramework/blob/main/Samples~/Settings%20Menu/Scripts/SettingsMenu.cs) to see how that might work.
 
 ## 6. Creating a SettingControl for a specific Setting type
 In **Example 1**, we implemented a Setting to represent a dropdown. In order to properly display it on UI, a SettingControl is required that can take that Setting's values and represent them.
