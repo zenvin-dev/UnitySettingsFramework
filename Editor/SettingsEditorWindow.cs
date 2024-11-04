@@ -268,12 +268,7 @@ namespace Zenvin.Settings.Framework {
 				Asset = CreateInstance<SettingsAsset> ();
 				AssetDatabase.CreateAsset (Asset, path);
 
-#if UNITY_2021_1_OR_NEWER
-				AssetDatabase.SaveAssetIfDirty (Asset);
-#else
-				AssetDatabase.SaveAssets ();
-#endif
-
+				SaveAssetIfDirty (Asset);
 				AssetDatabase.Refresh ();
 				return;
 			}
@@ -1307,6 +1302,14 @@ namespace Zenvin.Settings.Framework {
 			return null;
 		}
 
+		private static void SaveAssetIfDirty (Object asset) {
+#if UNITY_2021_1_OR_NEWER
+			AssetDatabase.SaveAssetIfDirty (asset);
+#else
+			AssetDatabase.SaveAssets ();
+#endif
+		}
+
 		private void LoadViableTypes () {
 			if (viableSettingTypes != null && viableGroupTypes != null) {
 				return;
@@ -1523,7 +1526,7 @@ namespace Zenvin.Settings.Framework {
 				}
 			}
 
-			AssetDatabase.SaveAssetIfDirty (asset);
+			SaveAssetIfDirty (asset);
 			AssetDatabase.Refresh ();
 			Debug.Log ($"[Settings Framework] (Experimental) Restoration modified '{path}'.");
 
@@ -1532,17 +1535,17 @@ namespace Zenvin.Settings.Framework {
 				Debug.Log ("[Settings Framework] (Experimental) Attempting to reserialize asset. (This sometimes is enough to restore references)");
 
 				EditorUtility.SetDirty (asset);
-				AssetDatabase.SaveAssetIfDirty (asset);
+				SaveAssetIfDirty (asset);
 
 				asset.groups.Add (null);
 
 				EditorUtility.SetDirty (asset);
-				AssetDatabase.SaveAssetIfDirty (asset);
+				SaveAssetIfDirty (asset);
 
 				asset.groups.RemoveAt (asset.groups.Count - 1);
 
 				EditorUtility.SetDirty (asset);
-				AssetDatabase.SaveAssetIfDirty (asset);
+				SaveAssetIfDirty (asset);
 
 				AssetDatabase.Refresh ();
 			}
