@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Zenvin.Settings.Framework {
@@ -6,6 +7,7 @@ namespace Zenvin.Settings.Framework {
 	/// </summary>
 	public abstract class FrameworkObject : ScriptableObject {
 
+		[NonSerialized] private bool wasInitialized;
 		[SerializeField, HideInInspector] private string guid = null;
 		[SerializeField, HideInInspector] private bool external = false;
 
@@ -20,6 +22,12 @@ namespace Zenvin.Settings.Framework {
 		public bool External {
 			get => external;
 			internal set => external = value;
+		}
+
+		/// <summary> Whether the object has already been initialized. </summary>
+		public bool Initialized {
+			get => wasInitialized;
+			private protected set => wasInitialized = value;
 		}
 	}
 }

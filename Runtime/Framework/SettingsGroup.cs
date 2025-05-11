@@ -484,6 +484,13 @@ namespace Zenvin.Settings.Framework {
 			PropagateVisiblityEvent (this);
 		}
 
+		private protected void Uninitialize () {
+			Initialized = false;
+			if (Parent != null) {
+				Parent.Uninitialize ();
+			}
+		}
+
 
 		private static void PropagateVisiblityEvent (SettingsGroup group) {
 			if (group == null) {

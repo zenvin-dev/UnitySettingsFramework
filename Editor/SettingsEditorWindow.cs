@@ -442,7 +442,6 @@ namespace Zenvin.Settings.Framework {
 				editorScroll = EditorGUILayout.BeginScrollView (editorScroll, false, false);
 
 				// draw default inspector to allow for custom properties in settings
-				GUILayout.Space (20);
 				DrawHorizonalSeparator ();
 
 				editor.DrawDefaultInspector ();
@@ -515,7 +514,7 @@ namespace Zenvin.Settings.Framework {
 
 			// display runtime information on root asset
 			if (group == Asset && Application.isPlaying) {
-				GUILayout.Space (10);
+				GUILayout.Space (EditorGUIUtility.singleLineHeight);
 				EditorGUILayout.LabelField ("Registered Groups", Asset.RegisteredGroupsCount.ToString (), EditorStyles.textField);
 				EditorGUILayout.LabelField ("Registered Settings", Asset.RegisteredSettingsCount.ToString (), EditorStyles.textField);
 				EditorGUILayout.LabelField ("Dirty Settings", Asset.DirtySettingsCount.ToString (), EditorStyles.textField);

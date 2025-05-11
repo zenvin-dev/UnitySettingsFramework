@@ -15,7 +15,7 @@ namespace Zenvin.Settings.Framework {
 			settingsDict.Clear ();
 			groupsDict.Clear ();
 			dirtySettings.Clear ();
-			initialized = false;
+			Initialized = false;
 
 			Log ("[Editor] Reset initialization state.");
 		}

@@ -31,14 +31,11 @@ namespace Zenvin.Settings.Framework {
 		[NonSerialized] private readonly Dictionary<string, SettingsGroup> groupsDict = new Dictionary<string, SettingsGroup> ();
 
 		[NonSerialized] private readonly HashSet<SettingBase> dirtySettings = new HashSet<SettingBase> ();
-		[NonSerialized] private bool initialized = false;
 
 		[SerializeField, Min (0)] private int orderStep = 100;
 		[SerializeField] private bool enableDebugLogging = false;
 		[SerializeField] private bool enableErrorLogging = true;
 
-		/// <summary> Whether the asset has been initialized. </summary>
-		public bool Initialized => initialized;
 		/// <summary> The number of Settings registered in the asset. Returns 0 if the asset is not initialized. </summary>
 		public int RegisteredSettingsCount => settingsDict.Count;
 		/// <summary> The number of Groups registered in the asset. Returns 0 if the asset is not initialized. </summary>
@@ -63,7 +60,7 @@ namespace Zenvin.Settings.Framework {
 				return;
 			}
 
-			initialized = true;
+			Initialized = true;
 			OnBeforeInitialize ();
 
 			RegisterAndInitializeRecursively (this, groupsDict, settingsDict, false);
@@ -157,14 +154,15 @@ namespace Zenvin.Settings.Framework {
 		/// </summary>
 		/// <param name="sorted"> Whether the list should be sorted. </param>
 		public override List<SettingBase> GetAllSettings (bool sorted = false) {
-			if (initialized) {
-				List<SettingBase> settings = new List<SettingBase> (settingsDict.Values);
-				if (sorted) {
-					settings.Sort ();
-				}
-				return settings;
+			if (!Initialized) {
+				return base.GetAllSettings (sorted);
 			}
-			return base.GetAllSettings (sorted);
+		
+			var settings = new List<SettingBase> (settingsDict.Values);
+			if (sorted) {
+				settings.Sort ();
+			}
+			return settings;
 		}
 
 
@@ -293,7 +291,7 @@ namespace Zenvin.Settings.Framework {
 
 		// Integrating runtime settings post-initialization
 		internal bool TryIntegrateChildGroup (SettingsGroup group) {
-			if (!initialized)
+			if (!Initialized)
 				return false;
 			if (group == null || !group.External)
 				return false;
@@ -307,7 +305,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		internal bool TryIntegrateSetting (SettingBase setting) {
-			if (!initialized)
+			if (!Initialized)
 				return false;
 			if (setting == null || !setting.External)
 				return false;
@@ -321,7 +319,7 @@ namespace Zenvin.Settings.Framework {
 		}
 
 		internal void ProcessRuntimeSettingsIntegration () {
-			if (initialized) {
+			if (Initialized) {
 				OnRuntimeSettingsLoaded?.Invoke (this);
 			}
 		}

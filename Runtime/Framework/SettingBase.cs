@@ -70,11 +70,14 @@ namespace Zenvin.Settings.Framework {
 
 
 		internal void RegisterAndInitialize (SettingsAsset root, Dictionary<string, SettingBase> settingDict, int index) {
+			if (Initialized)
+				return;
 			if (root == null || root != Asset || settingDict == null)
 				return;
 			if (settingDict.ContainsKey (GUID) || string.IsNullOrWhiteSpace (GUID))
 				return;
 
+			Initialized = true;
 			settingDict[GUID] = this;
 			if (!External) {
 				OrderInGroup = -index * root.OrderStep;
