@@ -66,7 +66,7 @@ namespace Zenvin.Settings.Loading {
 
 				SettingsGroup newGroup;
 				if (!string.IsNullOrEmpty (g.Type) && options.GroupFactories.TryGetValue (g.Type, out IGroupFactory fact)) {
-					newGroup = fact.CreateGroupFromType (g.Values);
+					newGroup = fact.CreateGroupFromType (g.Values.ToArray ());
 				} else {
 					if (options.DefaultGroupType == null)
 						continue;
@@ -92,7 +92,7 @@ namespace Zenvin.Settings.Loading {
 				newGroup.DescriptionLocalizationKey = g.DescriptionLocalizationKey;
 
 				newGroup.SetVisibilityWithoutNotify (g.InitialVisibility);
-				CreateComponents (newGroup, g.Components, options.ComponentTypes);
+				CreateComponents (newGroup, g.Components.ToArray (), options.ComponentTypes);
 
 				groups.Add (g.GUID, newGroup);
 				desiredParents[g.GUID] = g.ParentGroupGUID;
@@ -126,7 +126,7 @@ namespace Zenvin.Settings.Loading {
 				if (parent == null)
 					continue;
 
-				var newSetting = fact.CreateSettingFromType (s.DefaultValue, s.Values);
+				var newSetting = fact.CreateSettingFromType (s.DefaultValue, s.Values.ToArray ());
 				if (newSetting == null || !newSetting.External) {
 					Object.Destroy (newSetting);
 					continue;
@@ -143,7 +143,7 @@ namespace Zenvin.Settings.Loading {
 				newSetting.DescriptionLocalizationKey = s.DescriptionLocalizationKey;
 
 				newSetting.SetVisibilityWithoutNotify (s.InitialVisibility);
-				CreateComponents (newSetting, s.Components, options.ComponentTypes);
+				CreateComponents (newSetting, s.Components.ToArray (), options.ComponentTypes);
 
 				if (asset.TryIntegrateSetting (newSetting)) {
 					parent.IntegrateSetting (newSetting);
@@ -161,10 +161,10 @@ namespace Zenvin.Settings.Loading {
 			}
 		}
 
-		private static void ApplyDefaultOverrides (SettingsAsset asset, OverrideData[] defaultOverrides, bool overrideDefaults) {
+		private static void ApplyDefaultOverrides (SettingsAsset asset, List<OverrideData> defaultOverrides, bool overrideDefaults) {
 			if (!overrideDefaults)
 				return;
-			if (defaultOverrides == null || defaultOverrides.Length == 0)
+			if (defaultOverrides == null || defaultOverrides.Count == 0)
 				return;
 
 			foreach (var o in defaultOverrides) {
@@ -174,7 +174,7 @@ namespace Zenvin.Settings.Loading {
 				if (!asset.TryGetSettingByGUID (o.GUID, out var setting))
 					continue;
 
-				setting.OverrideDefaultValue (o.Values, o.Update);
+				setting.OverrideDefaultValue (o.Values.ToArray (), o.Update);
 			}
 		}
 
@@ -192,7 +192,7 @@ namespace Zenvin.Settings.Loading {
 				if (!componentTypes.TryGetValue (c.Type, out var compType))
 					continue;
 
-				var newComponent = CreateComponent (target, compType, c.Values);
+				var newComponent = CreateComponent (target, compType, c.Values.ToArray ());
 				if (newComponent == null)
 					continue;
 

@@ -36,7 +36,7 @@ namespace Zenvin.Settings.Loading {
 		public bool OverrideDefaults { get; private set; } = true;
 
 		/// <summary> Determines whether the options are valid. </summary>
-		public bool IsValid => Asset != null && SettingFactories.Count > 0 && Data != null && Data.Settings != null && Data.Settings.Length > 0;
+		public bool IsValid => Asset != null && SettingFactories.Count > 0 && Data != null && Data.Settings != null && Data.Settings.Count > 0;
 
 
 		private SettingLoaderOptions () { }

@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using Zenvin.Settings.Framework;
 
 namespace Zenvin.Settings.Loading {
 	[Serializable]
 	public class SettingsImportData {
-		public GroupData[] Groups;
-		public SettingData[] Settings;
-		public OverrideData[] DefaultOverrides;
+		public List<GroupData> Groups;
+		public List<SettingData> Settings;
+		public List<OverrideData> DefaultOverrides;
 	}
 
 	[Serializable]
@@ -24,8 +25,8 @@ namespace Zenvin.Settings.Loading {
 
 		public SettingVisibility InitialVisibility;
 
-		public StringValuePair[] Values;
-		public ComponentData[] Components;
+		public List<StringValuePair> Values;
+		public List<ComponentData> Components;
 	}
 
 	[Serializable]
@@ -43,12 +44,12 @@ namespace Zenvin.Settings.Loading {
 	public class OverrideData {
 		public string GUID;
 		public UpdateValueMode Update;
-		public StringValuePair[] Values;
+		public List<StringValuePair> Values;
 	}
 
 	[Serializable]
 	public class ComponentData {
 		public string Type;
-		public StringValuePair[] Values;
+		public List<StringValuePair> Values;
 	}
 }
