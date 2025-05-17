@@ -6,6 +6,17 @@ To do so, it uses [Scriptable Objects](https://docs.unity3d.com/Manual/class-Scr
 \
 **The package will not work in pre-2020.1 versions!**
 
+> [!NOTE]
+> The former `main` branch has been renamed to `main-legacy-2022` as I intend to rebuild core parts of the Framework soon™. \
+> <ins>At its current state, the branch will still be functional and can be used.</ins> \
+> However, there are several points about the Framework that I do not deem ideal anymore and would like to improve:
+> - The versioning of the repo/package is not coherent enough for releases
+> - The components system was an afterthought and should be integrated better
+> - Separating Settings and Groups into individual lists makes the structure of generated menus too rigid
+> - The initialization routine is too convoluted (partially as a result of the previous two points)
+> - Loading Settings on runtime works but seems too restrictive for its intended use (modding)
+> - The UX of the hierarchy in the IMGUI editor window is not as good as I would like it to be
+
 ## Table of contents
 - [Features](#features)
 - [Installation](#installation)
